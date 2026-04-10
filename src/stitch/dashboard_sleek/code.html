@@ -1,507 +1,751 @@
 <!DOCTYPE html>
-
-<html class="light" lang="en"><head>
+<html lang="en" class="light">
+<head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>
-<title>EdiPro - EDI Gateway</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "on-error": "#ffffff",
-                        "surface-container-lowest": "#ffffff",
-                        "tertiary-fixed": "#e2dfff",
-                        "on-primary-fixed": "#001a41",
-                        "surface-tint": "#005bc1",
-                        "primary-container": "#0070eb",
-                        "on-tertiary-fixed": "#0c006b",
-                        "on-secondary-container": "#626267",
-                        "on-primary-container": "#fefcff",
-                        "on-secondary-fixed": "#1a1b1f",
-                        "surface-bright": "#f9f9fb",
-                        "tertiary-fixed-dim": "#c2c1ff",
-                        "primary": "#0058bc",
-                        "on-primary": "#ffffff",
-                        "background": "#f9f9fb",
-                        "surface-container-low": "#f3f3f5",
-                        "inverse-on-surface": "#f0f0f2",
-                        "on-error-container": "#93000a",
-                        "tertiary-container": "#6462ec",
-                        "outline-variant": "#c1c6d7",
-                        "primary-fixed": "#d8e2ff",
-                        "secondary": "#5d5e63",
-                        "secondary-container": "#e0dfe4",
-                        "secondary-fixed": "#e3e2e7",
-                        "surface-variant": "#e2e2e4",
-                        "inverse-surface": "#2f3132",
-                        "surface": "#f9f9fb",
-                        "primary-fixed-dim": "#adc6ff",
-                        "on-primary-fixed-variant": "#004493",
-                        "inverse-primary": "#adc6ff",
-                        "error-container": "#ffdad6",
-                        "outline": "#717786",
-                        "on-surface-variant": "#414755",
-                        "on-tertiary": "#ffffff",
-                        "on-tertiary-container": "#fffbff",
-                        "surface-container-highest": "#e2e2e4",
-                        "surface-dim": "#d9dadc",
-                        "on-secondary-fixed-variant": "#46464b",
-                        "error": "#ba1a1a",
-                        "on-background": "#1a1c1d",
-                        "on-tertiary-fixed-variant": "#332dbc",
-                        "surface-container": "#eeeef0",
-                        "on-secondary": "#ffffff",
-                        "secondary-fixed-dim": "#c6c6cb",
-                        "tertiary": "#4a47d2",
-                        "on-surface": "#1a1c1d",
-                        "surface-container-high": "#e8e8ea"
-                    },
-                    fontFamily: {
-                        "headline": ["Inter"],
-                        "body": ["Inter"],
-                        "label": ["Inter"]
-                    },
-                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
-                },
-            },
-        }
-    </script>
+<title>EdiPro — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <style>
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        .drag-zone-glow {
-            box-shadow: 0 0 40px -10px rgba(0, 88, 188, 0.15);
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #e2e2e4;
-            border-radius: 10px;
-        }
-    </style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f5f7;
+    --bg2: #ffffff;
+    --surface: rgba(255,255,255,0.8);
+    --surface-solid: #ffffff;
+    --surface-hover: rgba(255,255,255,0.95);
+    --sidebar: rgba(250,250,252,0.92);
+    --nav: rgba(255,255,255,0.85);
+    --border: rgba(0,0,0,0.07);
+    --text-primary: #1d1d1f;
+    --text-secondary: #6e6e73;
+    --text-tertiary: #86868b;
+    --accent: #0071e3;
+    --accent-dim: rgba(0,113,227,0.08);
+    --accent-text: #ffffff;
+    --success: #30d158;
+    --success-dim: rgba(48,209,88,0.1);
+    --warning: #ffd60a;
+    --warning-dim: rgba(255,214,10,0.12);
+    --danger: #ff453a;
+    --danger-dim: rgba(255,69,58,0.1);
+    --purple: #bf5af2;
+    --purple-dim: rgba(191,90,242,0.1);
+    --shadow-sm: 0 2px 10px rgba(0,0,0,0.05);
+    --shadow-md: 0 8px 32px rgba(0,0,0,0.08);
+    --shadow-lg: 0 20px 60px rgba(0,0,0,0.10);
+    --glow: rgba(0,113,227,0.12);
+    --divider: rgba(0,0,0,0.06);
+    --card-radius: 18px;
+    --scrollbar: rgba(0,0,0,0.12);
+  }
+
+  html.dark {
+    --bg: #000000;
+    --bg2: #0a0a0a;
+    --surface: rgba(28,28,30,0.9);
+    --surface-solid: #1c1c1e;
+    --surface-hover: rgba(38,38,42,0.95);
+    --sidebar: rgba(18,18,20,0.95);
+    --nav: rgba(12,12,14,0.92);
+    --border: rgba(255,255,255,0.07);
+    --text-primary: #f5f5f7;
+    --text-secondary: #98989d;
+    --text-tertiary: #636366;
+    --accent: #2997ff;
+    --accent-dim: rgba(41,151,255,0.1);
+    --accent-text: #ffffff;
+    --success: #30d158;
+    --success-dim: rgba(48,209,88,0.12);
+    --warning: #ffd60a;
+    --warning-dim: rgba(255,214,10,0.1);
+    --danger: #ff453a;
+    --danger-dim: rgba(255,69,58,0.12);
+    --purple: #bf5af2;
+    --purple-dim: rgba(191,90,242,0.12);
+    --shadow-sm: 0 2px 10px rgba(0,0,0,0.3);
+    --shadow-md: 0 8px 32px rgba(0,0,0,0.4);
+    --shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
+    --glow: rgba(41,151,255,0.1);
+    --divider: rgba(255,255,255,0.05);
+    --scrollbar: rgba(255,255,255,0.1);
+  }
+
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.4s, color 0.4s;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* --- Scrollbar --- */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 99px; }
+
+  /* --- TOP NAV --- */
+  .topnav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    height: 56px;
+    background: var(--nav);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px 0 0;
+    transition: background 0.4s, border-color 0.4s;
+  }
+  .topnav-left { display: flex; align-items: center; gap: 0; }
+  .sidebar-toggle {
+    width: 56px; height: 56px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.2s, background 0.2s;
+    border-radius: 0;
+  }
+  .sidebar-toggle:hover { color: var(--text-primary); background: var(--accent-dim); }
+  .sidebar-toggle .material-symbols-rounded { font-size: 22px; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
+  .brand-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent) 0%, #bf5af2 100%);
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .brand-icon .material-symbols-rounded { font-size: 18px; color: #fff; font-variation-settings: 'FILL' 1; }
+  .brand-name { font-size: 17px; font-weight: 800; letter-spacing: -0.4px; color: var(--text-primary); }
+  .brand-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-tertiary); margin-left: 2px; }
+
+  .topnav-right { display: flex; align-items: center; gap: 6px; }
+  .nav-icon-btn {
+    width: 36px; height: 36px;
+    background: none; border: none; cursor: pointer;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary);
+    transition: color 0.2s, background 0.2s;
+  }
+  .nav-icon-btn:hover { color: var(--text-primary); background: var(--accent-dim); }
+  .nav-icon-btn .material-symbols-rounded { font-size: 20px; }
+  .theme-toggle-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--accent-dim);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px 5px 8px;
+    cursor: pointer;
+    color: var(--accent);
+    font-size: 12px; font-weight: 700;
+    transition: all 0.2s;
+  }
+  .theme-toggle-btn:hover { background: var(--accent); color: #fff; }
+  .theme-toggle-btn .material-symbols-rounded { font-size: 16px; transition: transform 0.4s; }
+  .theme-toggle-btn:hover .material-symbols-rounded { transform: rotate(20deg); }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.2s;
+    flex-shrink: 0;
+  }
+  .avatar:hover { border-color: var(--accent); }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* --- SIDEBAR --- */
+  .sidebar {
+    position: fixed; top: 56px; left: 0; bottom: 0;
+    width: 240px; z-index: 150;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    display: flex; flex-direction: column;
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), background 0.4s, border-color 0.4s;
+    overflow: hidden;
+  }
+  .sidebar.collapsed { transform: translateX(-240px); }
+  .sidebar-content { flex: 1; overflow-y: auto; padding: 16px 10px; }
+  .nav-section-label { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-tertiary); padding: 4px 12px 8px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px;
+    border-radius: 11px;
+    font-size: 14px; font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    margin-bottom: 2px;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--accent-dim); color: var(--text-primary); }
+  .nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
+  .nav-item .material-symbols-rounded { font-size: 20px; flex-shrink: 0; }
+  .nav-item.active .material-symbols-rounded { font-variation-settings: 'FILL' 1; }
+  .nav-badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 10px; font-weight: 800; padding: 1px 7px; border-radius: 99px; }
+  .sidebar-bottom { padding: 12px 10px; border-top: 1px solid var(--divider); }
+  .new-submission-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 16px;
+    font-size: 14px; font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px var(--glow);
+  }
+  .new-submission-btn:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 6px 24px var(--glow); }
+  .new-submission-btn:active { transform: scale(0.98); }
+  .new-submission-btn .material-symbols-rounded { font-size: 18px; }
+
+  /* --- MAIN CONTENT --- */
+  .main {
+    margin-left: 240px;
+    margin-top: 56px;
+    min-height: calc(100vh - 56px);
+    padding: 28px 28px 40px;
+    transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .main.expanded { margin-left: 0; }
+
+  /* --- PAGE HEADER --- */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
+  .page-header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.6px; color: var(--text-primary); }
+  .page-header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; font-weight: 400; }
+  .header-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .stat-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 16px;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm);
+  }
+  .stat-pill .stat-val { font-size: 18px; font-weight: 800; color: var(--text-primary); }
+  .stat-pill .stat-lbl { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-blue { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .dot-green { background: var(--success); box-shadow: 0 0 6px var(--success); }
+
+  /* --- LAYOUT GRID --- */
+  .layout-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
+  @media(max-width: 1100px) { .layout-grid { grid-template-columns: 1fr; } }
+
+  /* --- CARD --- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: var(--shadow-sm);
+    transition: background 0.4s, border-color 0.4s, box-shadow 0.2s;
+    overflow: hidden;
+  }
+  .card:hover { box-shadow: var(--shadow-md); }
+
+  /* --- UPLOAD ZONE --- */
+  .upload-zone {
+    padding: 0;
+    min-height: 380px;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .upload-bg-grad {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 40%, var(--accent-dim) 0%, transparent 60%),
+                radial-gradient(ellipse at 75% 65%, var(--purple-dim) 0%, transparent 50%);
+    transition: opacity 0.3s;
+  }
+  .upload-zone:hover .upload-bg-grad { opacity: 1.5; }
+  .upload-zone.drag-over { border-color: var(--accent); background: var(--accent-dim); }
+  .upload-inner { position: relative; z-index: 1; padding: 48px 40px; display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .upload-icon {
+    width: 88px; height: 88px;
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow-md), 0 0 0 8px var(--accent-dim);
+    margin-bottom: 24px;
+    transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
+  }
+  .upload-zone:hover .upload-icon { transform: scale(1.08) rotate(-4deg); box-shadow: var(--shadow-lg), 0 0 0 12px var(--accent-dim); }
+  .upload-icon .material-symbols-rounded { font-size: 44px; color: var(--accent); font-variation-settings: 'FILL' 1; }
+  .upload-title { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; color: var(--text-primary); margin-bottom: 10px; }
+  .upload-desc { font-size: 14px; color: var(--text-secondary); max-width: 280px; line-height: 1.6; margin-bottom: 24px; }
+  .select-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 28px;
+    font-size: 15px; font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px var(--glow);
+    margin-bottom: 12px;
+  }
+  .select-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .select-btn:active { transform: scale(0.97); }
+  .upload-meta { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 6px; }
+  .upload-status { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+  .ai-badge {
+    position: absolute; bottom: 16px; right: 16px;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 7px 12px;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.4s;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--purple);
+  }
+  .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--purple); animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
+  .upload-zone:hover .ai-badge { transform: translateY(-3px); }
+
+  /* --- AUDITS PANEL --- */
+  .audits-panel { display: flex; flex-direction: column; height: 100%; }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 0; }
+  .panel-title { font-size: 16px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+  .live-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; background: var(--success-dim); color: var(--success); padding: 3px 8px; border-radius: 99px; }
+  .clear-btn { font-size: 12px; font-weight: 700; color: var(--accent); background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px; transition: background 0.2s; }
+  .clear-btn:hover { background: var(--accent-dim); }
+  .audits-list { flex: 1; overflow-y: auto; padding: 12px 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .audit-empty { padding: 48px 20px; text-align: center; }
+  .audit-empty .empty-icon { font-size: 40px; margin-bottom: 12px; color: var(--text-tertiary); font-variation-settings: 'FILL' 0; }
+  .audit-empty p { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+  .audit-empty span { font-size: 12px; color: var(--text-tertiary); }
+  .audit-card {
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 14px 16px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .audit-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); border-color: var(--accent); }
+  .audit-row1 { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .audit-file { display: flex; align-items: center; gap: 10px; }
+  .audit-file-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--accent-dim); flex-shrink: 0; }
+  .audit-file-icon .material-symbols-rounded { font-size: 18px; color: var(--accent); font-variation-settings: 'FILL' 1; }
+  .audit-filename { font-size: 13px; font-weight: 700; color: var(--text-primary); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .audit-source { font-size: 11px; color: var(--text-tertiary); margin-top: 1px; }
+  .audit-type-badge { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 8px; background: var(--surface-solid); border: 1px solid var(--border); color: var(--text-secondary); flex-shrink: 0; }
+  .audit-row2 { display: flex; align-items: center; justify-content: space-between; }
+  .audit-pill { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
+  .audit-pill.ok { background: var(--success-dim); color: var(--success); }
+  .audit-pill.err { background: var(--danger-dim); color: var(--danger); }
+  .audit-time { font-size: 11px; color: var(--text-tertiary); font-style: italic; }
+
+  /* --- STATS STRIP --- */
+  .stats-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 20px; }
+  @media(max-width: 900px) { .stats-strip { grid-template-columns: repeat(2, 1fr); } }
+  @media(max-width: 480px) { .stats-strip { grid-template-columns: 1fr; } }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 20px;
+    display: flex; align-items: center; gap: 14px;
+    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .stat-card-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-variation-settings: 'FILL' 1;
+  }
+  .stat-card-icon .material-symbols-rounded { font-size: 22px; font-variation-settings: 'FILL' 1; }
+  .icon-blue { background: var(--accent-dim); color: var(--accent); }
+  .icon-green { background: var(--success-dim); color: var(--success); }
+  .icon-purple { background: var(--purple-dim); color: var(--purple); }
+  .icon-yellow { background: var(--warning-dim); color: var(--warning); }
+  .stat-card-text .label { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 4px; }
+  .stat-card-text .value { font-size: 20px; font-weight: 800; color: var(--text-primary); }
+
+  /* --- OVERLAY --- */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 120; display: none; backdrop-filter: blur(2px); }
+  .overlay.visible { display: block; }
+
+  /* ---- Animations ---- */
+  @keyframes fade-in { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:none;} }
+  .animate-in { animation: fade-in 0.4s ease both; }
+</style>
 </head>
-<body class="bg-background font-body text-on-background antialiased selection:bg-primary/10 selection:text-primary">
-<!-- Top Navigation Bar -->
-<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex justify-between items-center px-6 py-3 w-full shadow-sm dark:shadow-none transition-all duration-200">
-<div class="flex items-center gap-8">
-<span class="text-xl font-bold tracking-tighter text-slate-900 dark:text-white cursor-pointer" onclick="window.location.reload()">EdiPro</span>
-<nav class="hidden md:flex gap-6">
-<a class="text-blue-700 dark:text-blue-400 font-semibold border-b-2 border-blue-700 py-1 transition-all" href="./code.html">Dashboard</a>
-<a class="text-slate-500 dark:text-slate-400 hover:text-slate-800 py-1 transition-all" href="../837_claims_view/code.html">Reports</a>
-</nav>
-</div>
-<div class="flex items-center gap-3">
-<div class="hidden sm:flex items-center bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-full px-3 py-1.5 transition-all">
-<span class="material-symbols-outlined text-[20px] text-slate-500">search</span>
-<input class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-slate-400" placeholder="Search files..." type="text"/>
-</div>
-<a class="p-2 hover:bg-slate-100/50 rounded-full transition-all active:scale-95" href="../notifications/code.html" aria-label="Open notifications">
-<span class="material-symbols-outlined text-slate-600">notifications</span>
-</a>
-<a class="p-2 hover:bg-slate-100/50 rounded-full transition-all active:scale-95" href="../settings/code.html" aria-label="Open settings">
-<span class="material-symbols-outlined text-slate-600">settings</span>
-</a>
-<a class="h-8 w-8 rounded-full overflow-hidden bg-primary/10 ring-2 ring-white shadow-sm" href="../user_profile/code.html" aria-label="Open user profile">
-<img class="w-full h-full object-cover" data-alt="User Profile Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach"/>
-</a>
-<button class="md:hidden p-2 hover:bg-slate-100/50 rounded-full transition-all active:scale-95" id="nav-toggle" aria-label="Open navigation menu">
-<span class="material-symbols-outlined text-slate-700">menu</span>
-</button>
-</div>
+<body>
+
+<!-- TOP NAV -->
+<header class="topnav">
+  <div class="topnav-left">
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
+      <span class="material-symbols-rounded">menu</span>
+    </button>
+    <div class="brand">
+      <div class="brand-icon"><span class="material-symbols-rounded">hub</span></div>
+      <div>
+        <span class="brand-name">EdiPro</span>
+        <span class="brand-tag"> · EDI Gateway</span>
+      </div>
+    </div>
+  </div>
+  <div class="topnav-right">
+    <button class="nav-icon-btn" aria-label="Search"><span class="material-symbols-rounded">search</span></button>
+    <button class="nav-icon-btn" aria-label="Notifications"><span class="material-symbols-rounded">notifications</span></button>
+    <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
+      <span class="material-symbols-rounded" id="theme-icon">light_mode</span>
+      <span id="theme-label">Light</span>
+    </button>
+    <div class="avatar">
+      <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach" alt="User Avatar"/>
+    </div>
+  </div>
 </header>
-<div class="fixed inset-0 bg-slate-900/40 z-30 hidden" id="nav-overlay"></div>
-<!-- Side Navigation Bar -->
-<aside class="fixed left-0 top-0 h-full w-64 z-40 bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-2xl border-r border-slate-200/30 dark:border-slate-800/30 shadow-xl dark:shadow-2xl flex flex-col h-full py-6 pt-20 transform -translate-x-full md:translate-x-0 transition-transform duration-300" id="side-nav">
-<div class="px-6 mb-8 flex items-center gap-3 cursor-pointer" onclick="window.location.reload()">
-<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">hub</span>
-</div>
-<div>
-<h2 class="text-lg font-black text-slate-900 dark:text-white leading-none">HealthConnect</h2>
-<p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-1">EDI Gateway</p>
-</div>
-<button class="md:hidden ml-auto p-2 hover:bg-slate-200/50 rounded-full" id="nav-close" aria-label="Close navigation menu">
-<span class="material-symbols-outlined text-slate-600">close</span>
-</button>
-</div>
-<nav class="flex-1 px-2 space-y-1">
-<a class="bg-blue-50/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg mx-2 flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide scale-100 active:scale-[0.98] transition-transform duration-300" href="./code.html" data-nav-link="true">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span> Dashboard
-            </a>
-<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../master_parser_sleek/code.html" data-nav-link="true">
-<span class="material-symbols-outlined">analytics</span> Master Parser
-            </a>
-<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../835_remittance_sleek/code.html" data-nav-link="true">
-<span class="material-symbols-outlined">payments</span> 835 Remittance
-            </a>
-<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../834_enrollment_sleek/code.html" data-nav-link="true">
-<span class="material-symbols-outlined">group_add</span> 834 Enrollment
-            </a>
-<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../837_claims_view/code.html" data-nav-link="true">
-<span class="material-symbols-outlined">description</span> 837 Claims
-            </a>
-</nav>
-<div class="mt-auto px-4 pb-4">
-<button class="w-full bg-primary text-white rounded-xl py-3 text-sm font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:brightness-95" onclick="console.log('Open New Submission Dialog')">
-<span class="material-symbols-outlined text-[20px]">add_circle</span>
-                New Submission
-            </button>
-</div>
-<div class="px-2 pt-4 border-t border-slate-200/30 mx-4 space-y-1">
-<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 rounded-lg flex items-center gap-3 px-4 py-2 text-xs font-medium tracking-wide hover:translate-x-1 transition-transform duration-300" href="../help_center/code.html" data-nav-link="true">
-<span class="material-symbols-outlined text-[18px]">help</span> Help Center
-            </a>
-<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 rounded-lg flex items-center gap-3 px-4 py-2 text-xs font-medium tracking-wide hover:translate-x-1 transition-transform duration-300" href="../documentation/code.html" data-nav-link="true">
-<span class="material-symbols-outlined text-[18px]">menu_book</span> Documentation
-            </a>
-</div>
+
+<!-- OVERLAY (mobile) -->
+<div class="overlay" id="overlay"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-content">
+    <p class="nav-section-label">Main</p>
+    <a class="nav-item active" href="./code.html">
+      <span class="material-symbols-rounded">dashboard</span> Dashboard
+    </a>
+    <a class="nav-item" href="../master_parser_sleek/code.html">
+      <span class="material-symbols-rounded">analytics</span> Master Parser
+    </a>
+    <div style="height:16px;"></div>
+    <p class="nav-section-label">Transactions</p>
+    <a class="nav-item" href="../835_remittance_sleek/code.html">
+      <span class="material-symbols-rounded">payments</span> 835 Remittance
+    </a>
+    <a class="nav-item" href="../834_enrollment_sleek/code.html">
+      <span class="material-symbols-rounded">group_add</span> 834 Enrollment
+    </a>
+    <a class="nav-item" href="../837_claims_view/code.html">
+      <span class="material-symbols-rounded">description</span> 837 Claims
+    </a>
+    <div style="height:16px;"></div>
+    <p class="nav-section-label">System</p>
+    <a class="nav-item" href="../notifications/code.html">
+      <span class="material-symbols-rounded">notifications</span> Notifications
+      <span class="nav-badge">3</span>
+    </a>
+    <a class="nav-item" href="../settings/code.html">
+      <span class="material-symbols-rounded">settings</span> Settings
+    </a>
+    <a class="nav-item" href="../documentation/code.html">
+      <span class="material-symbols-rounded">menu_book</span> Documentation
+    </a>
+    <a class="nav-item" href="../help_center/code.html">
+      <span class="material-symbols-rounded">help</span> Help Center
+    </a>
+  </div>
+  <div class="sidebar-bottom">
+    <button class="new-submission-btn" onclick="document.getElementById('file-upload').click()">
+      <span class="material-symbols-rounded">add_circle</span>
+      New Submission
+    </button>
+  </div>
 </aside>
-<!-- Main Content Canvas -->
-<main class="ml-0 md:ml-64 pt-20 px-4 md:px-8 pb-8 min-h-screen bg-surface">
-<header class="mb-10 flex justify-between items-end">
-<div>
-<h1 class="text-[2rem] font-black tracking-tight text-on-surface">Data Integration Hub</h1>
-<p class="text-on-surface-variant/70 text-sm mt-1">Seamlessly ingest and validate healthcare EDI standard files.</p>
-</div>
-<div class="flex gap-4">
-<div class="bg-surface-container-high rounded-xl p-4 flex items-center gap-4">
-<div class="text-right border-r border-outline-variant/30 pr-4">
-<span class="text-[10px] uppercase font-bold text-outline">Processed 24h</span>
-<p class="text-xl font-black text-primary" id="processed-count">0</p>
-</div>
-<div class="text-right">
-<span class="text-[10px] uppercase font-bold text-outline">Accuracy</span>
-<p class="text-xl font-black text-tertiary" id="accuracy-rate">--</p>
-</div>
-</div>
-</div>
-</header>
-<!-- Two-Column Grid -->
-<div class="grid grid-cols-10 gap-8 items-start">
-<!-- Left Column: Drag & Drop (60%) -->
-<section class="col-span-6 h-[600px]">
-<div class="glass-panel w-full h-full rounded-[24px] border border-white/50 ring-1 ring-slate-200/30 shadow-2xl flex flex-col items-center justify-center p-12 text-center group cursor-pointer relative overflow-hidden transition-all duration-500 hover:shadow-primary/5" id="upload-zone">
-<!-- Decorative Background Elements -->
-<div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-tertiary/5 opacity-50"></div>
-<div class="relative z-10 w-full max-w-md">
-<div class="w-32 h-32 bg-white rounded-[32px] mx-auto flex items-center justify-center shadow-2xl drag-zone-glow mb-8 transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3">
-<span class="material-symbols-outlined text-[64px] text-primary" style="font-variation-settings: 'FILL' 1;">upload_file</span>
-</div>
-<h2 class="text-2xl font-black text-on-surface mb-3">Drop 837, 835, or 834 files here</h2>
-<p class="text-on-surface-variant font-medium mb-10 max-w-[280px] mx-auto">Upload HIPAA-compliant transactions for real-time validation and parsing.</p>
-<div class="flex flex-col gap-4">
-<button class="bg-primary text-white rounded-xl px-8 py-4 font-bold shadow-xl shadow-primary/30 hover:shadow-primary/40 active:scale-95 transition-all hover:brightness-95 active:scale-95" id="upload-trigger" type="button">
-                                Select Files from Cloud
-                            </button>
-<input class="hidden" id="file-upload" type="file" accept=".edi,.txt,.dat,.x12" multiple/>
-<span class="text-[10px] uppercase tracking-widest text-outline font-bold">Max file size 256MB</span>
-<p class="text-xs font-medium text-outline" id="upload-status">No files uploaded yet.</p>
-</div>
-</div>
-<!-- Subtle AI Insight Tooltip -->
-<div class="absolute bottom-6 right-6 glass-panel rounded-xl py-2 px-4 flex items-center gap-3 border border-outline-variant/20 shadow-lg group-hover:translate-y-[-4px] transition-transform duration-500">
-<div class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></div>
-<span class="text-[11px] font-bold text-tertiary uppercase tracking-tighter">AI Parsing Enabled</span>
-</div>
-</div>
-</section>
-<!-- Right Column: Recent Audits (40%) -->
-<section class="col-span-4 h-[600px] flex flex-col">
-<div class="flex justify-between items-center mb-6">
-<h3 class="text-lg font-black text-on-surface flex items-center gap-2">
-                        Recent Audits
-                        <span class="bg-primary-fixed text-on-primary-fixed text-[10px] px-2 py-0.5 rounded-full">LIVE</span>
-</h3>
-<button class="text-primary text-xs font-bold hover:underline" type="button" id="clear-audits">Clear</button>
-</div>
-<div class="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2" id="recent-audits">
-<div class="glass-panel p-8 rounded-[20px] border border-outline-variant/10 text-center">
-<p class="text-sm font-semibold text-on-surface">No files processed yet.</p>
-<p class="text-xs text-outline mt-2">Upload a 837, 835, or 834 file to start seeing audits.</p>
-</div>
-</div>
-</section>
-</div>
-<!-- System Stats Footer Row -->
-<footer class="mt-12 grid grid-cols-4 gap-6">
-<div class="bg-surface-container-low rounded-2xl p-6 flex items-center gap-5">
-<div class="p-3 bg-white rounded-xl shadow-sm">
-<span class="material-symbols-outlined text-primary">cloud_done</span>
-</div>
-<div>
-<span class="text-[10px] font-bold text-outline uppercase">Storage Used</span>
-<p class="text-lg font-black text-on-surface" id="storage-used">0 files</p>
-</div>
-</div>
-<div class="bg-surface-container-low rounded-2xl p-6 flex items-center gap-5">
-<div class="p-3 bg-white rounded-xl shadow-sm">
-<span class="material-symbols-outlined text-primary">speed</span>
-</div>
-<div>
-<span class="text-[10px] font-bold text-outline uppercase">Parse Latency</span>
-<p class="text-lg font-black text-on-surface" id="parse-latency">--</p>
-</div>
-</div>
-<div class="bg-surface-container-low rounded-2xl p-6 flex items-center gap-5">
-<div class="p-3 bg-white rounded-xl shadow-sm">
-<span class="material-symbols-outlined text-primary">verified_user</span>
-</div>
-<div>
-<span class="text-[10px] font-bold text-outline uppercase">Security Status</span>
-<p class="text-lg font-black text-on-surface" id="security-status">No submissions</p>
-</div>
-</div>
-<div class="bg-surface-container-low rounded-2xl p-6 flex items-center gap-5">
-<div class="p-3 bg-white rounded-xl shadow-sm">
-<span class="material-symbols-outlined text-tertiary">psychology</span>
-</div>
-<div>
-<span class="text-[10px] font-bold text-outline uppercase">AI Savings</span>
-<p class="text-lg font-black text-on-surface" id="ai-savings">--</p>
-</div>
-</div>
-</footer>
+
+<!-- MAIN -->
+<main class="main" id="main">
+  <div class="page-header animate-in">
+    <div>
+      <h1>Data Integration Hub</h1>
+      <p>Seamlessly ingest, validate, and parse healthcare EDI standard files.</p>
+    </div>
+    <div class="header-stats">
+      <div class="stat-pill">
+        <div class="stat-dot dot-blue"></div>
+        <div>
+          <div class="stat-val" id="processed-count">0</div>
+          <div class="stat-lbl">Processed 24h</div>
+        </div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-dot dot-green"></div>
+        <div>
+          <div class="stat-val" id="accuracy-rate">--</div>
+          <div class="stat-lbl">Accuracy</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout-grid animate-in" style="animation-delay:0.1s;">
+    <!-- Upload Zone Card -->
+    <div class="card upload-zone" id="upload-zone">
+      <div class="upload-bg-grad"></div>
+      <div class="upload-inner">
+        <div class="upload-icon">
+          <span class="material-symbols-rounded">upload_file</span>
+        </div>
+        <div class="upload-title">Drop 837, 835, or 834 files</div>
+        <div class="upload-desc">Upload HIPAA-compliant transactions for real-time AI validation and parsing.</div>
+        <button class="select-btn" id="upload-trigger" type="button">Select Files</button>
+        <input class="hidden" style="display:none;" id="file-upload" type="file" accept=".edi,.txt,.dat,.x12" multiple/>
+        <div class="upload-meta">Max file size 256 MB</div>
+        <div class="upload-status" id="upload-status">No files uploaded yet.</div>
+      </div>
+      <div class="ai-badge">
+        <div class="ai-dot"></div>
+        AI Parsing Active
+      </div>
+    </div>
+
+    <!-- Audits Panel -->
+    <div class="card audits-panel" id="audits-panel" style="min-height:460px;">
+      <div class="panel-header">
+        <div class="panel-title">
+          Recent Audits
+          <span class="live-tag">LIVE</span>
+        </div>
+        <button class="clear-btn" id="clear-audits">Clear all</button>
+      </div>
+      <div class="audits-list" id="recent-audits">
+        <div class="audit-empty">
+          <div class="material-symbols-rounded empty-icon">folder_open</div>
+          <p>No files processed yet</p>
+          <span>Upload a 837, 835, or 834 file to start seeing audits.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Strip -->
+  <div class="stats-strip animate-in" style="animation-delay:0.2s;">
+    <div class="stat-card">
+      <div class="stat-card-icon icon-blue"><span class="material-symbols-rounded">cloud_done</span></div>
+      <div class="stat-card-text">
+        <div class="label">Storage Used</div>
+        <div class="value" id="storage-used">0 files</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon icon-green"><span class="material-symbols-rounded">speed</span></div>
+      <div class="stat-card-text">
+        <div class="label">Parse Latency</div>
+        <div class="value" id="parse-latency">--</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon icon-purple"><span class="material-symbols-rounded">verified_user</span></div>
+      <div class="stat-card-text">
+        <div class="label">Security Status</div>
+        <div class="value" id="security-status">Ready</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon icon-yellow"><span class="material-symbols-rounded">psychology</span></div>
+      <div class="stat-card-text">
+        <div class="label">AI Insights</div>
+        <div class="value" id="ai-savings">--</div>
+      </div>
+    </div>
+  </div>
 </main>
+
 <script>
-    (function () {
-        const nav = document.getElementById('side-nav');
-        const overlay = document.getElementById('nav-overlay');
-        const toggle = document.getElementById('nav-toggle');
-        const close = document.getElementById('nav-close');
-        const navLinks = document.querySelectorAll('[data-nav-link="true"]');
-        const uploadTrigger = document.getElementById('upload-trigger');
-        const uploadInput = document.getElementById('file-upload');
-        const uploadZone = document.getElementById('upload-zone');
-        const uploadStatus = document.getElementById('upload-status');
-        const recentAudits = document.getElementById('recent-audits');
-        const processedCount = document.getElementById('processed-count');
-        const accuracyRate = document.getElementById('accuracy-rate');
-        const storageUsed = document.getElementById('storage-used');
-        const parseLatency = document.getElementById('parse-latency');
-        const securityStatus = document.getElementById('security-status');
-        const aiSavings = document.getElementById('ai-savings');
-        const clearAudits = document.getElementById('clear-audits');
-        const storageKey = 'ediSubmissions';
-        let totalProcessed = 0;
-        let totalValid = 0;
+(function () {
+  /* ---- Theme ---- */
+  const html = document.documentElement;
+  const themeBtn = document.getElementById('theme-toggle');
+  const themeIcon = document.getElementById('theme-icon');
+  const themeLabel = document.getElementById('theme-label');
 
-        if (!nav || !overlay || !toggle || !close) {
-            return;
-        }
+  function applyTheme(t) {
+    html.classList.toggle('dark', t === 'dark');
+    themeIcon.textContent = t === 'dark' ? 'dark_mode' : 'light_mode';
+    themeLabel.textContent = t === 'dark' ? 'Dark' : 'Light';
+    localStorage.setItem('theme', t);
+  }
+  applyTheme(localStorage.getItem('theme') || 'light');
+  themeBtn.addEventListener('click', () => applyTheme(html.classList.contains('dark') ? 'light' : 'dark'));
 
-        function openNav() {
-            nav.classList.remove('-translate-x-full');
-            overlay.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
+  /* ---- Sidebar toggle ---- */
+  const sidebar = document.getElementById('sidebar');
+  const mainEl = document.getElementById('main');
+  const overlay = document.getElementById('overlay');
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  let sidebarOpen = window.innerWidth >= 900;
 
-        function closeNav() {
-            nav.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        }
+  function setSidebar(open) {
+    sidebarOpen = open;
+    sidebar.classList.toggle('collapsed', !open);
+    mainEl.classList.toggle('expanded', !open);
+    overlay.classList.toggle('visible', open && window.innerWidth < 900);
+  }
+  setSidebar(sidebarOpen);
+  sidebarToggle.addEventListener('click', () => setSidebar(!sidebarOpen));
+  overlay.addEventListener('click', () => setSidebar(false));
+  window.addEventListener('resize', () => { if (window.innerWidth >= 900) setSidebar(true); });
 
-        toggle.addEventListener('click', openNav);
-        close.addEventListener('click', closeNav);
-        overlay.addEventListener('click', closeNav);
+  /* ---- Storage ---- */
+  const storageKey = 'ediSubmissions';
+  let totalProcessed = 0, totalValid = 0;
 
-        navLinks.forEach((link) => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth < 768) {
-                    closeNav();
-                }
-            });
-        });
+  function readSubmissions() {
+    try { const p = JSON.parse(localStorage.getItem(storageKey) || '[]'); return Array.isArray(p) ? p : []; }
+    catch { return []; }
+  }
+  function writeSubmissions(items) { localStorage.setItem(storageKey, JSON.stringify(items)); }
 
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) {
-                overlay.classList.add('hidden');
-                nav.classList.remove('-translate-x-full');
-                document.body.classList.remove('overflow-hidden');
-            } else {
-                nav.classList.add('-translate-x-full');
-            }
-        });
+  /* ---- UI refs ---- */
+  const uploadTrigger = document.getElementById('upload-trigger');
+  const uploadInput = document.getElementById('file-upload');
+  const uploadZone = document.getElementById('upload-zone');
+  const uploadStatus = document.getElementById('upload-status');
+  const recentAudits = document.getElementById('recent-audits');
+  const processedCount = document.getElementById('processed-count');
+  const accuracyRate = document.getElementById('accuracy-rate');
+  const storageUsed = document.getElementById('storage-used');
+  const parseLatency = document.getElementById('parse-latency');
+  const securityStatus = document.getElementById('security-status');
+  const aiSavings = document.getElementById('ai-savings');
+  const clearAudits = document.getElementById('clear-audits');
 
-        function readSubmissions() {
-            try {
-                const parsed = JSON.parse(localStorage.getItem(storageKey) || '[]');
-                return Array.isArray(parsed) ? parsed : [];
-            } catch (error) {
-                return [];
-            }
-        }
+  /* ---- Summary ---- */
+  function updateSummary() {
+    processedCount.textContent = totalProcessed;
+    accuracyRate.textContent = totalProcessed > 0 ? ((totalValid / totalProcessed) * 100).toFixed(1) + '%' : '--';
+    storageUsed.textContent = totalProcessed + ' files';
+    parseLatency.textContent = totalProcessed > 0 ? 'Live' : '--';
+    securityStatus.textContent = totalProcessed > 0 ? 'Monitoring' : 'Ready';
+    aiSavings.textContent = totalProcessed > 0 ? 'Active' : '--';
+  }
 
-        function writeSubmissions(items) {
-            localStorage.setItem(storageKey, JSON.stringify(items));
-        }
+  function iconForType(t) {
+    if (t === '835') return 'payments';
+    if (t === '834') return 'group_add';
+    return 'description';
+  }
 
-        function updateSummary() {
-            if (processedCount) {
-                processedCount.textContent = String(totalProcessed);
-            }
-            if (accuracyRate) {
-                accuracyRate.textContent = totalProcessed > 0 ? ((totalValid / totalProcessed) * 100).toFixed(1) + '%' : '--';
-            }
-            if (storageUsed) {
-                storageUsed.textContent = totalProcessed + ' files';
-            }
-            if (parseLatency) {
-                parseLatency.textContent = totalProcessed > 0 ? 'Live' : '--';
-            }
-            if (securityStatus) {
-                securityStatus.textContent = totalProcessed > 0 ? 'Monitoring' : 'No submissions';
-            }
-            if (aiSavings) {
-                aiSavings.textContent = totalProcessed > 0 ? 'Active' : '--';
-            }
-        }
+  function renderEmptyAudits() {
+    recentAudits.innerHTML = `
+      <div class="audit-empty">
+        <div class="material-symbols-rounded empty-icon">folder_open</div>
+        <p>No files processed yet</p>
+        <span>Upload a 837, 835, or 834 file to view results here.</span>
+      </div>`;
+  }
 
-        function renderEmptyAudits() {
-            if (!recentAudits) {
-                return;
-            }
-            recentAudits.innerHTML = '<div class="glass-panel p-8 rounded-[20px] border border-outline-variant/10 text-center"><p class="text-sm font-semibold text-on-surface">No files processed yet.</p><p class="text-xs text-outline mt-2">Upload a 837, 835, or 834 file to start seeing audits.</p></div>';
-        }
+  function renderAudits(items) {
+    if (!items.length) { renderEmptyAudits(); return; }
+    recentAudits.innerHTML = '';
+    items.slice().reverse().forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'audit-card';
+      const hasErr = item.errorCount > 0;
+      card.innerHTML = `
+        <div class="audit-row1">
+          <div class="audit-file">
+            <div class="audit-file-icon"><span class="material-symbols-rounded">${iconForType(item.type)}</span></div>
+            <div>
+              <div class="audit-filename">${item.filename}</div>
+              <div class="audit-source">Uploaded from dashboard</div>
+            </div>
+          </div>
+          <span class="audit-type-badge">${item.type}</span>
+        </div>
+        <div class="audit-row2">
+          <span class="audit-pill ${hasErr ? 'err' : 'ok'}">${hasErr ? item.errorCount + ' Errors' : '✓ Valid'}</span>
+          <span class="audit-time">${item.timeLabel}</span>
+        </div>`;
+      recentAudits.appendChild(card);
+    });
+  }
 
-        function iconForType(type) {
-            if (type === '835') return 'payments';
-            if (type === '834') return 'group_add';
-            return 'description';
-        }
+  function hydrateFromStorage() {
+    const items = readSubmissions();
+    totalProcessed = items.length;
+    totalValid = items.filter(i => i.errorCount === 0).length;
+    updateSummary();
+    renderAudits(items);
+  }
 
-        function cardTone(errorCount) {
-            if (errorCount > 0) {
-                return 'bg-error-container text-on-error-container';
-            }
-            return 'bg-green-100 text-green-700';
-        }
+  async function processFiles(fileList) {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+    uploadStatus.textContent = `Uploading ${files.length} file(s)...`;
+    const saved = readSubmissions();
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const response = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error('Upload failed');
+        const payload = await response.json();
+        const report = payload.report || {};
+        const parseResult = report.parse_result || {};
+        const validationResult = report.validation_result || {};
+        const issues = Array.isArray(validationResult.issues) ? validationResult.issues : [];
+        const type = String(parseResult.transaction_type || 'UNKNOWN').toUpperCase();
 
-        function renderAudits(items) {
-            if (!recentAudits) {
-                return;
-            }
-            if (!items.length) {
-                renderEmptyAudits();
-                return;
-            }
-            recentAudits.innerHTML = '';
-            items.slice().reverse().forEach((item) => {
-                const card = document.createElement('div');
-                card.className = 'glass-panel p-5 rounded-[20px] border border-outline-variant/10 shadow-sm transition-all duration-300';
-                card.innerHTML = '<div class="flex justify-between items-start mb-4"><div class="flex items-center gap-4"><div class="w-10 h-10 bg-surface-container-highest rounded-xl flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[20px]">' + iconForType(item.type) + '</span></div><div><h4 class="text-sm font-bold text-on-surface truncate w-40">' + item.filename + '</h4><p class="text-[10px] text-outline font-medium">Uploaded from dashboard</p></div></div><span class="bg-secondary-container text-on-secondary-container text-[10px] font-black px-2.5 py-1 rounded-lg">' + item.type + '</span></div><div class="flex justify-between items-center"><div class="flex gap-2"><span class="' + cardTone(item.errorCount) + ' text-[10px] font-bold px-2 py-1 rounded-full">' + item.errorCount + ' Errors</span></div><span class="text-[11px] text-outline font-medium italic">' + item.timeLabel + '</span></div>';
-                recentAudits.appendChild(card);
-            });
-        }
+        const item = {
+            filename: report.filename || file.name,
+            type: type,
+            errorCount: issues.filter(i => i.severity === 'error').length,
+            timeLabel: 'Just now'
+        };
+        saved.push(item);
+        totalProcessed += 1;
+        if (!issues.length) totalValid += 1;
+      } catch {
+        uploadStatus.textContent = `Upload failed for ${file.name}. Please try again.`;
+      }
+    }
+    writeSubmissions(saved);
+    updateSummary();
+    renderAudits(saved);
+    uploadStatus.textContent = `Upload complete. ${totalProcessed} file(s) processed.`;
+  }
 
-        function hydrateFromStorage() {
-            const items = readSubmissions();
-            totalProcessed = items.length;
-            totalValid = items.filter((item) => item.errorCount === 0).length;
-            updateSummary();
-            renderAudits(items);
-        }
+  uploadTrigger.addEventListener('click', () => uploadInput.click());
+  uploadInput.addEventListener('change', e => processFiles(e.target.files));
 
-        async function processFiles(fileList) {
-            const files = Array.from(fileList || []);
-            if (!files.length) {
-                return;
-            }
-            if (uploadStatus) {
-                uploadStatus.textContent = 'Uploading ' + files.length + ' file(s)...';
-            }
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); processFiles(e.dataTransfer.files); });
 
-            const saved = readSubmissions();
-            for (const file of files) {
-                const formData = new FormData();
-                formData.append('file', file);
-                try {
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    if (!response.ok) {
-                        throw new Error('Upload failed');
-                    }
-                    const payload = await response.json();
-                    const report = payload.report || {};
-                    const parseResult = report.parse_result || {};
-                    const validationResult = report.validation_result || {};
-                    const issues = Array.isArray(validationResult.issues) ? validationResult.issues : [];
-                    const type = String(parseResult.transaction_type || 'unknown').toUpperCase();
+  clearAudits.addEventListener('click', () => {
+    totalProcessed = 0; totalValid = 0;
+    writeSubmissions([]);
+    updateSummary();
+    renderEmptyAudits();
+    uploadStatus.textContent = 'No files uploaded yet.';
+  });
 
-                    const item = {
-                        filename: report.filename || file.name,
-                        type: type,
-                        errorCount: issues.length,
-                        timeLabel: 'Just now'
-                    };
-                    saved.push(item);
-                    totalProcessed += 1;
-                    if (issues.length === 0) {
-                        totalValid += 1;
-                    }
-                } catch (error) {
-                    if (uploadStatus) {
-                        uploadStatus.textContent = 'Upload failed for ' + file.name + '. Please try again.';
-                    }
-                }
-            }
-
-            writeSubmissions(saved);
-            updateSummary();
-            renderAudits(saved);
-            if (uploadStatus) {
-                uploadStatus.textContent = 'Upload complete. ' + totalProcessed + ' file(s) processed.';
-            }
-        }
-
-        if (uploadTrigger && uploadInput) {
-            uploadTrigger.addEventListener('click', () => uploadInput.click());
-            uploadInput.addEventListener('change', (event) => {
-                processFiles(event.target.files);
-            });
-        }
-
-        if (uploadZone) {
-            uploadZone.addEventListener('dragover', (event) => {
-                event.preventDefault();
-            });
-            uploadZone.addEventListener('drop', (event) => {
-                event.preventDefault();
-                processFiles(event.dataTransfer.files);
-            });
-        }
-
-        if (clearAudits) {
-            clearAudits.addEventListener('click', () => {
-                totalProcessed = 0;
-                totalValid = 0;
-                writeSubmissions([]);
-                updateSummary();
-                renderEmptyAudits();
-                if (uploadStatus) {
-                    uploadStatus.textContent = 'No files uploaded yet.';
-                }
-            });
-        }
-
-        hydrateFromStorage();
-    })();
+  hydrateFromStorage();
+})();
 </script>
-</body></html>
-
+</body>
+</html>
