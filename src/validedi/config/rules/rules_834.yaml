@@ -1,0 +1,150 @@
+rules:
+  # ── BGN Beginning Segment Validation ───────────────────────────────────────
+  - id: '834-001'
+    type: 'required_segment'
+    target: 'BGN'
+    transaction_types: ['834']
+    severity: 'error'
+    message: 'BGN (Beginning Segment) is missing — required in every 834'
+    suggestion: 'BGN must be the first data segment after ST. BGN01 is the transaction set purpose code (00=Original, 15=Re-submission, etc.)'
+  
+  - id: '834-002'
+    type: 'code_set'
+    target: 'BGN01'
+    transaction_types: ['834']
+    allowed_values: ['00', '15', '22', 'HS', 'XP', '2', '55']
+    severity: 'warning'
+    message: 'BGN01 purpose code {value} may not be a recognized 834 value'
+    suggestion: 'Common BGN01 values: 00=Original, 15=Re-submission, 22=Verification, HS=Enrollment Status Request, XP=Full File Replacement'
+  
+  # ── INS Member Enrollment Validation ───────────────────────────────────────
+  - id: '834-003'
+    type: 'required_segment'
+    target: 'INS'
+    transaction_types: ['834']
+    severity: 'warning'
+    message: 'No INS (Member Enrollment) segments found'
+    suggestion: '834 files should contain INS segments for each enrollee. INS01=Y means the individual is a subscriber'
+  
+  - id: '834-004'
+    type: 'code_set'
+    target: 'INS01'
+    transaction_types: ['834']
+    allowed_values: ['Y', 'N']
+    severity: 'warning'
+    message: 'INS01 (Insured Indicator) value {value} should be Y or N'
+    suggestion: 'INS01=Y indicates the individual is the subscriber; N indicates a dependent'
+  
+  - id: '834-005'
+    type: 'code_set'
+    target: 'INS03'
+    transaction_types: ['834']
+    allowed_values: ['001', '021', '024', '025', '026', '030', '032']
+    severity: 'info'
+    message: 'INS03 maintenance type code {value} — verify this is correct'
+    suggestion: 'Common INS03 values: 001=Change, 021=Addition, 024=Cancellation, 025=Reinstatement, 026=Correction, 030=Audit/Compare'
+  
+  # ── Required Entity Validation ─────────────────────────────────────────────
+  - id: '834-006'
+    type: 'required_entity'
+    target: 'N1'
+    entity_code: 'P5'
+    loop: '1000A'
+    transaction_types: ['834']
+    severity: 'warning'
+    message: 'Missing N1*P5 (Sponsor/Employer) segment'
+    suggestion: 'Loop 1000A should identify the plan sponsor using N1*P5'
+  
+  - id: '834-007'
+    type: 'required_entity'
+    target: 'N1'
+    entity_code: 'IN'
+    loop: '1000B'
+    transaction_types: ['834']
+    severity: 'warning'
+    message: 'Missing N1*IN (Payer/Insurer) segment'
+    suggestion: 'Loop 1000B should identify the insurance carrier using N1*IN'
+  
+  # ── HD Health Coverage Validation ──────────────────────────────────────────
+  - id: '834-008'
+    type: 'conditional_required'
+    condition_segment: 'INS'
+    required_segment: 'HD'
+    transaction_types: ['834']
+    severity: 'warning'
+    message: 'INS member segments found but no HD (Health Coverage) segments'
+    suggestion: 'Each member in an 834 should have at least one HD segment defining their health plan coverage. HD01 is the maintenance type, HD03 is the insurance line code, HD04 is the plan name'
+  
+  # ── Existing Rules ─────────────────────────────────────────────────────────
+  - id: 'INS_RELATIONSHIP_CODES'
+    type: 'code_set'
+    target: 'INS02'
+    transaction_types: ['834']
+    code_set_id: 'relationship_codes'
+    severity: 'error'
+    message: 'INS02 relationship code {value} is not valid'
+    suggestion: 'INS02 must be a valid relationship code (01=Spouse, 18=Self, 19=Child, etc.)'
+  
+  - id: 'DUPLICATE_MEMBER_CHECK'
+    type: 'builtin'
+    handler: 'duplicate_member_check'
+    transaction_types: ['834']
+    scope: 'transaction'
+    severity: 'error'
+    message: 'Duplicate member ID {value} found'
+  
+  - id: 'COVERAGE_DATE_CONSISTENCY'
+    type: 'builtin'
+    handler: 'coverage_date_consistency'
+    transaction_types: ['834']
+    loop: '2300'
+    severity: 'error'
+    message: 'Coverage end date must be after start date'
+
+  # ── Duplicate GS Groups ────────────────────────────────────────────────────
+  - id: '834-009'
+    type: 'duplicate_gs'
+    target: 'GS'
+    transaction_types: ['834']
+    severity: 'warning'
+    message: 'Multiple GS functional groups ({count}) found in a single interchange — may indicate a file merge error'
+    suggestion: 'Most carriers expect a single GS/GE group per 834 interchange. Verify this is intentional and the carrier supports multiple groups'
+
+  # ── Invalid ISA15 ─────────────────────────────────────────────────────────
+  - id: '834-010'
+    type: 'code_set'
+    target: 'ISA15'
+    transaction_types: ['834']
+    allowed_values: ['T', 'P']
+    severity: 'error'
+    message: 'ISA15 (Test/Production Indicator) value {value} is invalid — must be T or P'
+    suggestion: 'Use T for test transmissions, P for production. Invalid values cause interchange rejection'
+
+  # ── IEA02 / ISA13 Mismatch ────────────────────────────────────────────────
+  - id: '834-011'
+    type: 'control_number_match'
+    source: 'ISA13'
+    target: 'IEA02'
+    transaction_types: ['834']
+    severity: 'error'
+    message: 'IEA02 control number {target_value} does not match ISA13 {source_value}'
+    suggestion: 'IEA02 must equal ISA13. Correct the interchange trailer control number'
+
+  # ── GE02 / GS06 Mismatch ──────────────────────────────────────────────────
+  - id: '834-012'
+    type: 'control_number_match'
+    source: 'GS06'
+    target: 'GE02'
+    transaction_types: ['834']
+    severity: 'error'
+    message: 'GE02 control number {target_value} does not match GS06 {source_value}'
+    suggestion: 'GE02 must equal GS06. Correct the functional group trailer control number'
+
+  # ── SE01 Segment Count ────────────────────────────────────────────────────
+  - id: '834-013'
+    type: 'segment_count'
+    target: 'SE01'
+    transaction_types: ['834']
+    severity: 'error'
+    message: 'SE01 segment count is {reported}, but actual count from ST to SE is {actual}'
+    suggestion: 'Recount all segments from ST through SE inclusive and set SE01 to {actual}'

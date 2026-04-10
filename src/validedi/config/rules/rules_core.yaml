@@ -1,0 +1,159 @@
+rules:
+  # ── Envelope Validation Rules ──────────────────────────────────────────────
+  - id: 'ENV-001'
+    type: 'required_segment'
+    target: 'ISA'
+    severity: 'error'
+    message: 'ISA (Interchange Control Header) segment is missing'
+    suggestion: 'Every X12 EDI file must begin with an ISA segment'
+
+  - id: 'ENV-002'
+    type: 'required_segment'
+    target: 'IEA'
+    severity: 'error'
+    message: 'IEA (Interchange Control Trailer) segment is missing'
+    suggestion: 'Every X12 interchange must end with an IEA segment'
+
+  - id: 'ENV-004'
+    type: 'code_set'
+    target: 'ISA15'
+    allowed_values: ['T', 'P']
+    severity: 'warning'
+    message: 'ISA15 (Test/Production Indicator) value {value} is not standard (expected T or P)'
+    suggestion: 'Use T for test transmissions, P for production'
+
+  - id: 'ENV-005'
+    type: 'regex'
+    target: 'ISA12'
+    pattern: '^00501'
+    severity: 'warning'
+    message: 'Version {value} detected. HIPAA mandates version 005010'
+    suggestion: 'Update ISA12 to 00501 and GS08 to the appropriate 005010X implementation guide version'
+
+  - id: 'ENV-006'
+    type: 'required_segment'
+    target: 'GS'
+    severity: 'error'
+    message: 'No GS (Functional Group Header) segment found'
+    suggestion: 'Each interchange must contain at least one functional group'
+
+  - id: 'ENV-007'
+    type: 'paired_segments'
+    segment_pair: ['GS', 'GE']
+    severity: 'error'
+    message: 'Functional group mismatch: {gs_count} GS segment(s) vs {ge_count} GE segment(s)'
+    suggestion: 'Each GS must be paired with exactly one GE'
+
+  - id: 'ENV-008'
+    type: 'paired_segments'
+    segment_pair: ['ST', 'SE']
+    severity: 'error'
+    message: 'Transaction set mismatch: {st_count} ST segment(s) vs {se_count} SE segment(s)'
+    suggestion: 'Each ST must be paired with exactly one SE'
+
+  # ── Control Number Validation Rules ────────────────────────────────────────
+  - id: 'CTL-001'
+    type: 'control_number_match'
+    source: 'ISA13'
+    target: 'IEA02'
+    severity: 'error'
+    message: 'IEA02 control number {target_value} does not match ISA13 {source_value}'
+    suggestion: 'Correct IEA02 to match ISA13'
+
+  - id: 'CTL-002'
+    type: 'control_number_match'
+    source: 'GS06'
+    target: 'GE02'
+    severity: 'error'
+    message: 'GE02 control number {target_value} does not match GS06 {source_value}'
+    suggestion: 'Set GE02 to match GS06'
+
+  - id: 'CTL-003'
+    type: 'control_number_match'
+    source: 'ST02'
+    target: 'SE02'
+    severity: 'error'
+    message: 'SE02 control number {target_value} does not match ST02 {source_value}'
+    suggestion: 'Correct SE02 to match ST02'
+
+  # ── Segment Count Validation Rules ─────────────────────────────────────────
+  - id: 'CNT-001'
+    type: 'segment_count'
+    target: 'SE01'
+    severity: 'error'
+    message: 'SE01 segment count is {reported}, but actual count from ST to SE is {actual}'
+    suggestion: 'Recount all segments from ST through SE inclusive and set SE01 to {actual}'
+
+  - id: 'CNT-002'
+    type: 'numeric_validation'
+    target: 'SE01'
+    severity: 'warning'
+    message: 'SE01 value {value} is not a valid integer'
+    suggestion: 'SE01 must be a numeric count of all segments from ST through SE inclusive'
+
+  # ── NPI Validation ─────────────────────────────────────────────────────────
+  - id: 'NPI_LUHN_2010AA'
+    type: 'builtin'
+    handler: 'luhn_check'
+    target: 'NM109'
+    loop: '2010AA'
+    severity: 'error'
+    message: 'NPI {value} failed Luhn algorithm check'
+    suggestion: 'Verify the NPI is correct. All valid NPIs pass the Luhn check digit algorithm'
+
+  - id: 'FORMAT_NPI_LENGTH'
+    type: 'regex'
+    target: 'NM109'
+    loop: '2010AA'
+    pattern: '^\d{10}$'
+    severity: 'error'
+    message: 'NPI must be exactly 10 digits, got {value}'
+    suggestion: 'NPIs are always exactly 10 numeric digits'
+
+  # ── Date Format Validation ─────────────────────────────────────────────────
+  - id: 'FORMAT_CCYYMMDD_DMG'
+    type: 'regex'
+    target: 'DMG02'
+    pattern: '^\d{8}$'
+    severity: 'error'
+    message: 'Date of birth must be in CCYYMMDD format (8 digits), got {value}'
+    suggestion: 'Example: 19800115 for January 15, 1980'
+
+  # ── Amount Format Validation ───────────────────────────────────────────────
+  - id: 'FORMAT_AMOUNT_CLM02'
+    type: 'numeric_validation'
+    target: 'CLM02'
+    severity: 'error'
+    message: 'CLM02 value {value} is not a valid monetary amount'
+    suggestion: 'CLM02 must be a numeric dollar amount (e.g., 1500.00). Remove any dollar signs, commas, or text'
+
+  - id: 'FORMAT_AMOUNT_SV102'
+    type: 'numeric_validation'
+    target: 'SV102'
+    severity: 'error'
+    message: 'SV1 line charge {value} is not a valid numeric amount'
+    suggestion: 'SV102 must be a numeric dollar amount without symbols'
+
+  # ── ISA Fixed-Width Check ──────────────────────────────────────────────────
+  - id: 'ENV-ISA-WIDTH'
+    type: 'isa_fixed_width'
+    target: 'ISA'
+    severity: 'error'
+    message: 'ISA segment is {length} characters — must be exactly 106 characters'
+    suggestion: 'ISA06 and ISA08 (sender/receiver IDs) must be exactly 15 characters, padded with spaces. Short or long ISA causes delimiter misread'
+
+  # ── Delimiter Collision Check ──────────────────────────────────────────────
+  - id: 'ENV-DELIM-COLLISION'
+    type: 'delimiter_collision'
+    target: 'ALL'
+    severity: 'error'
+    message: 'Delimiter character appears inside data element {segment}{element}: {value}'
+    suggestion: 'Data element values must not contain the element separator, component separator, or segment terminator characters'
+
+  # ── Wrong ST01 for Transaction Type ───────────────────────────────────────
+  - id: 'ENV-ST01-MISMATCH'
+    type: 'wrong_st_code'
+    target: ''
+    severity: 'error'
+    message: 'ST01 value {value} does not match expected transaction type {expected}'
+    suggestion: 'ST01 must match the transaction type declared in GS01. Example: 835 remittance files must have ST*835, not ST*837'

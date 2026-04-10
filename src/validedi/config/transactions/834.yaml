@@ -1,0 +1,42 @@
+transaction_type: '834'
+description: 'Benefit Enrollment and Maintenance'
+
+loops:
+  - id: '1000A'
+    parent_id: null
+    trigger_segment: 'N1'
+    trigger_qualifier:
+      element: 1
+      value: 'P5'
+    required_segments: ['N1']
+    rules: []
+    
+  - id: '1000B'
+    parent_id: null
+    trigger_segment: 'N1'
+    trigger_qualifier:
+      element: 1
+      value: 'IN'
+    required_segments: ['N1']
+    rules: []
+    
+  - id: '2000'
+    parent_id: null
+    trigger_segment: 'INS'
+    trigger_qualifier: null
+    required_segments: ['INS', 'REF']
+    rules: ['INS_MAINTENANCE_CODES', 'DUPLICATE_MEMBER_CHECK']
+    
+  - id: '2100'
+    parent_id: '2000'
+    trigger_segment: 'NM1'
+    trigger_qualifier: null
+    required_segments: ['NM1']
+    rules: []
+    
+  - id: '2300'
+    parent_id: '2000'
+    trigger_segment: 'HD'
+    trigger_qualifier: null
+    required_segments: ['HD', 'DTP']
+    rules: ['COVERAGE_DATE_CONSISTENCY']

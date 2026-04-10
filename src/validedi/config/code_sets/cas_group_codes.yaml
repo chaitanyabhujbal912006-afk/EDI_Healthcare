@@ -1,0 +1,8 @@
+code_set_id: 'cas_group_codes'
+description: 'Valid CAS01 claim adjustment group codes'
+codes:
+  - 'PR'  # Patient Responsibility
+  - 'CO'  # Contractual Obligation
+  - 'OA'  # Other Adjustment
+  - 'PI'  # Payer Initiated Reduction
+  - 'CR'  # Correction and Reversal

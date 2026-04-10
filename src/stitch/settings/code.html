@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings | EdiPro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#0070eb",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#c2c1ff",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#eeeef0",
+                        "inverse-on-surface": "#f0f0f2",
+                        "inverse-primary": "#adc6ff",
+                        "surface-dim": "#d9dadc",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#e0dfe4",
+                        "secondary-fixed": "#e3e2e7",
+                        "on-tertiary-fixed": "#0c006b",
+                        "inverse-surface": "#2f3132",
+                        "on-surface": "#1a1c1d",
+                        "on-primary-fixed-variant": "#004493",
+                        "surface-container-low": "#f3f3f5",
+                        "on-secondary-fixed": "#1a1b1f",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#e8e8ea",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#e2dfff",
+                        "secondary-fixed-dim": "#c6c6cb",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-secondary-container": "#626267",
+                        "surface-container-highest": "#e2e2e4",
+                        "on-tertiary-fixed-variant": "#332dbc",
+                        "secondary": "#5d5e63",
+                        "background": "#f9f9fb",
+                        "surface-variant": "#e2e2e4",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#414755",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#fefcff",
+                        "on-primary-fixed": "#001a41",
+                        "surface-bright": "#f9f9fb",
+                        "outline": "#717786",
+                        "primary-fixed": "#d8e2ff",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error-container": "#93000a",
+                        "tertiary": "#4a47d2",
+                        "surface": "#f9f9fb",
+                        "tertiary-container": "#6462ec",
+                        "surface-tint": "#005bc1",
+                        "on-secondary-fixed-variant": "#46464b",
+                        "outline-variant": "#c1c6d7",
+                        "primary": "#0058bc",
+                        "on-background": "#1a1c1d"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-effect {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9fb;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm dark:shadow-none">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-slate-900 dark:text-slate-50">EdiPro</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-sans tracking-tight text-sm font-medium transition-colors" href="../dashboard_sleek/code.html">Dashboard</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-sans tracking-tight text-sm font-medium transition-colors" href="../837_claims_view/code.html">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-highest px-3 py-1.5 rounded-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 text-on-surface" placeholder="Search settings..." type="text"/>
+</div>
+<a class="p-2 text-slate-500 hover:bg-slate-100/50 rounded-full transition-all" href="../notifications/code.html" aria-label="Open notifications">
+<span class="material-symbols-outlined">notifications</span>
+ </a>
+<a class="p-2 text-blue-600 dark:text-blue-400 hover:bg-slate-100/50 rounded-full transition-all" href="../settings/code.html" aria-label="Open settings">
+<span class="material-symbols-outlined">settings</span>
+ </a>
+<a class="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20" href="../user_profile/code.html" aria-label="Open user profile">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="close-up portrait of a professional male avatar with a minimalist clean background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxTlDu_54CZiSUYBInk-l2uNP22WfFO9hfxJDhJf9V97Vv-bVMt13cECZX9tiurQ4tg6QO-WfBCbLk4WJiRi7JM20REP1s8nWXkyvtNX3wIeS-DP1rmr6Ugix8FOM4U5_sMTNr-IQHJ9jgOnXvbihrXzwOfGpohIsm1n7WXFMT85IAGzK2sSFBkrRCqtkoL3sw4XqkGNVHuFJfFH5sH9WotL0qDOkwxrZGkSL9_oVp9V_PFGWmFTlGLz6WV2lJgFoEfgvlEOUqVh9w"/>
+</a>
+</div>
+</header>
+<main class="pt-20 flex min-h-screen">
+<!-- Side Navigation Anchor (Settings Sidebar) -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-2xl flex flex-col p-4 z-40 border-r border-slate-200/20">
+<div class="mb-8 px-2">
+<h2 class="font-sans text-xs uppercase tracking-widest font-bold text-slate-500 mb-4">Settings</h2>
+<div class="space-y-1">
+<button class="w-full flex items-center gap-3 px-3 py-2.5 bg-white/50 dark:bg-slate-800/50 text-blue-600 dark:text-blue-400 rounded-lg shadow-sm font-medium transition-transform duration-200 hover:scale-[1.02]">
+<span class="material-symbols-outlined text-[20px]">person</span>
+<span class="text-sm">Account</span>
+</button>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-200/30 dark:hover:bg-slate-800/30 rounded-lg font-medium transition-transform duration-200 hover:scale-[1.02]">
+<span class="material-symbols-outlined text-[20px]">hub</span>
+<span class="text-sm">EDI Gateway</span>
+</button>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-200/30 dark:hover:bg-slate-800/30 rounded-lg font-medium transition-transform duration-200 hover:scale-[1.02]">
+<span class="material-symbols-outlined text-[20px]">notifications_active</span>
+<span class="text-sm">Notifications</span>
+</button>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-200/30 dark:hover:bg-slate-800/30 rounded-lg font-medium transition-transform duration-200 hover:scale-[1.02]">
+<span class="material-symbols-outlined text-[20px]">palette</span>
+<span class="text-sm">Appearance</span>
+</button>
+<button class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-200/30 dark:hover:bg-slate-800/30 rounded-lg font-medium transition-transform duration-200 hover:scale-[1.02]">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-sm">User Management</span>
+</button>
+</div>
+</div>
+<div class="mt-auto space-y-1">
+<a class="w-full flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-600 transition-colors" href="../help_center/code.html">
+<span class="material-symbols-outlined text-[18px]">help</span>
+<span class="text-xs uppercase tracking-widest font-bold">Help Center</span>
+</a>
+<a class="w-full flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-slate-600 transition-colors" href="../documentation/code.html">
+<span class="material-symbols-outlined text-[18px]">menu_book</span>
+<span class="text-xs uppercase tracking-widest font-bold">Documentation</span>
+</a>
+</div>
+</aside>
+<!-- Content Canvas -->
+<section class="ml-64 flex-1 p-8 overflow-y-auto">
+<div class="max-w-4xl mx-auto">
+<div class="mb-10">
+<h1 class="text-3xl font-extrabold tracking-tight text-on-surface">Account Settings</h1>
+<p class="text-on-surface-variant mt-2">Manage your clinical EDI credentials and profile security.</p>
+</div>
+<!-- Settings Bento Grid -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Section: Profile & Security -->
+<div class="col-span-12 md:col-span-8 space-y-6">
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
+<h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">security</span>
+                                Security Credentials
+                            </h3>
+<div class="space-y-4">
+<div>
+<label class="block text-[11px] font-bold uppercase tracking-wider text-outline mb-1.5">Email Address</label>
+<div class="flex gap-3">
+<input class="flex-1 bg-surface-container-low border-none rounded-lg text-sm px-4 py-2.5 focus:ring-2 focus:ring-primary/20 transition-all" readonly="" type="email" value="alex.vance@luminous-health.org"/>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-all">Change</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-2">
+<button class="flex items-center justify-between px-4 py-3 bg-surface-container-high rounded-xl hover:bg-secondary-container transition-colors group">
+<div class="text-left">
+<p class="text-sm font-semibold">Password</p>
+<p class="text-xs text-outline">Last changed 4 months ago</p>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<button class="flex items-center justify-between px-4 py-3 bg-surface-container-high rounded-xl hover:bg-secondary-container transition-colors group border-2 border-primary/20">
+<div class="text-left">
+<p class="text-sm font-semibold">2FA Recovery</p>
+<p class="text-xs text-primary font-medium">Enabled via Authenticator</p>
+</div>
+<span class="material-symbols-outlined text-primary">verified_user</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Section: EDI Gateway -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-lg font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">lan</span>
+                                    EDI Gateway Configuration
+                                </h3>
+<span class="px-3 py-1 bg-tertiary/10 text-tertiary text-[10px] font-bold uppercase tracking-widest rounded-full">Active Connection</span>
+</div>
+<div class="space-y-4">
+<div class="p-4 bg-surface-container-low rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="p-2 bg-white rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-outline">dns</span>
+</div>
+<div>
+<p class="text-sm font-bold">SFTP Production Endpoint</p>
+<code class="text-xs text-tertiary">sftp.luminous-ledger.com:2222</code>
+</div>
+</div>
+<button class="text-primary text-sm font-bold hover:underline">Rotate Key</button>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 bg-surface-container-low rounded-xl">
+<p class="text-[10px] font-bold uppercase text-outline mb-1">API Key (Claims)</p>
+<div class="flex items-center justify-between">
+<span class="font-mono text-xs">•••••••••••••492A</span>
+<span class="material-symbols-outlined text-sm cursor-pointer hover:text-primary">content_copy</span>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low rounded-xl">
+<p class="text-[10px] font-bold uppercase text-outline mb-1">Last Sync</p>
+<p class="text-xs font-medium">Today, 04:22 PM EST</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Notifications & Theme -->
+<div class="col-span-12 md:col-span-4 space-y-6">
+<!-- Section: Theme Switcher -->
+<div class="bg-white/60 glass-effect p-6 rounded-xl shadow-sm border border-outline-variant/10">
+<h3 class="text-sm font-bold text-outline uppercase tracking-widest mb-4">System Appearance</h3>
+<div class="grid grid-cols-3 gap-2">
+<button class="flex flex-col items-center gap-2 p-3 bg-white border-2 border-primary rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-primary">light_mode</span>
+<span class="text-[11px] font-bold">Light</span>
+</button>
+<button class="flex flex-col items-center gap-2 p-3 bg-slate-900 text-white rounded-xl hover:scale-105 transition-transform">
+<span class="material-symbols-outlined">dark_mode</span>
+<span class="text-[11px] font-bold">Dark</span>
+</button>
+<button class="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-slate-100 to-slate-400 rounded-xl hover:scale-105 transition-transform">
+<span class="material-symbols-outlined">settings_brightness</span>
+<span class="text-[11px] font-bold">Auto</span>
+</button>
+</div>
+</div>
+<!-- Section: Notifications -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
+<h3 class="text-sm font-bold text-outline uppercase tracking-widest mb-4">Notifications</h3>
+<div class="space-y-5">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-semibold">Validation Errors</p>
+<p class="text-[11px] text-outline">Instant alert on claim failure</p>
+</div>
+<div class="w-10 h-5 bg-primary rounded-full relative flex items-center px-1">
+<div class="w-3 h-3 bg-white rounded-full translate-x-5"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-semibold">Batch Complete</p>
+<p class="text-[11px] text-outline">Email summary for 837/835</p>
+</div>
+<div class="w-10 h-5 bg-surface-container-highest rounded-full relative flex items-center px-1">
+<div class="w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="text-sm font-semibold">In-App Alerts</p>
+<p class="text-[11px] text-outline">Dashboard notifications</p>
+</div>
+<div class="w-10 h-5 bg-primary rounded-full relative flex items-center px-1">
+<div class="w-3 h-3 bg-white rounded-full translate-x-5"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: User Management Mini -->
+<div class="bg-tertiary text-white p-6 rounded-xl shadow-lg relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="text-sm font-bold uppercase tracking-widest mb-1">Team Access</h3>
+<p class="text-2xl font-black mb-4">4 Members</p>
+<div class="flex -space-x-2 mb-6">
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-tertiary" data-alt="professional avatar of a woman with glasses and confident expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOREoZW6nsQlOB15ifnK2oILbixEtFVRLX2lc44e9vA_d1tNNzZ8eBurqaOqBgE1k2SCIN45EY3QHPsWlsEdbIXtON7dVwlAlQN3LE65ScXCWZM3GmXTQCnVby0ER02MnDB75rgMLrxRv95R0e-vpXx8nhmdq1AnyUoZvAWGoXK75IN4c3v8F9lR73UAUMlVK1SHAs3omyfBdpVhwVl1OSNv3ccXXW8JIPoKFgRn8IB6e_rOxmWBFaLLrxELn7aQIigcULe_7NPGr4"/>
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-tertiary" data-alt="professional avatar of a man with a beard and friendly smile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXpHlTMuhSQcl0PevGwo-ylSOOpZ2ROD3xLNncPY5lgRAjYRQXhzwmrF4zyg_QEwqy6vjMJtpf42ZJ-pQciCXKEHTLh6dRGipiydolvsZWVM2skVJu9JGd5yc4akPd5K3qXgNaC68lGQthhNaJWBYZF9GS6-TdMHVbQ_OXCpV6rSZjxW8kNRxYNCoxHz_JMDP0q47KcxhHf3KeZcAiO-sZKcJrXt8HoIv_65sACU3WPzQIlFLChG41RoS-h68cyPjUVcTXpQZPcKYo"/>
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-tertiary" data-alt="professional avatar of a person with short hair and neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_HvdnrCnHdRQuctuNoPnzmFG0ov5R1p64iL3kKmvYnrT8N7dfpVYtxXs2P9WPwE2xyTkKhfHDDg_V7Fvv_Ugn1BF8MkKey6JtfbxHWb90nT6jOxPKYCInK4Po452LcwuNQKgV5jrFM0dZvohU_v2TlGVjgIbW-O0mPByj33HTLsh54p16A21CIdSK6nVP5_G1v3v_DIHlOYeJIsuSBQQWsvD_soRpKVr04OGCu96kT1yeEuRni3DjC_gPZHnYx2QHNcRYt8Z8mxZX"/>
+<div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-[10px] font-bold">+1</div>
+</div>
+<button class="w-full bg-white text-tertiary py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-opacity-90 transition-all">Manage Permissions</button>
+</div>
+<!-- Abstract Background Shape -->
+<div class="absolute -right-4 -bottom-4 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="mt-12 pt-8 border-t border-outline-variant/10 flex justify-end gap-4">
+<button class="px-6 py-2.5 text-sm font-bold text-outline hover:text-on-surface transition-colors">Discard Changes</button>
+<button class="px-8 py-2.5 bg-primary text-white text-sm font-bold rounded-xl shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Save Global Settings</button>
+</div>
+</div>
+</section>
+</main>
+<!-- Success Toast (Hidden) -->
+<div class="fixed bottom-8 right-8 bg-surface-container-lowest glass-effect px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border border-primary/10 translate-y-24 transition-transform duration-500">
+<div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-lg">check</span>
+</div>
+<div>
+<p class="text-sm font-bold">Settings Updated</p>
+<p class="text-xs text-outline">EDI Gateway re-validated successfully.</p>
+</div>
+</div>
+</body></html>
+

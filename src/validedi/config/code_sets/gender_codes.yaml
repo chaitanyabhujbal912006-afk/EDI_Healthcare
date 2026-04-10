@@ -1,0 +1,6 @@
+code_set_id: 'gender_codes'
+description: 'DMG03 Gender Codes'
+codes:
+  'M': 'Male'
+  'F': 'Female'
+  'U': 'Unknown'

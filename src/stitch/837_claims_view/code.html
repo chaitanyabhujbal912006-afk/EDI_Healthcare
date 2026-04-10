@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>
+<title>EdiPro - 837 Claims Auditor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#e2dfff",
+                        "on-primary-fixed": "#001a41",
+                        "surface-tint": "#005bc1",
+                        "primary-container": "#0070eb",
+                        "on-tertiary-fixed": "#0c006b",
+                        "on-secondary-container": "#626267",
+                        "on-primary-container": "#fefcff",
+                        "on-secondary-fixed": "#1a1b1f",
+                        "surface-bright": "#f9f9fb",
+                        "tertiary-fixed-dim": "#c2c1ff",
+                        "primary": "#0058bc",
+                        "on-primary": "#ffffff",
+                        "background": "#f9f9fb",
+                        "surface-container-low": "#f3f3f5",
+                        "inverse-on-surface": "#f0f0f2",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#6462ec",
+                        "outline-variant": "#c1c6d7",
+                        "primary-fixed": "#d8e2ff",
+                        "secondary": "#5d5e63",
+                        "secondary-container": "#e0dfe4",
+                        "secondary-fixed": "#e3e2e7",
+                        "surface-variant": "#e2e2e4",
+                        "inverse-surface": "#2f3132",
+                        "surface": "#f9f9fb",
+                        "primary-fixed-dim": "#adc6ff",
+                        "on-primary-fixed-variant": "#004493",
+                        "inverse-primary": "#adc6ff",
+                        "error-container": "#ffdad6",
+                        "outline": "#717786",
+                        "on-surface-variant": "#414755",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-container-highest": "#e2e2e4",
+                        "surface-dim": "#d9dadc",
+                        "on-secondary-fixed-variant": "#46464b",
+                        "error": "#ba1a1a",
+                        "on-background": "#1a1c1d",
+                        "on-tertiary-fixed-variant": "#332dbc",
+                        "surface-container": "#eeeef0",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#c6c6cb",
+                        "tertiary": "#4a47d2",
+                        "on-surface": "#1a1c1d",
+                        "surface-container-high": "#e8e8ea"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex justify-between items-center px-6 py-3 shadow-sm dark:shadow-none transition-all duration-200">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-slate-900 dark:text-white cursor-pointer" onclick="window.location.href='../dashboard_sleek/code.html'">EdiPro</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-800 py-1 transition-all" href="../dashboard_sleek/code.html">Dashboard</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-800 py-1 transition-all" href="../837_claims_view/code.html">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<div class="hidden sm:flex items-center bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-full px-3 py-1.5 transition-all">
+<span class="material-symbols-outlined text-[20px] text-slate-500">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-slate-400" placeholder="Search files..." type="text"/>
+</div>
+<a class="p-2 hover:bg-slate-100/50 rounded-full transition-all active:scale-95" href="../notifications/code.html" aria-label="Open notifications">
+<span class="material-symbols-outlined text-slate-600">notifications</span>
+</a>
+<a class="p-2 hover:bg-slate-100/50 rounded-full transition-all active:scale-95" href="../settings/code.html" aria-label="Open settings">
+<span class="material-symbols-outlined text-slate-600">settings</span>
+</a>
+<a class="h-8 w-8 rounded-full overflow-hidden bg-primary/10 ring-2 ring-white shadow-sm" href="../user_profile/code.html" aria-label="Open user profile">
+<img class="w-full h-full object-cover" data-alt="User Profile Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach"/>
+</a>
+</div>
+</header>
+<!-- Side Navigation Bar -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-2xl border-r border-slate-200/30 dark:border-slate-800/30 shadow-xl dark:shadow-2xl flex flex-col h-full py-6 pt-20">
+<div class="px-6 mb-8 flex items-center gap-3 cursor-pointer" onclick="window.location.href='../dashboard_sleek/code.html'">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">hub</span>
+</div>
+<div>
+<h2 class="text-lg font-black text-slate-900 dark:text-white leading-none">HealthConnect</h2>
+<p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-1">EDI Gateway</p>
+</div>
+</div>
+<nav class="flex-1 px-2 space-y-1">
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../dashboard_sleek/code.html" data-nav-link="true">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../master_parser_sleek/code.html" data-nav-link="true">
+<span class="material-symbols-outlined">analytics</span> Master Parser
+            </a>
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../835_remittance_sleek/code.html" data-nav-link="true">
+<span class="material-symbols-outlined">payments</span> 835 Remittance
+            </a>
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../834_enrollment_sleek/code.html" data-nav-link="true">
+<span class="material-symbols-outlined">group_add</span> 834 Enrollment
+            </a>
+<a class="bg-blue-50/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg mx-2 flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide scale-100 active:scale-[0.98] transition-transform duration-300" href="../837_claims_view/code.html" data-nav-link="true">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span> 837 Claims
+            </a>
+</nav>
+<div class="mt-auto px-4 pb-4">
+<button class="w-full bg-primary text-white rounded-xl py-3 text-sm font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:brightness-95" onclick="console.log('Open New Submission Dialog')">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+                New Submission
+            </button>
+</div>
+<div class="px-2 pt-4 border-t border-slate-200/30 mx-4 space-y-1">
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 rounded-lg flex items-center gap-3 px-4 py-2 text-xs font-medium tracking-wide hover:translate-x-1 transition-transform duration-300" href="../help_center/code.html" data-nav-link="true">
+<span class="material-symbols-outlined text-[18px]">help</span> Help Center
+            </a>
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 rounded-lg flex items-center gap-3 px-4 py-2 text-xs font-medium tracking-wide hover:translate-x-1 transition-transform duration-300" href="../documentation/code.html" data-nav-link="true">
+<span class="material-symbols-outlined text-[18px]">menu_book</span> Documentation
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:pl-64 pt-16 min-h-screen">
+<div class="p-8 max-w-7xl mx-auto">
+<!-- Page Header -->
+<header class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+<div>
+<nav class="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-2 uppercase tracking-tighter">
+<span>EDI Gateway</span>
+<span class="material-symbols-outlined text-[10px]">chevron_right</span>
+<span class="text-primary">837 Claims Audit</span>
+</nav>
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface">Auditing Claims</h1>
+</div>
+<div class="flex gap-2">
+<div class="bg-surface-container-high p-1 rounded-xl flex">
+<button class="px-4 py-2 bg-white shadow-sm rounded-lg text-sm font-bold text-primary">837P <span class="text-[10px] text-slate-400 font-normal ml-1">Professional</span></button>
+<button class="px-4 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700">837I <span class="text-[10px] text-slate-400 font-normal ml-1">Institutional</span></button>
+</div>
+</div>
+</header>
+<!-- Top Summary Cards (Bento Style) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<!-- Total Claims -->
+<div class="glass-panel p-6 rounded-2xl shadow-sm border border-outline-variant/10 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">database</span>
+</div>
+<span class="text-xs font-bold text-success-green flex items-center bg-green-50 px-2 py-1 rounded-full text-green-600">
+<span class="material-symbols-outlined text-xs mr-1">trending_up</span> +12%
+                        </span>
+</div>
+<p class="text-slate-500 text-sm font-medium">Total Claims Audited</p>
+<h3 class="text-3xl font-black mt-1">42,891</h3>
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-9xl">receipt_long</span>
+</div>
+</div>
+<!-- Total Billed -->
+<div class="glass-panel p-6 rounded-2xl shadow-sm border border-outline-variant/10 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-tertiary/10 rounded-xl flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-xs font-bold text-slate-400 px-2 py-1">Last 24h</span>
+</div>
+<p class="text-slate-500 text-sm font-medium">Total Billed Amount</p>
+<h3 class="text-3xl font-black mt-1">$4.2M</h3>
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-9xl">monetization_on</span>
+</div>
+</div>
+<!-- Errors -->
+<div class="glass-panel p-6 rounded-2xl shadow-sm border border-outline-variant/10 relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 bg-error-container/30 rounded-xl flex items-center justify-center text-error">
+<span class="material-symbols-outlined">error</span>
+</div>
+<span class="text-xs font-bold text-error flex items-center bg-error-container/20 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs mr-1">warning</span> 2.4% rate
+                        </span>
+</div>
+<p class="text-slate-500 text-sm font-medium">Validation Errors</p>
+<h3 class="text-3xl font-black mt-1">1,029</h3>
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-9xl">bug_report</span>
+</div>
+</div>
+</section>
+<!-- Filter & Table Section -->
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Filter Sidebar -->
+<aside class="w-full lg:w-64 space-y-8">
+<div>
+<h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Claim Types</h4>
+<div class="space-y-2">
+<label class="flex items-center gap-3 p-3 glass-panel rounded-xl cursor-pointer hover:bg-white transition-colors border border-outline-variant/10">
+<input checked="" class="rounded border-slate-300 text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-sm font-semibold text-slate-700">837P Professional</span>
+</label>
+<label class="flex items-center gap-3 p-3 glass-panel rounded-xl cursor-pointer hover:bg-white transition-colors border border-outline-variant/10">
+<input class="rounded border-slate-300 text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-sm font-semibold text-slate-700">837I Institutional</span>
+</label>
+</div>
+</div>
+<div>
+<h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Validation Status</h4>
+<div class="space-y-1">
+<button class="w-full flex justify-between items-center p-2 text-sm font-medium text-slate-600 hover:text-primary group">
+<span class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-green-500"></span> Clean Claims
+                                </span>
+<span class="text-xs bg-slate-100 px-2 py-0.5 rounded group-hover:bg-primary-fixed">38k</span>
+</button>
+<button class="w-full flex justify-between items-center p-2 text-sm font-medium text-slate-600 hover:text-primary group">
+<span class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error"></span> Missing Fields
+                                </span>
+<span class="text-xs bg-slate-100 px-2 py-0.5 rounded">412</span>
+</button>
+<button class="w-full flex justify-between items-center p-2 text-sm font-medium text-slate-600 hover:text-primary group">
+<span class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span> NPI Mismatch
+                                </span>
+<span class="text-xs bg-slate-100 px-2 py-0.5 rounded">128</span>
+</button>
+</div>
+</div>
+<div class="pt-4">
+<img alt="Abstract Healthcare Data Visualization" class="w-full h-32 rounded-2xl object-cover opacity-60 mix-blend-multiply" data-alt="Abstract soft blue medical data pattern" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGUXPfvfASWfUidRvyAHmPb8uIquQXJU8QUkZPZC7kqpl93zpM_bqEP_Wgjjz4eCGI3K_MO4Bqxz2UddM6FIUfnSeNzlSGVQhqS8_SYpEj81VmDWgshch8uFx82MjVC_P9f7hYfrYN9of7iyLVIIBuEC4a6ujevZJBqnIROauOwJZ55VehXqk0O7gi_VjFcrNSRwdKhiaTyc-mdiyzYKSzZMo5KsyJClh_Rrm0EEdKPtBfKhvmClwJL5z4prC4wSJ60IZhFqnfjhca"/>
+</div>
+</aside>
+<!-- Claims Table Canvas -->
+<div class="flex-1 overflow-hidden">
+<div class="glass-panel rounded-2xl border border-outline-variant/10 shadow-sm overflow-hidden flex flex-col">
+<!-- Table Toolbar -->
+<div class="p-4 flex items-center justify-between gap-4 border-b border-outline-variant/5">
+<div class="relative flex-1 max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400" placeholder="Search by Claim ID, Provider, or Subscriber..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-all">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-all" onclick="alert('Preparing report for download...')">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+<!-- High Density Table -->
+<div class="overflow-x-auto no-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-outline-variant/10">Claim ID</th>
+<th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-outline-variant/10">Provider (NPI)</th>
+<th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-outline-variant/10">Subscriber</th>
+<th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-outline-variant/10 text-right">Billed Amt</th>
+<th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-outline-variant/10 text-center">ICD-10</th>
+<th class="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-outline-variant/10">Validation Status</th>
+<th class="px-4 py-3 border-b border-outline-variant/10"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1 -->
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer" onclick="this.classList.toggle('bg-blue-50/50'); console.log('Row clicked:', this.cells[0].innerText);">
+<td class="px-4 py-2 text-xs font-bold text-slate-900">#CLM-29384-01</td>
+<td class="px-4 py-2">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-700">Northside Clinic</span>
+<span class="text-[10px] text-slate-400">1294857204</span>
+</div>
+</td>
+<td class="px-4 py-2 text-xs text-slate-600">Johnathan Miller (A9342)</td>
+<td class="px-4 py-2 text-xs font-bold text-slate-900 text-right">$1,245.00</td>
+<td class="px-4 py-2 text-center">
+<span class="text-[10px] font-bold bg-surface-container-highest px-2 py-0.5 rounded text-slate-600">Z00.00</span>
+</td>
+<td class="px-4 py-2">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter bg-green-100 text-green-700 border border-green-200/50">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Clean
+                                            </span>
+</td>
+<td class="px-4 py-2 text-right">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-400 hover:text-primary">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer" onclick="this.classList.toggle('bg-blue-50/50'); console.log('Row clicked:', this.cells[0].innerText);">
+<td class="px-4 py-2 text-xs font-bold text-slate-900">#CLM-30192-44</td>
+<td class="px-4 py-2">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-700">General Imaging</span>
+<span class="text-[10px] text-slate-400">1049285741</span>
+</div>
+</td>
+<td class="px-4 py-2 text-xs text-slate-600">Sarah West (W2201)</td>
+<td class="px-4 py-2 text-xs font-bold text-slate-900 text-right">$4,820.50</td>
+<td class="px-4 py-2 text-center">
+<span class="text-[10px] font-bold bg-surface-container-highest px-2 py-0.5 rounded text-slate-600">M54.5</span>
+</td>
+<td class="px-4 py-2">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter bg-error-container/30 text-error border border-error/10">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Error
+                                            </span>
+</td>
+<td class="px-4 py-2 text-right">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-400 hover:text-primary">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 (AI Insight) -->
+<tr class="bg-tertiary-fixed/10 hover:bg-tertiary-fixed/20 transition-colors group cursor-pointer" onclick="this.classList.toggle('bg-blue-50/50'); console.log('Row clicked:', this.cells[0].innerText);">
+<td class="px-4 py-2 text-xs font-bold text-tertiary">#CLM-44910-AI</td>
+<td class="px-4 py-2">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-700">St. Mary's Ortho</span>
+<span class="text-[10px] text-slate-400">1992038475</span>
+</div>
+</td>
+<td class="px-4 py-2 text-xs text-slate-600">Robert Chen (C0012)</td>
+<td class="px-4 py-2 text-xs font-bold text-slate-900 text-right">$312.00</td>
+<td class="px-4 py-2 text-center">
+<span class="text-[10px] font-bold bg-tertiary-fixed px-2 py-0.5 rounded text-on-tertiary-fixed-variant">S82.1</span>
+</td>
+<td class="px-4 py-2">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter bg-tertiary-fixed-dim text-on-tertiary-fixed-variant border border-tertiary/20">
+<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span> Smart Parsed
+                                            </span>
+</td>
+<td class="px-4 py-2 text-right">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-400 hover:text-primary">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Generic Rows for Density -->
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer" onclick="this.classList.toggle('bg-blue-50/50'); console.log('Row clicked:', this.cells[0].innerText);">
+<td class="px-4 py-2 text-xs font-bold text-slate-900">#CLM-99201-88</td>
+<td class="px-4 py-2">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-700">CVS Health</span>
+<span class="text-[10px] text-slate-400">1938475620</span>
+</div>
+</td>
+<td class="px-4 py-2 text-xs text-slate-600">Linda Harris (H8892)</td>
+<td class="px-4 py-2 text-xs font-bold text-slate-900 text-right">$89.12</td>
+<td class="px-4 py-2 text-center"><span class="text-[10px] font-bold bg-surface-container-highest px-2 py-0.5 rounded text-slate-600">E11.9</span></td>
+<td class="px-4 py-2"><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-green-100 text-green-700 tracking-tighter"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Clean</span></td>
+<td class="px-4 py-2 text-right">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer" onclick="this.classList.toggle('bg-blue-50/50'); console.log('Row clicked:', this.cells[0].innerText);">
+<td class="px-4 py-2 text-xs font-bold text-slate-900">#CLM-12093-02</td>
+<td class="px-4 py-2">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-700">Urgent Care P.C.</span>
+<span class="text-[10px] text-slate-400">1002938475</span>
+</div>
+</td>
+<td class="px-4 py-2 text-xs text-slate-600">Kevin Durant (D3302)</td>
+<td class="px-4 py-2 text-xs font-bold text-slate-900 text-right">$225.00</td>
+<td class="px-4 py-2 text-center"><span class="text-[10px] font-bold bg-surface-container-highest px-2 py-0.5 rounded text-slate-600">J01.9</span></td>
+<td class="px-4 py-2"><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-green-100 text-green-700 tracking-tighter"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Clean</span></td>
+<td class="px-4 py-2 text-right">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer" onclick="this.classList.toggle('bg-blue-50/50'); console.log('Row clicked:', this.cells[0].innerText);">
+<td class="px-4 py-2 text-xs font-bold text-slate-900">#CLM-00912-33</td>
+<td class="px-4 py-2">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-700">City Radiology</span>
+<span class="text-[10px] text-slate-400">1102938482</span>
+</div>
+</td>
+<td class="px-4 py-2 text-xs text-slate-600">Amy Santiago (S0023)</td>
+<td class="px-4 py-2 text-xs font-bold text-slate-900 text-right">$1,150.00</td>
+<td class="px-4 py-2 text-center"><span class="text-[10px] font-bold bg-surface-container-highest px-2 py-0.5 rounded text-slate-600">R05.1</span></td>
+<td class="px-4 py-2"><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-error-container/30 text-error border border-error/10 tracking-tighter"><span class="w-1.5 h-1.5 rounded-full bg-error"></span> Error</span></td>
+<td class="px-4 py-2 text-right">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group cursor-pointer" onclick="this.classList.toggle('bg-blue-50/50'); console.log('Row clicked:', this.cells[0].innerText);">
+<td class="px-4 py-2 text-xs font-bold text-slate-900">#CLM-55012-91</td>
+<td class="px-4 py-2">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-700">Metro Heart</span>
+<span class="text-[10px] text-slate-400">1882736450</span>
+</div>
+</td>
+<td class="px-4 py-2 text-xs text-slate-600">Marcus Wright (W4401)</td>
+<td class="px-4 py-2 text-xs font-bold text-slate-900 text-right">$5,200.00</td>
+<td class="px-4 py-2 text-center"><span class="text-[10px] font-bold bg-surface-container-highest px-2 py-0.5 rounded text-slate-600">I10.0</span></td>
+<td class="px-4 py-2"><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-green-100 text-green-700 tracking-tighter"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Clean</span></td>
+<td class="px-4 py-2 text-right">
+<button class="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination -->
+<div class="p-4 border-t border-outline-variant/5 bg-surface-container-low/30 flex items-center justify-between">
+<span class="text-xs text-slate-500">Showing <strong>1 - 8</strong> of 42,891 results</span>
+<div class="flex gap-1">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-white hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center bg-white text-primary font-bold shadow-sm text-xs">1</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-white transition-all text-xs">2</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-white transition-all text-xs">3</button>
+<span class="w-8 h-8 flex items-center justify-center text-slate-400">...</span>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-white hover:text-primary transition-all">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button (Supressed as per task description/context check) -->
+<!-- Suppression logic: Only render FAB on Dashboard/Home. This is an auditing sub-page. -->
+<script>
+    (function () {
+        const storageKey = 'ediSubmissions';
+        const items = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        const claimItems = Array.isArray(items) ? items.filter((item) => item.type === '837') : [];
+        if (claimItems.length > 0) {
+            return;
+        }
+        const main = document.querySelector('main');
+        if (!main) {
+            return;
+        }
+        main.innerHTML = '<div class="min-h-[70vh] flex items-center justify-center"><div class="bg-white/70 border border-outline-variant/20 rounded-2xl p-10 text-center max-w-xl"><h2 class="text-2xl font-black text-on-surface">No 837 claims data yet</h2><p class="text-sm text-on-surface-variant mt-3">Upload 837 files from the dashboard. This page will populate after a real upload.</p></div></div>';
+    })();
+</script>
+</body></html>
+

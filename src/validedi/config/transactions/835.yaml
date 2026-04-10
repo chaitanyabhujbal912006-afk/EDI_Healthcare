@@ -1,0 +1,42 @@
+transaction_type: '835'
+description: 'Health Care Claim Payment/Advice'
+
+loops:
+  - id: '1000A'
+    parent_id: null
+    trigger_segment: 'N1'
+    trigger_qualifier:
+      element: 1
+      value: 'PR'
+    required_segments: ['N1']
+    rules: []
+    
+  - id: '1000B'
+    parent_id: null
+    trigger_segment: 'N1'
+    trigger_qualifier:
+      element: 1
+      value: 'PE'
+    required_segments: ['N1']
+    rules: []
+    
+  - id: '2000'
+    parent_id: null
+    trigger_segment: 'LX'
+    trigger_qualifier: null
+    required_segments: ['LX']
+    rules: []
+    
+  - id: '2100'
+    parent_id: '2000'
+    trigger_segment: 'CLP'
+    trigger_qualifier: null
+    required_segments: ['CLP']
+    rules: ['CLP_PAID_VS_BILLED']
+    
+  - id: '2110'
+    parent_id: '2100'
+    trigger_segment: 'SVC'
+    trigger_qualifier: null
+    required_segments: ['SVC']
+    rules: []

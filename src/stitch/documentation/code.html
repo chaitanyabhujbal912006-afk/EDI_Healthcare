@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EdiPro - Documentation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .edi-code-block {
+            font-family: 'ui-monospace', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+            background: #1a1c1d;
+            color: #e2e2e4;
+        }
+        /* Custom scrollbar for documentation */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e2e4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d9dadc; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary-container": "#0070eb",
+                "error": "#ba1a1a",
+                "tertiary-fixed-dim": "#c2c1ff",
+                "on-secondary": "#ffffff",
+                "surface-container": "#eeeef0",
+                "inverse-on-surface": "#f0f0f2",
+                "inverse-primary": "#adc6ff",
+                "surface-dim": "#d9dadc",
+                "error-container": "#ffdad6",
+                "secondary-container": "#e0dfe4",
+                "secondary-fixed": "#e3e2e7",
+                "on-tertiary-fixed": "#0c006b",
+                "inverse-surface": "#2f3132",
+                "on-surface": "#1a1c1d",
+                "on-primary-fixed-variant": "#004493",
+                "surface-container-low": "#f3f3f5",
+                "on-secondary-fixed": "#1a1b1f",
+                "on-tertiary": "#ffffff",
+                "surface-container-high": "#e8e8ea",
+                "on-error": "#ffffff",
+                "tertiary-fixed": "#e2dfff",
+                "secondary-fixed-dim": "#c6c6cb",
+                "primary-fixed-dim": "#adc6ff",
+                "on-secondary-container": "#626267",
+                "surface-container-highest": "#e2e2e4",
+                "on-tertiary-fixed-variant": "#332dbc",
+                "secondary": "#5d5e63",
+                "background": "#f9f9fb",
+                "surface-variant": "#e2e2e4",
+                "surface-container-lowest": "#ffffff",
+                "on-surface-variant": "#414755",
+                "on-primary": "#ffffff",
+                "on-primary-container": "#fefcff",
+                "on-primary-fixed": "#001a41",
+                "surface-bright": "#f9f9fb",
+                "outline": "#717786",
+                "primary-fixed": "#d8e2ff",
+                "on-tertiary-container": "#fffbff",
+                "on-error-container": "#93000a",
+                "tertiary": "#4a47d2",
+                "surface": "#f9f9fb",
+                "tertiary-container": "#6462ec",
+                "surface-tint": "#005bc1",
+                "on-secondary-fixed-variant": "#46464b",
+                "outline-variant": "#c1c6d7",
+                "primary": "#0058bc",
+                "on-background": "#1a1c1d"
+              },
+              fontFamily: {
+                "headline": ["Inter"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-fixed">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full w-72 bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-2xl flex flex-col p-6 z-40 border-r border-slate-200/20 glass-nav">
+<div class="mb-10">
+<h1 class="text-lg font-black text-slate-900 tracking-tighter uppercase">EdiPro</h1>
+<p class="text-[10px] font-bold tracking-widest text-slate-500 mt-1 uppercase">EDI Management Documentation</p>
+</div>
+<nav class="flex-1 space-y-8 overflow-y-auto pr-2">
+<div>
+<h2 class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">Introduction</h2>
+<ul class="space-y-3">
+<li><a class="flex items-center gap-3 text-blue-600 font-semibold bg-white/50 px-3 py-2 rounded-lg shadow-sm group" href="#architecture"><span class="material-symbols-outlined text-sm">hub</span>System Architecture</a></li>
+<li><a class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors px-3 py-2 rounded-lg" href="#x12-versions"><span class="material-symbols-outlined text-sm">terminal</span>X12 Versions</a></li>
+</ul>
+</div>
+<div>
+<h2 class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">API Reference</h2>
+<ul class="space-y-3">
+<li><a class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors px-3 py-2 rounded-lg" href="#auth"><span class="material-symbols-outlined text-sm">key</span>Authentication</a></li>
+<li><a class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors px-3 py-2 rounded-lg" href="#endpoints"><span class="material-symbols-outlined text-sm">api</span>Endpoints</a></li>
+<li><a class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors px-3 py-2 rounded-lg" href="#response-codes"><span class="material-symbols-outlined text-sm">code_off</span>Response Codes</a></li>
+</ul>
+</div>
+<div>
+<h2 class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">Implementation</h2>
+<ul class="space-y-3">
+<li><a class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors px-3 py-2 rounded-lg" href="#snip-rules"><span class="material-symbols-outlined text-sm">fact_check</span>SNIP Levels 1-7</a></li>
+<li><a class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors px-3 py-2 rounded-lg" href="#validator-guides"><span class="material-symbols-outlined text-sm">rule</span>Validator Rulesets</a></li>
+</ul>
+</div>
+<div>
+<h2 class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-4">Governance</h2>
+<ul class="space-y-3">
+<li><a class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors px-3 py-2 rounded-lg" href="#compliance"><span class="material-symbols-outlined text-sm">verified_user</span>Compliance &amp; Security</a></li>
+<li><a class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors px-3 py-2 rounded-lg" href="#release-notes"><span class="material-symbols-outlined text-sm">history</span>Release Notes</a></li>
+</ul>
+</div>
+</nav>
+<div class="mt-auto pt-6 border-t border-slate-200/20">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="text-sm font-bold">Developer Docs</p>
+<p class="text-[10px] text-slate-500">v4.12.0 Stable</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 left-72 right-0 bg-white/80 backdrop-blur-xl z-30 px-10 py-4 flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-6">
+<span class="text-sm font-medium text-slate-500">Documentation</span>
+<span class="material-symbols-outlined text-slate-300">chevron_right</span>
+<span class="text-sm font-semibold text-blue-600">Developer Portal</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">search</span>
+<input class="bg-surface-container-low border-none rounded-xl pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search documentation..." type="text"/>
+</div>
+<button class="bg-primary text-white text-sm font-medium px-4 py-2 rounded-xl hover:opacity-90 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">cloud_upload</span>
+                Upload File
+            </button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-72 pt-24 pb-20 px-16 max-w-6xl">
+<!-- Introduction Section -->
+<section class="mb-24" id="architecture">
+<div class="mb-8">
+<span class="text-tertiary font-bold tracking-widest text-[10px] uppercase bg-tertiary/10 px-2 py-1 rounded">Getting Started</span>
+<h2 class="text-4xl font-extrabold tracking-tight mt-4 text-on-surface">System Architecture</h2>
+<p class="text-lg text-on-surface-variant mt-4 leading-relaxed max-w-3xl">
+                    EdiPro is built on a distributed microservices framework designed specifically for high-throughput Healthcare EDI processing. It leverages specialized parsing engines to handle X12 payloads with sub-millisecond latency.
+                </p>
+</div>
+<div class="grid grid-cols-2 gap-8 mb-12">
+<div class="bg-surface-container-low p-8 rounded-xl relative overflow-hidden group">
+<div class="relative z-10">
+<div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm mb-6">
+<span class="material-symbols-outlined text-primary">schema</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Event-Driven Core</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Utilizes Apache Kafka for durable message queuing and real-time streaming of EDI interchanges across SNIP validation tiers.</p>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-[120px] font-thin">hub</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-8 rounded-xl relative overflow-hidden group">
+<div class="relative z-10">
+<div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm mb-6">
+<span class="material-symbols-outlined text-tertiary">memory</span>
+</div>
+<h3 class="text-xl font-bold mb-3">Hybrid Parser</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">A proprietary Rust-based engine that converts raw EDI to JSON/FHIR formats while maintaining full structural lineage.</p>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-[120px] font-thin">settings_input_component</span>
+</div>
+</div>
+</div>
+<div class="mt-12 pt-12 border-t border-outline-variant/20" id="x12-versions">
+<h3 class="text-2xl font-bold mb-6">Supported X12 Versions</h3>
+<div class="overflow-hidden rounded-xl border border-outline-variant/10">
+<table class="w-full text-left text-sm">
+<thead class="bg-surface-container-high text-on-surface font-semibold">
+<tr>
+<th class="px-6 py-4">Transaction Set</th>
+<th class="px-6 py-4">Description</th>
+<th class="px-6 py-4">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="bg-white hover:bg-surface-container-low transition-colors">
+<td class="px-6 py-4 font-mono font-bold text-primary">837 P/I/D</td>
+<td class="px-6 py-4 text-on-surface-variant">Health Care Claims (Professional/Institutional/Dental)</td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase">Stable</span></td>
+</tr>
+<tr class="bg-white hover:bg-surface-container-low transition-colors">
+<td class="px-6 py-4 font-mono font-bold text-primary">835</td>
+<td class="px-6 py-4 text-on-surface-variant">Electronic Remittance Advice (ERA)</td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase">Stable</span></td>
+</tr>
+<tr class="bg-white hover:bg-surface-container-low transition-colors">
+<td class="px-6 py-4 font-mono font-bold text-primary">270/271</td>
+<td class="px-6 py-4 text-on-surface-variant">Eligibility Benefit Inquiry and Response</td>
+<td class="px-6 py-4"><span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold uppercase">Beta</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- API Reference Section -->
+<section class="mb-24 scroll-mt-24" id="auth">
+<h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-8">API Reference</h2>
+<div class="mb-12">
+<h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">lock_open</span> Authentication
+                </h3>
+<p class="text-on-surface-variant mb-6 leading-relaxed">
+                    EdiPro uses OAuth 2.0 Client Credentials flow. All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.
+                </p>
+<div class="edi-code-block rounded-xl p-6 relative group">
+<button class="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-xs px-3 py-1 rounded transition-colors flex items-center gap-2 text-white/70">
+<span class="material-symbols-outlined text-xs">content_copy</span> Copy
+                    </button>
+<pre class="text-sm"><code>curl -X POST https://api.luminousledger.com/oauth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
+  -d "client_id=YOUR_CLIENT_ID" \
+  -d "client_secret=YOUR_CLIENT_SECRET"</code></pre>
+</div>
+</div>
+<div class="mb-12" id="endpoints">
+<h3 class="text-xl font-bold mb-6">Available Endpoints</h3>
+<div class="space-y-4">
+<div class="bg-surface-container-low p-5 rounded-xl border-l-4 border-primary">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-3">
+<span class="text-[10px] font-black bg-primary text-white px-2 py-0.5 rounded">POST</span>
+<code class="text-sm font-bold">/v1/parser/x12/validate</code>
+</div>
+<span class="text-xs text-on-surface-variant">Validate EDI without persisting</span>
+</div>
+<p class="text-xs text-on-surface-variant">Primary endpoint for real-time SNIP validation of claim files.</p>
+</div>
+<div class="bg-surface-container-low p-5 rounded-xl border-l-4 border-tertiary">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-3">
+<span class="text-[10px] font-black bg-tertiary text-white px-2 py-0.5 rounded">GET</span>
+<code class="text-sm font-bold">/v1/claims/{claimId}/status</code>
+</div>
+<span class="text-xs text-on-surface-variant">Retrieve claim lifecycle status</span>
+</div>
+<p class="text-xs text-on-surface-variant">Fetch the current clearinghouse status and ACK records.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Validator Implementation Guides -->
+<section class="mb-24 scroll-mt-24" id="snip-rules">
+<h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-8">Validator Implementation</h2>
+<p class="text-on-surface-variant mb-12 max-w-3xl">
+                Our engine performs WEDI SNIP validation up to Level 7. Each level is processed in a sequential pipeline to ensure data integrity and compliance.
+            </p>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- SNIP 1 -->
+<div class="p-6 rounded-2xl bg-white shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col items-start">
+<div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold mb-4">1</div>
+<h4 class="font-bold mb-2">Integrity Check</h4>
+<p class="text-xs text-on-surface-variant leading-relaxed">Basic structural integrity including segment order and envelope balancing (ISA/IEA, GS/GE).</p>
+</div>
+<!-- SNIP 2 -->
+<div class="p-6 rounded-2xl bg-white shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col items-start">
+<div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold mb-4">2</div>
+<h4 class="font-bold mb-2">Requirement Check</h4>
+<p class="text-xs text-on-surface-variant leading-relaxed">Validation of mandatory segments and data elements based on the TR3 implementation guide.</p>
+</div>
+<!-- SNIP 3 -->
+<div class="p-6 rounded-2xl bg-white shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col items-start">
+<div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold mb-4">3</div>
+<h4 class="font-bold mb-2">Balancing Check</h4>
+<p class="text-xs text-on-surface-variant leading-relaxed">Validation of claim amounts against service line items and hierarchical level counts.</p>
+</div>
+</div>
+<div class="mt-12 bg-white/50 p-8 rounded-2xl border border-dashed border-outline-variant">
+<h4 class="text-lg font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">psychology</span>
+                    AI-Driven Parsing Hint (SNIP 7)
+                </h4>
+<p class="text-sm text-on-surface-variant mb-6">
+                    Our AI models analyze historical trading partner behavior to predict "Unwritten Rules" of specific clearinghouses, effectively providing Level 7 Custom Validation.
+                </p>
+<div class="edi-code-block rounded-xl p-6 relative">
+<div class="text-[10px] uppercase font-bold text-tertiary-fixed-dim mb-2">Sample EDI String (837P)</div>
+<pre class="text-xs leading-relaxed overflow-x-auto"><code>ISA*00*          *00*          *ZZ*SUBMITTERID    *ZZ*RECEIVERID     *230915*1200*^*00501*000000001*0*P*:~
+GS*HC*SUBMITTERID*RECEIVERID*20230915*1200*1*X*005010X222A1~
+ST*837*0001*005010X222A1~
+BHT*0019*00*0123*20230915*1200*CH~</code></pre>
+</div>
+</div>
+</section>
+<!-- Compliance & Security -->
+<section class="mb-24 scroll-mt-24" id="compliance">
+<h2 class="text-4xl font-extrabold tracking-tight text-on-surface mb-8">Compliance &amp; Security</h2>
+<div class="bg-primary/5 p-10 rounded-3xl border border-primary/10">
+<div class="flex flex-col md:flex-row gap-12">
+<div class="flex-1">
+<h3 class="text-2xl font-bold mb-6">HIPAA &amp; HITECH Alignment</h3>
+<p class="text-on-surface-variant leading-relaxed mb-6">
+                            EdiPro is architected from the ground up for full HIPAA/HITECH compliance. All data at rest is encrypted using AES-256-GCM, and data in transit is protected via TLS 1.3 with Perfect Forward Secrecy.
+                        </p>
+<ul class="space-y-4">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-600">check_circle</span>
+<span class="text-sm">HITRUST CSF Certified infrastructure.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-600">check_circle</span>
+<span class="text-sm">Automated PHI redaction for testing environments.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-600">check_circle</span>
+<span class="text-sm">Immutable audit logs for every data access event.</span>
+</li>
+</ul>
+</div>
+<div class="w-full md:w-80 h-64 bg-white rounded-2xl shadow-inner flex items-center justify-center p-8 text-center border border-primary/5">
+<div class="space-y-4">
+<span class="material-symbols-outlined text-6xl text-primary/20">verified_user</span>
+<div class="text-lg font-black text-slate-800">SOC 2 Type II</div>
+<p class="text-[10px] uppercase font-bold text-slate-400">Compliance Audit: 2024</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer / Release Notes -->
+<footer class="pt-12 border-t border-outline-variant/20 flex flex-col items-center" id="release-notes">
+<div class="text-center mb-12">
+<h2 class="text-2xl font-bold mb-4">Latest Updates</h2>
+<div class="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-100 rounded-full text-xs font-semibold text-slate-600 mb-8">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    Systems Operational
+                </div>
+</div>
+<div class="w-full max-w-2xl space-y-8">
+<div class="flex gap-6">
+<div class="text-right w-24 flex-shrink-0">
+<span class="text-xs font-bold text-slate-400">SEPT 24</span>
+</div>
+<div class="relative pb-8 border-l-2 border-slate-100 pl-8">
+<div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-primary border-4 border-white shadow-sm"></div>
+<h4 class="font-bold text-sm mb-2">v4.12.0 - Core Engine Upgrade</h4>
+<p class="text-xs text-on-surface-variant">Optimized ISA envelope processing for large batches. Improved performance by 22% for files &gt; 500MB.</p>
+</div>
+</div>
+<div class="flex gap-6">
+<div class="text-right w-24 flex-shrink-0">
+<span class="text-xs font-bold text-slate-400">AUG 12</span>
+</div>
+<div class="relative pb-8 border-l-2 border-slate-100 pl-8">
+<div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-slate-300 border-4 border-white shadow-sm"></div>
+<h4 class="font-bold text-sm mb-2">v4.11.2 - Stability Patch</h4>
+<p class="text-xs text-on-surface-variant">Resolved segment truncation issues in 835 Remittance responses for specific payer IDs.</p>
+</div>
+</div>
+</div>
+<div class="mt-20 py-10 w-full text-center border-t border-slate-100">
+<p class="text-xs text-slate-400">© 2024 EdiPro Systems. All rights reserved. HIPAA Compliance Guaranteed.</p>
+</div>
+</footer>
+</main>
+<!-- Floating UI Element -->
+<div class="fixed bottom-8 right-8 z-50">
+<button class="bg-white/70 backdrop-blur-xl shadow-2xl p-4 rounded-2xl flex items-center gap-4 border border-slate-200/50 hover:scale-105 transition-all">
+<div class="w-8 h-8 rounded-lg bg-tertiary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-lg">chat_bubble</span>
+</div>
+<div class="text-left pr-4">
+<div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Developer Help</div>
+<div class="text-sm font-bold text-slate-900">Ask the AI Docs</div>
+</div>
+</button>
+</div>
+</body></html>
+

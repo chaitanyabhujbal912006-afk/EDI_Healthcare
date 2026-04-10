@@ -1,0 +1,4 @@
+# Docker Compose configuration
+# Orchestrates backend (FastAPI) and frontend (React) services
+# Enables one-command startup: docker-compose up
+# Defines service dependencies, ports, volumes, and environment variables

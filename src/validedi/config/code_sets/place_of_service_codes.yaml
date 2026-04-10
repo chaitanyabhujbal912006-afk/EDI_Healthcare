@@ -1,0 +1,16 @@
+code_set_id: 'place_of_service_codes'
+description: 'Valid place of service codes'
+codes:
+  - '01'  # Pharmacy
+  - '02'  # Telehealth
+  - '03'  # School
+  - '04'  # Homeless Shelter
+  - '11'  # Office
+  - '12'  # Home
+  - '21'  # Inpatient Hospital
+  - '22'  # Outpatient Hospital
+  - '23'  # Emergency Room
+  - '24'  # Ambulatory Surgical Center
+  - '31'  # Skilled Nursing Facility
+  - '32'  # Nursing Facility
+  - '81'  # Independent Laboratory

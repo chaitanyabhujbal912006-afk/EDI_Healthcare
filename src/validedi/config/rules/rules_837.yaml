@@ -1,0 +1,304 @@
+rules:
+- id: 837-001-SUBMITTER
+  type: required_entity
+  target: NM1
+  entity_code: '41'
+  loop: 1000A
+  transaction_types:
+  - 837p
+  - 837i
+  severity: error
+  message: Required NM1*41 (Submitter - Loop 1000A) segment is missing
+  suggestion: Add NM1*41 for the Submitter in Loop 1000A
+- id: 837-001-RECEIVER
+  type: required_entity
+  target: NM1
+  entity_code: '40'
+  loop: 1000B
+  transaction_types:
+  - 837p
+  - 837i
+  severity: error
+  message: Required NM1*40 (Receiver - Loop 1000B) segment is missing
+  suggestion: Add NM1*40 for the Receiver in Loop 1000B
+- id: 837-001-BILLING
+  type: required_entity
+  target: NM1
+  entity_code: '85'
+  loop: 2010AA
+  transaction_types:
+  - 837p
+  - 837i
+  severity: error
+  message: Required NM1*85 (Billing Provider - Loop 2010AA) segment is missing
+  suggestion: Add NM1*85 for the Billing Provider in Loop 2010AA
+- id: 837-001-SUBSCRIBER
+  type: required_entity
+  target: NM1
+  entity_code: IL
+  loop: 2010BA
+  transaction_types:
+  - 837p
+  - 837i
+  severity: error
+  message: Required NM1*IL (Subscriber - Loop 2010BA) segment is missing
+  suggestion: Add NM1*IL for the Subscriber in Loop 2010BA
+- id: 837-001-PAYER
+  type: required_entity
+  target: NM1
+  entity_code: PR
+  loop: 2010BB
+  transaction_types:
+  - 837p
+  - 837i
+  severity: error
+  message: Required NM1*PR (Payer - Loop 2010BB) segment is missing
+  suggestion: Add NM1*PR for the Payer in Loop 2010BB
+- id: 837-002
+  type: required_segment
+  target: CLM
+  transaction_types:
+  - 837p
+  - 837i
+  severity: warning
+  message: No CLM (Claim Information) segments found
+  suggestion: An 837 claim file should contain at least one CLM segment
+- id: 837-003
+  type: required_element
+  target: CLM01
+  transaction_types:
+  - 837p
+  - 837i
+  severity: error
+  message: CLM01 (Patient Control Number / Claim ID) is blank
+  suggestion: CLM01 must be a unique identifier for the claim (up to 38 alphanumeric
+    characters)
+- id: 837-004
+  type: numeric_range
+  target: CLM02
+  transaction_types:
+  - 837p
+  - 837i
+  min_value: 0.01
+  severity: warning
+  message: CLM02 total charge amount is {value} — zero or negative
+  suggestion: CLM02 should reflect the actual billed amount. Most payers reject zero-dollar
+    claims
+- id: 837-005
+  type: numeric_validation
+  target: CLM02
+  transaction_types:
+  - 837p
+  - 837i
+  severity: error
+  message: CLM02 value {value} is not a valid monetary amount
+  suggestion: CLM02 must be a numeric dollar amount. Remove any dollar signs, commas,
+    or text
+- id: 837-006
+  type: code_set
+  target: CLM06
+  transaction_types:
+  - 837p
+  - 837i
+  allowed_values:
+  - Y
+  - N
+  severity: warning
+  message: CLM06 (Provider Signature on File) value {value} is not Y or N
+  suggestion: Set CLM06 to Y if the provider signature is on file, N if not
+- id: 837-007
+  type: minimum_count
+  target: HL
+  transaction_types:
+  - 837p
+  - 837i
+  min_count: 2
+  severity: warning
+  message: Only {count} HL segment(s) found. Expected at least 2 (Billing Provider
+    + Subscriber)
+  suggestion: An 837 requires at minimum HL*1 (Billing Provider) and HL*2 (Subscriber)
+- id: 837-008
+  type: sequential_numbering
+  target: HL01
+  transaction_types:
+  - 837p
+  - 837i
+  severity: warning
+  message: 'HL segment #{index} has HL01 value {value}; expected {expected}'
+  suggestion: HL01 must be a sequential counter starting at 1
+- id: 837-009
+  type: date_format
+  target: DTP03
+  transaction_types:
+  - 837p
+  - 837i
+  format_qualifier: DTP02
+  expected_format: D8
+  severity: error
+  message: DTP date {value} is not a valid CCYYMMDD date (impossible or wrong format)
+  suggestion: 'DTP03 must be 8 digits in CCYYMMDD format and a real calendar date.
+    Example: 20240315 for March 15, 2024'
+- id: 837-010
+  type: required_segment
+  target: HI
+  transaction_types:
+  - 837p
+  - 837i
+  severity: warning
+  message: No HI (Diagnosis Code) segments found in claim loop
+  suggestion: Most payers require at least one ICD-10-CM diagnosis code. Add HI*ABK:<code>~
+- id: ICD_CODE_VALIDATION
+  type: builtin
+  handler: validate_diagnosis_code
+  transaction_types:
+  - 837p
+  - 837i
+  loop: '2300'
+  severity: error
+  message: Diagnosis code validation failed
+  suggestion: 'ICD-10 codes: Letter + 2 alphanumeric + optional decimal (e.g., I10,
+    Z87.00). No decimal points in X12 EDI'
+- id: 837-013
+  type: numeric_range
+  target: SV102
+  transaction_types:
+  - 837p
+  min_value: 0.01
+  severity: warning
+  message: SV1 line charge {value} is zero or negative
+  suggestion: SV102 should reflect the actual billed amount for this procedure
+- id: 837-014
+  type: numeric_validation
+  target: SV102
+  transaction_types:
+  - 837p
+  severity: error
+  message: SV1 line charge {value} is not a valid numeric amount
+  suggestion: SV102 must be a numeric dollar amount without symbols or text
+- id: 837I-SV2-RANGE
+  type: numeric_range
+  target: SV203
+  transaction_types:
+  - 837i
+  min_value: 0.01
+  severity: warning
+  message: SV2 institutional line charge {value} is zero or negative
+  suggestion: SV203 must be a positive dollar amount
+- id: 837I-SV2-NUMERIC
+  type: numeric_validation
+  target: SV203
+  transaction_types:
+  - 837i
+  severity: error
+  message: SV2 institutional line charge {value} is not a valid numeric amount
+  suggestion: SV203 must be a numeric dollar amount without symbols
+- id: 837-015
+  type: builtin
+  handler: duplicate_bht_check
+  transaction_types:
+  - 837p
+  - 837i
+  scope: transaction
+  severity: error
+  message: Duplicate BHT segment found — only one BHT is allowed per transaction set
+  suggestion: Remove the duplicate BHT segment. Each ST/SE transaction set must have
+    exactly one BHT
+- id: CHARGE_TOTAL_CHECK
+  type: builtin
+  handler: charge_total_consistency
+  transaction_types:
+  - 837p
+  loop: '2300'
+  severity: error
+  message: Service line charges do not sum to claim total
+  suggestion: Sum all SV1/SV2 line charges and ensure they equal CLM02
+- id: CHARGE_TOTAL_CHECK_I
+  type: builtin
+  handler: charge_total_consistency_i
+  transaction_types:
+  - 837i
+  loop: '2300'
+  severity: error
+  message: Institutional service line charges do not sum to claim total
+  suggestion: Sum all SV2 line charges and ensure they equal CLM02
+- id: CLM05_TYPE_CODES
+  type: composite_code_set
+  target: CLM05
+  transaction_types:
+  - 837p
+  - 837i
+  component: 1
+  code_set_id: place_of_service_codes
+  severity: error
+  message: CLM05 place of service code {value} is not valid
+  suggestion: 'Use valid POS codes: 11=Office, 21=Inpatient Hospital, 22=Outpatient
+    Hospital, 23=Emergency Room'
+- id: 837-016
+  type: builtin
+  handler: diagnosis_decimal_check
+  transaction_types:
+  - 837p
+  - 837i
+  scope: transaction
+  severity: error
+  message: HI diagnosis code contains a decimal point — X12 837 prohibits decimals
+    in ICD codes
+  suggestion: 'Remove the decimal point from the ICD-10 code. Example: J18.9 must
+    be submitted as J189'
+- id: NPI_LUHN_2310B
+  type: builtin
+  handler: luhn_check_rendering
+  transaction_types:
+  - 837p
+  - 837i
+  loop: 2310B
+  severity: error
+  message: Rendering provider NPI {value} failed Luhn algorithm check
+  suggestion: Verify the rendering provider NPI. All valid NPIs pass the Luhn check
+    digit algorithm
+- id: 837-017
+  type: builtin
+  handler: clm_frequency_code_check
+  transaction_types:
+  - 837p
+  - 837i
+  scope: transaction
+  severity: warning
+  message: CLM05-3 (claim frequency code) contains an invalid value
+  suggestion: 'Valid CLM05-3 values: 1=Original, 7=Replacement of prior claim, 8=Void/cancel
+    prior claim'
+- id: 837-018
+  type: builtin
+  handler: all_zero_charges_check
+  transaction_types:
+  - 837p
+  - 837i
+  scope: transaction
+  severity: warning
+  message: All service line charges are $0.00 — zero-dollar claims are rejected by
+    most payers
+  suggestion: Verify SV102/SV203 values. Zero charges are only valid in specific no-pay
+    scenarios with explicit indicators
+- id: 837I-ADMISSION-TYPE
+  type: builtin
+  handler: admission_type_check
+  transaction_types:
+  - 837i
+  scope: transaction
+  severity: warning
+  message: CLM11-1 (admission type) or CLM11-2 (admission source) contains an invalid
+    UB-04 code
+  suggestion: 'Valid admission type codes: 1=Emergency, 2=Urgent, 3=Elective, 4=Newborn,
+    5=Trauma. Valid source codes: 1=Non-Health Care, 2=Clinic, 4=Transfer from Hospital,
+    5=Transfer from SNF'
+- id: 837I-DRG-MISSING
+  type: builtin
+  handler: drg_code_check
+  transaction_types:
+  - 837i
+  scope: transaction
+  severity: warning
+  message: Inpatient institutional claim is missing a DRG code (HI*DR) — required
+    for inpatient reimbursement
+  suggestion: 'Add HI*DR:<drg_code>~ to the 2300 loop. Example: HI*DR:470~ for major
+    joint replacement'

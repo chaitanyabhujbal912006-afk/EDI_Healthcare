@@ -1,0 +1,11 @@
+# ValidEDI Core Dependencies
+pydantic>=2.0.0
+pyyaml>=6.0
+jsonschema>=4.17.0
+
+# Development Dependencies (optional)
+pytest>=7.0.0
+pytest-cov>=4.0.0
+mypy>=1.0.0
+black>=23.0.0
+ruff>=0.1.0

@@ -1,0 +1,24 @@
+transactions:
+  - gs_code: 'HC'
+    st_code: '837'
+    subtype: 'P'
+    config_file: 'transactions/837p.yaml'
+    transaction_type: '837p'
+  
+  - gs_code: 'HC'
+    st_code: '837'
+    subtype: 'I'
+    config_file: 'transactions/837i.yaml'
+    transaction_type: '837i'
+  
+  - gs_code: 'HP'
+    st_code: '835'
+    subtype: null
+    config_file: 'transactions/835.yaml'
+    transaction_type: '835'
+  
+  - gs_code: 'BE'
+    st_code: '834'
+    subtype: null
+    config_file: 'transactions/834.yaml'
+    transaction_type: '834'

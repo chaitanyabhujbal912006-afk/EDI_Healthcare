@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>
+<title>EdiPro - Secure Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-tertiary-fixed": "#0c006b",
+            "on-error": "#ffffff",
+            "on-surface-variant": "#414755",
+            "inverse-surface": "#2f3132",
+            "error": "#ba1a1a",
+            "surface-container": "#eeeef0",
+            "surface-dim": "#d9dadc",
+            "tertiary-fixed": "#e2dfff",
+            "primary-fixed-dim": "#adc6ff",
+            "on-secondary": "#ffffff",
+            "secondary-fixed": "#e3e2e7",
+            "on-tertiary-container": "#fffbff",
+            "on-primary-fixed-variant": "#004493",
+            "surface-container-low": "#f3f3f5",
+            "outline-variant": "#c1c6d7",
+            "outline": "#717786",
+            "on-primary": "#ffffff",
+            "secondary-container": "#e0dfe4",
+            "surface-tint": "#005bc1",
+            "error-container": "#ffdad6",
+            "secondary": "#5d5e63",
+            "tertiary": "#4a47d2",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-fixed": "#001a41",
+            "on-secondary-fixed": "#1a1b1f",
+            "on-secondary-container": "#626267",
+            "tertiary-fixed-dim": "#c2c1ff",
+            "on-error-container": "#93000a",
+            "background": "#f9f9fb",
+            "primary-container": "#0070eb",
+            "on-surface": "#1a1c1d",
+            "on-tertiary": "#ffffff",
+            "inverse-on-surface": "#f0f0f2",
+            "on-tertiary-fixed-variant": "#332dbc",
+            "secondary-fixed-dim": "#c6c6cb",
+            "surface-bright": "#f9f9fb",
+            "on-primary-container": "#fefcff",
+            "surface-container-highest": "#e2e2e4",
+            "surface-container-high": "#e8e8ea",
+            "surface": "#f9f9fb",
+            "tertiary-container": "#6462ec",
+            "inverse-primary": "#adc6ff",
+            "primary-fixed": "#d8e2ff",
+            "on-secondary-fixed-variant": "#46464b",
+            "surface-variant": "#e2e2e4",
+            "primary": "#0058bc",
+            "on-background": "#1a1c1d"
+          },
+          fontFamily: {
+            "headline": ["Inter"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    .text-glow {
+      text-shadow: 0 0 20px rgba(0, 88, 188, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-background font-body text-on-surface min-h-screen flex items-center justify-center p-4 md:p-8">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-0 overflow-hidden">
+<img alt="Healthcare environment background" class="w-full h-full object-cover filter brightness-95" data-alt="Modern high-tech healthcare facility hallway with soft blue clinical lighting, glass partitions, and clean professional aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7WeponLN79eutCXWP2XGIQU3tZYPK6jY40szzdGI9rChODJ-QX6OHG8e_8rw6trcec4lWDP8AQ3Zfrb_M16W5nwmoc-zirvfEoyp42frxCEdasr2-aYbf9Ad-HDup-0ov8GLbG0FrbiDJX_8641a8piQMDWJExEZnaZ1duFTNW8YRgxPkdimg4Rft1C2YR1WwJZCa2ND-3SJ-JFuur5QRO2jRcoKvP9JYHrBa8e9cV6xQixQoiOtMzKUWYPvb3K2HQZuqUT8zbHhv"/>
+<div class="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-tertiary/5"></div>
+</div>
+<!-- Main Content Container -->
+<main class="relative z-10 w-full max-w-[1200px] aspect-auto md:aspect-[16/9] flex items-center justify-center">
+<!-- Login Card -->
+<div class="glass-panel w-full max-w-[480px] p-10 md:p-12 rounded-[2rem] shadow-2xl shadow-primary/5 border border-white/40 flex flex-col items-center">
+<!-- Brand Identity -->
+<div class="mb-10 text-center">
+<div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-white mb-4 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+</div>
+<h1 class="text-3xl font-black tracking-tighter text-primary mb-1">EdiPro</h1>
+<p class="text-secondary font-medium text-sm tracking-wide">HEALTHCARE EDI GATEWAY</p>
+</div>
+<!-- Login Form -->
+<form class="w-full space-y-6" novalidate onsubmit="window.location.href='dashboard_sleek/code.html'; return false;">
+<!-- Email Field -->
+<div class="space-y-2">
+<label class="block text-[0.7rem] font-bold text-outline uppercase tracking-widest ml-1">Professional Email</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-xl">mail</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-highest/30 border border-outline-variant/20 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none placeholder:text-outline/50" placeholder="name@organization.com" type="email"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-2">
+<div class="flex justify-between items-center px-1">
+<label class="text-[0.7rem] font-bold text-outline uppercase tracking-widest">Password</label>
+<a class="text-[0.7rem] font-bold text-primary hover:text-primary-container transition-colors uppercase tracking-widest" href="#">Forgot?</a>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-xl">lock</span>
+<input class="w-full pl-12 pr-12 py-4 bg-surface-container-highest/30 border border-outline-variant/20 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none placeholder:text-outline/50" placeholder="************" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="pt-2 space-y-4">
+<button class="w-full py-4 bg-primary text-white font-bold rounded-xl shadow-xl shadow-primary/20 hover:bg-primary-container active:scale-[0.98] transition-all flex items-center justify-center gap-2" type="submit">
+            Sign In
+            <span class="material-symbols-outlined text-lg">arrow_forward</span>
+          </button>
+<div class="relative py-2">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant/30"></div>
+</div>
+<div class="relative flex justify-center text-xs">
+<span class="bg-transparent px-4 text-outline font-medium uppercase tracking-widest">or</span>
+</div>
+</div>
+<button class="w-full py-4 bg-white/50 border border-outline-variant/30 text-on-surface font-semibold rounded-xl hover:bg-white/80 active:scale-[0.98] transition-all flex items-center justify-center gap-3" type="button">
+<img alt="SSO Provider" class="w-5 h-5" data-alt="Google logo icon for single sign on authentication" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBl_5pOtcmjDWT3t-yYF8M0XDRe233mAuSzmukYiU3WLDcD54ndVSeRtFWl7sGhYK-iBXDFItyZLiyupCu8DnfUucQrHB4nvANoFtXcol5Phf7CrFftUnzbYuywGj2T-vqS3vIKUm13WziATxsuOtCIz4hIWyDR940cxN83JeNArlhHDWqAd5dbPYutPUd4Yd5Gw9fzF5TFyHH71bNogT2V45551DhHGPLgncTlwyE1LWIpfiUPFokQb2OaL-EbMT14DubHgBs8XQWY"/>
+            Sign in with SSO
+          </button>
+</div>
+</form>
+<!-- Footer Links -->
+<footer class="mt-12 w-full flex flex-col items-center gap-4">
+<p class="text-sm text-secondary font-medium">
+          New to the portal? <a class="text-primary font-bold hover:underline" href="#">Request access</a>
+        </p>
+<div class="flex gap-6 text-[0.65rem] font-bold text-outline uppercase tracking-widest">
+<a class="hover:text-primary transition-colors" href="#">HIPAA Compliance</a>
+<a class="hover:text-primary transition-colors" href="#">Security Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Support</a>
+</div>
+</footer>
+</div>
+<!-- Decorative Info Cards (Hidden on mobile) -->
+<div class="hidden lg:flex flex-col gap-6 absolute left-[-180px] top-1/2 -translate-y-1/2 w-64 pointer-events-none">
+<div class="glass-panel p-6 rounded-2xl shadow-xl border border-white/40 transform -rotate-3">
+<div class="flex items-center gap-3 mb-3">
+<div class="w-8 h-8 rounded-full bg-tertiary-container/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+</div>
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">AI Insights</span>
+</div>
+<p class="text-sm text-secondary leading-relaxed">System monitoring 837/835 transmissions in real-time. Last batch validated successfully.</p>
+</div>
+<div class="glass-panel p-6 rounded-2xl shadow-xl border border-white/40 transform rotate-2">
+<div class="flex items-center gap-3 mb-3">
+<div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+</div>
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Secure Node</span>
+</div>
+<p class="text-sm text-secondary leading-relaxed">End-to-end 256-bit encryption active. EDI Gateway connection secure.</p>
+</div>
+</div>
+</main>
+<!-- Visual Accents -->
+<div class="fixed bottom-8 right-8 z-20 pointer-events-none">
+<p class="text-[0.6rem] font-black text-primary/30 uppercase tracking-[0.3em] vertical-text transform rotate-90 origin-right">
+      System Version 4.2.0-Alpha
+    </p>
+</div>
+</body></html>
+
+

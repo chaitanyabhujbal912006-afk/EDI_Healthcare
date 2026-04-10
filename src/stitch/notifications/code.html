@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-container": "#0070eb",
+              "error": "#ba1a1a",
+              "tertiary-fixed-dim": "#c2c1ff",
+              "on-secondary": "#ffffff",
+              "surface-container": "#eeeef0",
+              "inverse-on-surface": "#f0f0f2",
+              "inverse-primary": "#adc6ff",
+              "surface-dim": "#d9dadc",
+              "error-container": "#ffdad6",
+              "secondary-container": "#e0dfe4",
+              "secondary-fixed": "#e3e2e7",
+              "on-tertiary-fixed": "#0c006b",
+              "inverse-surface": "#2f3132",
+              "on-surface": "#1a1c1d",
+              "on-primary-fixed-variant": "#004493",
+              "surface-container-low": "#f3f3f5",
+              "on-secondary-fixed": "#1a1b1f",
+              "on-tertiary": "#ffffff",
+              "surface-container-high": "#e8e8ea",
+              "on-error": "#ffffff",
+              "tertiary-fixed": "#e2dfff",
+              "secondary-fixed-dim": "#c6c6cb",
+              "primary-fixed-dim": "#adc6ff",
+              "on-secondary-container": "#626267",
+              "surface-container-highest": "#e2e2e4",
+              "on-tertiary-fixed-variant": "#332dbc",
+              "secondary": "#5d5e63",
+              "background": "#f9f9fb",
+              "surface-variant": "#e2e2e4",
+              "surface-container-lowest": "#ffffff",
+              "on-surface-variant": "#414755",
+              "on-primary": "#ffffff",
+              "on-primary-container": "#fefcff",
+              "on-primary-fixed": "#001a41",
+              "surface-bright": "#f9f9fb",
+              "outline": "#717786",
+              "primary-fixed": "#d8e2ff",
+              "on-tertiary-container": "#fffbff",
+              "on-error-container": "#93000a",
+              "tertiary": "#4a47d2",
+              "surface": "#f9f9fb",
+              "tertiary-container": "#6462ec",
+              "surface-tint": "#005bc1",
+              "on-secondary-fixed-variant": "#46464b",
+              "outline-variant": "#c1c6d7",
+              "primary": "#0058bc",
+              "on-background": "#1a1c1d"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .mask-fade { mask-image: linear-gradient(to bottom, black 80%, transparent 100%); }
+    </style>
+</head>
+<body class="bg-background font-body text-on-background antialiased selection:bg-primary/10 selection:text-primary min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex justify-between items-center px-6 py-3 w-full shadow-sm dark:shadow-none transition-all duration-200">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-slate-900 dark:text-white cursor-pointer" onclick="window.location.reload()">EdiPro</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-800 py-1 transition-all" href="../dashboard_sleek/code.html">Dashboard</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-800 py-1 transition-all" href="../837_claims_view/code.html">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<div class="hidden sm:flex items-center bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-full px-3 py-1.5 transition-all">
+<span class="material-symbols-outlined text-[20px] text-slate-500">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-slate-400" placeholder="Search files..." type="text"/>
+</div>
+<a class="p-2 hover:bg-slate-100/50 rounded-full transition-all active:scale-95" href="../notifications/code.html" aria-label="Open notifications">
+<span class="material-symbols-outlined text-slate-600">notifications</span>
+</a>
+<a class="p-2 hover:bg-slate-100/50 rounded-full transition-all active:scale-95" href="../settings/code.html" aria-label="Open settings">
+<span class="material-symbols-outlined text-slate-600">settings</span>
+</a>
+<a class="h-8 w-8 rounded-full overflow-hidden bg-primary/10 ring-2 ring-white shadow-sm" href="../user_profile/code.html" aria-label="Open user profile">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="professional headshot of a male data analyst in a minimalist office setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoYiWc9Oyv7MYAwKG4lHl7rUe49CMb1Oo8nAcWctcSjI-jqqP3h4FkKqb9CAoXxdn0zILWorTA-ozB0RwftrVbOv7_LioQehSXYH6TE_R476LfIunYHc2daKifAaZFFiZtUCu1gk7EW7VNBzBgqnYBdZGxY9kdu3gx-yj8qzDJyJBFBfcOlc0yTwHyM9QTNj66nFBQpOrBQyJI0r_HiI2-07vE5QLFEXUTYtCQZnoO9I-B5jDW7iaWEBsye5I4RDoPcbBIe7tAz8XE"/>
+</a>
+<button class="md:hidden p-2 hover:bg-slate-100/50 rounded-full transition-all active:scale-95" id="nav-toggle" aria-label="Open navigation menu">
+<span class="material-symbols-outlined text-slate-700">menu</span>
+</button>
+</div>
+</header>
+<div class="fixed inset-0 bg-slate-900/40 z-30 hidden" id="nav-overlay"></div>
+<!-- Side Navigation Bar -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-2xl border-r border-slate-200/30 dark:border-slate-800/30 shadow-xl dark:shadow-2xl flex flex-col h-full py-6 pt-20 transform -translate-x-full md:translate-x-0 transition-transform duration-300" id="side-nav">
+<div class="px-6 mb-8 flex items-center gap-3 cursor-pointer" onclick="window.location.reload()">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">hub</span>
+</div>
+<div>
+<h2 class="text-lg font-black text-slate-900 dark:text-white leading-none">HealthConnect</h2>
+<p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-1">EDI Gateway</p>
+</div>
+<button class="md:hidden ml-auto p-2 hover:bg-slate-200/50 rounded-full" id="nav-close" aria-label="Close navigation menu">
+<span class="material-symbols-outlined text-slate-600">close</span>
+</button>
+</div>
+<nav class="flex-1 px-2 space-y-1">
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../dashboard_sleek/code.html" data-nav-link="true">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+      </a>
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../master_parser_sleek/code.html" data-nav-link="true">
+<span class="material-symbols-outlined">analytics</span> Master Parser
+      </a>
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../835_remittance_sleek/code.html" data-nav-link="true">
+<span class="material-symbols-outlined">payments</span> 835 Remittance
+      </a>
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../834_enrollment_sleek/code.html" data-nav-link="true">
+<span class="material-symbols-outlined">group_add</span> 834 Enrollment
+      </a>
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]" href="../837_claims_view/code.html" data-nav-link="true">
+<span class="material-symbols-outlined">description</span> 837 Claims
+      </a>
+</nav>
+<div class="mt-auto px-4 pb-4">
+<button class="w-full bg-primary text-white rounded-xl py-3 text-sm font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:brightness-95" onclick="console.log('Open New Submission Dialog')">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+        New Submission
+      </button>
+</div>
+<div class="px-2 pt-4 border-t border-slate-200/30 mx-4 space-y-1">
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 rounded-lg flex items-center gap-3 px-4 py-2 text-xs font-medium tracking-wide hover:translate-x-1 transition-transform duration-300" href="../help_center/code.html" data-nav-link="true">
+<span class="material-symbols-outlined text-[18px]">help</span> Help Center
+      </a>
+<a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 rounded-lg flex items-center gap-3 px-4 py-2 text-xs font-medium tracking-wide hover:translate-x-1 transition-transform duration-300" href="../documentation/code.html" data-nav-link="true">
+<span class="material-symbols-outlined text-[18px]">menu_book</span> Documentation
+      </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-0 md:ml-64 pt-20 px-4 md:px-8 pb-8 min-h-screen">
+<div class="max-w-5xl mx-auto mt-12">
+<!-- Notification Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+<div>
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">Notification Center</h1>
+<p class="text-on-surface-variant/70 text-lg">System health and EDI transmission telemetry.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="bg-surface-container-high hover:bg-surface-container-highest px-5 py-2.5 rounded-xl text-sm font-semibold text-on-surface transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]" data-icon="done_all">done_all</span>
+                        Mark all as read
+                    </button>
+</div>
+</div>
+<!-- Bento Filter Bar -->
+<div class="glass border border-white/40 p-1.5 rounded-2xl flex items-center gap-1 mb-8 shadow-xl shadow-on-surface/5 w-fit">
+<button class="px-6 py-2 rounded-xl bg-primary text-white text-sm font-semibold shadow-lg shadow-primary/20 transition-all">All</button>
+<button class="px-6 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low text-sm font-medium transition-all">Critical</button>
+<button class="px-6 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low text-sm font-medium transition-all">Warnings</button>
+<button class="px-6 py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low text-sm font-medium transition-all">Success</button>
+</div>
+<!-- Notifications List -->
+<div class="space-y-4">
+<!-- Notification 1: Critical -->
+<div class="glass group relative overflow-hidden p-1 rounded-[2rem] border border-white/50 transition-all hover:shadow-2xl hover:shadow-primary/5">
+<div class="bg-surface-container-lowest/80 rounded-[1.75rem] p-6 flex items-start gap-6">
+<div class="w-14 h-14 rounded-2xl bg-error/10 flex items-center justify-center text-error flex-shrink-0">
+<span class="material-symbols-outlined text-3xl" data-icon="report" data-weight="fill">report</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-1">
+<span class="text-xs font-bold uppercase tracking-widest text-error">Critical Alert</span>
+<span class="text-xs text-on-surface-variant/50">2 mins ago</span>
+</div>
+<h3 class="text-xl font-bold text-on-surface leading-tight mb-2">Batch #4490 (837P) - 32 Validation Errors Detected</h3>
+<p class="text-on-surface-variant text-sm max-w-2xl mb-4">Parsing stalled at ISA segment. Mandatory fields missing in 12 loops. Immediate re-validation required to meet clearinghouse deadline.</p>
+<div class="flex items-center gap-4">
+<a class="text-primary font-bold text-sm hover:underline underline-offset-4 flex items-center gap-1" href="#">
+                                    View Details
+                                    <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+<button class="text-on-surface-variant/40 hover:text-on-surface text-sm font-medium transition-colors">Dismiss</button>
+</div>
+</div>
+</div>
+<div class="absolute inset-y-0 right-0 w-1.5 bg-error rounded-full my-8 mr-1"></div>
+</div>
+<!-- Notification 2: Success -->
+<div class="glass group relative overflow-hidden p-1 rounded-[2rem] border border-white/50 transition-all hover:shadow-2xl hover:shadow-primary/5">
+<div class="bg-surface-container-lowest/80 rounded-[1.75rem] p-6 flex items-start gap-6">
+<div class="w-14 h-14 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-600 flex-shrink-0">
+<span class="material-symbols-outlined text-3xl" data-icon="check_circle" data-weight="fill">check_circle</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-1">
+<span class="text-xs font-bold uppercase tracking-widest text-green-600">Success</span>
+<span class="text-xs text-on-surface-variant/50">1 hour ago</span>
+</div>
+<h3 class="text-xl font-bold text-on-surface leading-tight mb-2">835 Remittance from BCBS Massachusetts Processed</h3>
+<p class="text-on-surface-variant text-sm max-w-2xl mb-4">Total value of $142,500.00 reconciled across 420 claims. Auto-posting to ledger completed with 99.8% accuracy.</p>
+<div class="flex items-center gap-4">
+<a class="text-primary font-bold text-sm hover:underline underline-offset-4 flex items-center gap-1" href="#">
+                                    View Details
+                                    <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+<button class="text-on-surface-variant/40 hover:text-on-surface text-sm font-medium transition-colors">Dismiss</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Notification 3: Info (AI Powered) -->
+<div class="glass group relative overflow-hidden p-1 rounded-[2rem] border border-tertiary/20 transition-all hover:shadow-2xl hover:shadow-tertiary/5">
+<div class="bg-surface-container-lowest/80 rounded-[1.75rem] p-6 flex items-start gap-6">
+<div class="w-14 h-14 rounded-2xl bg-tertiary/10 flex items-center justify-center text-tertiary flex-shrink-0">
+<span class="material-symbols-outlined text-3xl" data-icon="auto_awesome" data-weight="fill">auto_awesome</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-1">
+<span class="text-xs font-bold uppercase tracking-widest text-tertiary">New Insight</span>
+<span class="text-xs text-on-surface-variant/50">3 hours ago</span>
+</div>
+<h3 class="text-xl font-bold text-on-surface leading-tight mb-2">New 834 Enrollment Batch Received</h3>
+<p class="text-on-surface-variant text-sm max-w-2xl mb-4">System detected a 15% increase in enrollment volume for Q3. AI suggests adjusting parser concurrency for optimal throughput.</p>
+<div class="flex items-center gap-4">
+<a class="text-primary font-bold text-sm hover:underline underline-offset-4 flex items-center gap-1" href="#">
+                                    View Details
+                                    <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+<button class="text-on-surface-variant/40 hover:text-on-surface text-sm font-medium transition-colors">Dismiss</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Notification 4: Success -->
+<div class="glass group relative overflow-hidden p-1 rounded-[2rem] border border-white/50 transition-all hover:shadow-2xl hover:shadow-primary/5">
+<div class="bg-surface-container-lowest/80 rounded-[1.75rem] p-6 flex items-start gap-6">
+<div class="w-14 h-14 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-600 flex-shrink-0">
+<span class="material-symbols-outlined text-3xl" data-icon="sync_alt" data-weight="fill">sync_alt</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-1">
+<span class="text-xs font-bold uppercase tracking-widest text-green-600">System Update</span>
+<span class="text-xs text-on-surface-variant/50">Yesterday</span>
+</div>
+<h3 class="text-xl font-bold text-on-surface leading-tight mb-2">NPI Registry Sync Complete</h3>
+<p class="text-on-surface-variant text-sm max-w-2xl mb-4">Weekly synchronization with the National Provider Identifier database finished successfully. 12,403 records updated.</p>
+<div class="flex items-center gap-4">
+<a class="text-primary font-bold text-sm hover:underline underline-offset-4 flex items-center gap-1" href="#">
+                                    View Details
+                                    <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+<button class="text-on-surface-variant/40 hover:text-on-surface text-sm font-medium transition-colors">Dismiss</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Meta -->
+<div class="mt-12 pt-8 border-t border-outline-variant/10 flex justify-between items-center opacity-40">
+<span class="text-xs font-medium uppercase tracking-widest">EdiPro Notification Engine v2.4.0</span>
+<div class="flex gap-4">
+<span class="text-xs font-medium uppercase tracking-widest">Privacy Policy</span>
+<span class="text-xs font-medium uppercase tracking-widest">System Status</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Background Elements for Luminous Feel -->
+<div class="fixed top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/5 blur-[120px] -z-10 pointer-events-none"></div>
+<div class="fixed bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-tertiary/5 blur-[100px] -z-10 pointer-events-none"></div>
+<script>
+                  (function () {
+                        const nav = document.getElementById('side-nav');
+                        const overlay = document.getElementById('nav-overlay');
+                        const toggle = document.getElementById('nav-toggle');
+                        const close = document.getElementById('nav-close');
+                        const navLinks = document.querySelectorAll('[data-nav-link="true"]');
+
+                        if (!nav || !overlay || !toggle || !close) {
+                              return;
+                        }
+
+                        function openNav() {
+                              nav.classList.remove('-translate-x-full');
+                              overlay.classList.remove('hidden');
+                              document.body.classList.add('overflow-hidden');
+                        }
+
+                        function closeNav() {
+                              nav.classList.add('-translate-x-full');
+                              overlay.classList.add('hidden');
+                              document.body.classList.remove('overflow-hidden');
+                        }
+
+                        toggle.addEventListener('click', openNav);
+                        close.addEventListener('click', closeNav);
+                        overlay.addEventListener('click', closeNav);
+
+                        navLinks.forEach((link) => {
+                              link.addEventListener('click', () => {
+                                    if (window.innerWidth < 768) {
+                                          closeNav();
+                                    }
+                              });
+                        });
+
+                        window.addEventListener('resize', () => {
+                              if (window.innerWidth >= 768) {
+                                    overlay.classList.add('hidden');
+                                    nav.classList.remove('-translate-x-full');
+                                    document.body.classList.remove('overflow-hidden');
+                              } else {
+                                    nav.classList.add('-translate-x-full');
+                              }
+                        });
+                  })();
+            </script>
+</body></html>
+

@@ -1,0 +1,8 @@
+code_set_id: 'ins_maintenance_types'
+description: 'Valid INS02 maintenance type codes'
+codes:
+  - '001'  # Change
+  - '021'  # Addition
+  - '024'  # Cancellation or Termination
+  - '025'  # Reinstatement
+  - '030'  # Audit or Compare

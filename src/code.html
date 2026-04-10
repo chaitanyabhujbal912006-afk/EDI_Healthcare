@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdiPro - Healthcare EDI Gateway</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <!-- React and Friends -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/history@5/umd/history.development.js"></script>
+    <script src="https://unpkg.com/react-router@6.3.0/umd/react-router.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#007AFF", // Standard Apple/System Blue
+                        "primary-container": "#0070eb",
+                        "on-primary": "#ffffff",
+                        "secondary": "#5d5e63",
+                        "tertiary": "#4a47d2",
+                        "error": "#ba1a1a",
+                        "background": "#f9f9fb",
+                        "surface": "#f9f9fb",
+                        "on-surface": "#1a1c1d",
+                        "outline": "#717786",
+                        "outline-variant": "#c1c6d7",
+                        "surface-container": "#eeeef0",
+                        "surface-container-low": "#f3f3f5",
+                        "surface-container-high": "#e8e8ea",
+                        "surface-container-highest": "#e2e2e4",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "md": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.5rem", "3xl": "2rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c6d7; border-radius: 10px; }
+        .edi-error-squiggle { text-decoration: underline wavy #ba1a1a; }
+        .vertical-text { writing-mode: vertical-rl; }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createRoot } = ReactDOM;
+        const { MemoryRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
+
+        // --- Common Components ---
+
+        const TopNavBar = () => {
+            const navigate = useNavigate();
+            return (
+                <header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm flex items-center justify-between px-8 h-16">
+                    <div class="flex items-center gap-8">
+                        <Link to="/" class="text-xl font-bold tracking-tighter text-blue-700 dark:text-blue-400">EdiPro</Link>
+                        <nav class="hidden md:flex items-center gap-6">
+                            <Link to="/" class="text-slate-500 hover:text-slate-900 text-sm font-medium transition-all">Dashboard</Link>
+                            <Link to="/835-remittance" class="text-slate-500 hover:text-slate-900 text-sm font-medium transition-all">Analytics</Link>
+                            <Link to="/settings" class="text-slate-500 hover:text-slate-900 text-sm font-medium transition-all">Settings</Link>
+                        </nav>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button onClick={() => navigate('/notifications')} class="p-2 rounded-full hover:bg-slate-100/50 transition-all relative">
+                            <span class="material-symbols-outlined text-slate-600">notifications</span>
+                            <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+                        </button>
+                        <button onClick={() => navigate('/profile')} class="p-2 rounded-full hover:bg-slate-100/50 transition-all">
+                            <span class="material-symbols-outlined text-slate-600">account_circle</span>
+                        </button>
+                    </div>
+                </header>
+            );
+        };
+
+        const Sidebar = () => {
+            const location = useLocation();
+            const isActive = (path) => location.pathname === path;
+            const linkClass = (path) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:translate-x-1 ${isActive(path) ? 'bg-white/50 dark:bg-slate-800/50 text-blue-700 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-white/50'}`;
+
+            return (
+                <aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 z-40 bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-2xl border-r border-slate-200/20 flex flex-col p-4 gap-2">
+                    <div class="px-4 py-6 mb-2">
+                        <h2 class="text-xs font-bold text-slate-400 tracking-widest uppercase">EDI Portal</h2>
+                        <p class="text-xs text-blue-700 font-medium">System Active</p>
+                    </div>
+                    <nav class="flex-1 space-y-1 overflow-y-auto no-scrollbar">
+                        <Link to="/" class={linkClass('/')}>
+                            <span class="material-symbols-outlined text-lg">dashboard</span>
+                            <span class="text-sm font-medium">Dashboard</span>
+                        </Link>
+                        <Link to="/master-parser" class={linkClass('/master-parser')}>
+                            <span class="material-symbols-outlined text-lg">analytics</span>
+                            <span class="text-sm font-medium">Master Parser</span>
+                        </Link>
+                        <Link to="/835-remittance" class={linkClass('/835-remittance')}>
+                            <span class="material-symbols-outlined text-lg">payments</span>
+                            <span class="text-sm font-medium">835 Remittance</span>
+                        </Link>
+                        <Link to="/834-enrollment" class={linkClass('/834-enrollment')}>
+                            <span class="material-symbols-outlined text-lg">group_add</span>
+                            <span class="text-sm font-medium">834 Enrollment</span>
+                        </Link>
+                        <Link to="/837-claims" class={linkClass('/837-claims')}>
+                            <span class="material-symbols-outlined text-lg">description</span>
+                            <span class="text-sm font-medium">837 Claims</span>
+                        </Link>
+                    </nav>
+                    <Link to="/help" class="mt-4 mx-2 bg-primary text-white py-3 rounded-xl font-semibold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined text-sm">help</span>
+                        <span class="text-sm">Help Center</span>
+                    </Link>
+                    <div class="mt-auto pt-4 space-y-1 border-t border-slate-200/50">
+                        <Link class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-white/40 rounded-xl transition-all" to="/docs">
+                            <span class="material-symbols-outlined text-lg">menu_book</span>
+                            <span class="text-xs font-medium uppercase tracking-wider">Documentation</span>
+                        </Link>
+                    </div>
+                </aside>
+            );
+        };
+
+        // --- Screens ---
+
+        const LoginPage = () => {
+            const navigate = useNavigate();
+            return (
+                <div class="bg-background font-body text-on-surface min-h-screen flex items-center justify-center p-4">
+                    <div class="fixed inset-0 z-0 overflow-hidden">
+                        <img class="w-full h-full object-cover filter brightness-95" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7WeponLN79eutCXWP2XGIQU3tZYPK6jY40szzdGI9rChODJ-QX6OHG8e_8rw6trcec4lWDP8AQ3Zfrb_M16W5nwmoc-zirvfEoyp42frxCEdasr2-aYbf9Ad-HDup-0ov8GLbG0FrbiDJX_8641a8piQMDWJExEZnaZ1duFTNW8YRgxPkdimg4Rft1C2YR1WwJZCa2ND-3SJ-JFuur5QRO2jRcoKvP9JYHrBa8e9cV6xQixQoiOtMzKUWYPvb3K2HQZuqUT8zbHhv" alt="BG" />
+                        <div class="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-tertiary/5"></div>
+                    </div>
+                    <main class="relative z-10 w-full max-w-[480px]">
+                        <div class="bg-white/70 backdrop-blur-2xl p-10 md:p-12 rounded-[2rem] shadow-2xl border border-white/40 flex flex-col items-center">
+                            <div class="mb-10 text-center">
+                                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-white mb-4 shadow-lg shadow-primary/20">
+                                    <span class="material-symbols-outlined text-4xl" style={{fontVariationSettings: "'FILL' 1"}}>account_balance_wallet</span>
+                                </div>
+                                <h1 class="text-3xl font-black tracking-tighter text-primary mb-1">EdiPro</h1>
+                                <p class="text-secondary font-medium text-sm tracking-wide">HEALTHCARE EDI GATEWAY</p>
+                            </div>
+                            <form class="w-full space-y-6" onSubmit={(e) => { e.preventDefault(); navigate('/'); }}>
+                                <div class="space-y-2">
+                                    <label class="block text-[0.7rem] font-bold text-outline uppercase tracking-widest ml-1">Professional Email</label>
+                                    <input class="w-full px-4 py-4 bg-white/50 border border-outline-variant/20 rounded-xl focus:ring-4 focus:ring-primary/10 outline-none" placeholder="name@organization.com" type="email" required />
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-[0.7rem] font-bold text-outline uppercase tracking-widest ml-1">Password</label>
+                                    <input class="w-full px-4 py-4 bg-white/50 border border-outline-variant/20 rounded-xl focus:ring-4 focus:ring-primary/10 outline-none" placeholder="••••••••" type="password" required />
+                                </div>
+                                <button class="w-full py-4 bg-primary text-white font-bold rounded-xl shadow-xl shadow-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-2" type="submit">
+                                    Sign In <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                                </button>
+                            </form>
+                            <footer class="mt-12 text-center">
+                                <p class="text-sm text-secondary font-medium mb-4">New to the portal? <a class="text-primary font-bold hover:underline" href="#">Request access</a></p>
+                                <div class="flex gap-4 text-[0.65rem] font-bold text-outline uppercase tracking-widest">
+                                    <a href="#">HIPAA Compliance</a>
+                                    <a href="#">Security Policy</a>
+                                </div>
+                            </footer>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const DashboardPage = () => {
+            return (
+                <div class="flex min-h-screen">
+                    <Sidebar />
+                    <TopNavBar />
+                    <main class="ml-64 mt-16 p-8 flex-1 bg-surface">
+                        <header class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                            <div>
+                                <h1 class="text-[2rem] font-black tracking-tight text-on-surface">Data Integration Hub</h1>
+                                <p class="text-on-surface-variant/70 text-sm mt-1">Seamlessly ingest and validate healthcare EDI standard files.</p>
+                            </div>
+                            <div class="bg-surface-container-high rounded-xl p-4 flex gap-4">
+                                <div class="pr-4 border-r border-outline-variant/30 text-right">
+                                    <span class="text-[10px] uppercase font-bold text-outline">Processed 24h</span>
+                                    <p class="text-xl font-black text-primary">12,842</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-[10px] uppercase font-bold text-outline">Accuracy</span>
+                                    <p class="text-xl font-black text-tertiary">99.8%</p>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-10 gap-8">
+                            <section class="lg:col-span-6">
+                                <div class="bg-white/60 backdrop-blur-xl border border-white h-[400px] md:h-[600px] rounded-[24px] flex flex-col items-center justify-center p-12 text-center group cursor-pointer shadow-xl transition-all hover:shadow-2xl">
+                                    <div class="w-32 h-32 bg-white rounded-[32px] flex items-center justify-center shadow-2xl mb-8 group-hover:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-[64px] text-primary" style={{fontVariationSettings: "'FILL' 1"}}>upload_file</span>
+                                    </div>
+                                    <h2 class="text-2xl font-black text-on-surface mb-3">Drop 837, 835, or 834 files here</h2>
+                                    <p class="text-on-surface-variant text-sm font-medium mb-10 max-w-[280px] mx-auto">Upload HIPAA-compliant transactions for real-time validation.</p>
+                                    <button class="bg-primary text-white rounded-xl px-8 py-4 font-bold shadow-xl shadow-primary/30 active:scale-95 transition-all">Select Files from Cloud</button>
+                                </div>
+                            </section>
+
+                            <section class="lg:col-span-4 h-[600px] flex flex-col">
+                                <h3 class="text-lg font-black text-on-surface flex items-center gap-2 mb-6">Recent Audits <span class="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded-full">LIVE</span></h3>
+                                <div class="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2">
+                                    {[
+                                        {name: 'CMS_99827.837', type: '837P', size: '1.2 MB', time: '2 mins ago', status: '0 Errors'},
+                                        {name: 'UHG_REMIT_X.835', type: '835', size: '450 KB', time: '14 mins ago', status: '3 Rejections', err: true},
+                                        {name: 'BCBS_MEMBER.834', type: '834', size: '8.4 MB', time: '1 hr ago', status: '0 Errors'},
+                                        {name: 'CLAIM_AMEND.837', type: '837I', size: '12 KB', time: '3 hrs ago', status: 'Auto-Correction Applied', ai: true}
+                                    ].map((audit, idx) => (
+                                        <div key={idx} class="bg-white/80 p-5 rounded-[20px] border border-outline-variant/10 shadow-sm hover:shadow-md transition-all">
+                                            <div class="flex justify-between items-start mb-4">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-primary text-[20px]">{audit.type === '835' ? 'payments' : audit.ai ? 'magic_button' : 'description'}</span>
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="text-sm font-bold text-on-surface">{audit.name}</h4>
+                                                        <p class="text-[10px] text-outline">{audit.size} • ISA_{Math.floor(Math.random()*100000)}</p>
+                                                    </div>
+                                                </div>
+                                                <span class="bg-slate-200 text-slate-700 text-[10px] font-black px-2.5 py-1 rounded-lg">{audit.type}</span>
+                                            </div>
+                                            <div class="flex justify-between items-center">
+                                                <span class={`text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 ${audit.err ? 'bg-red-100 text-red-700' : audit.ai ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}`}>
+                                                    <span class="material-symbols-outlined text-[12px]">{audit.err ? 'error' : 'check_circle'}</span>
+                                                    {audit.status}
+                                                </span>
+                                                <span class="text-[11px] text-outline font-medium italic">{audit.time}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const RemittancePage = () => {
+            return (
+                <div class="flex min-h-screen">
+                    <Sidebar />
+                    <TopNavBar />
+                    <main class="ml-64 mt-16 p-8 flex-1 bg-surface">
+                        <header class="mb-10">
+                            <h1 class="text-3xl font-extrabold tracking-tight text-on-surface mb-2">Remittance Overview</h1>
+                            <p class="text-on-surface-variant max-w-2xl">Processed 835 Electronic Remittance Advice (ERA) files. Real-time reconciliation and payment validation.</p>
+                        </header>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                            <div class="bg-white/70 backdrop-blur-xl p-6 rounded-xl border border-outline-variant/10 shadow-sm">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-on-surface-variant text-sm font-semibold uppercase">Total Billed</span>
+                                    <div class="bg-primary/10 p-2 rounded-lg text-primary"><span class="material-symbols-outlined">account_balance_wallet</span></div>
+                                </div>
+                                <span class="text-3xl font-bold tracking-tight">$1,482,900.00</span>
+                                <p class="text-xs text-primary font-medium mt-1">↑ 12.4% from last period</p>
+                            </div>
+                            <div class="bg-white/70 backdrop-blur-xl p-6 rounded-xl border border-outline-variant/10 shadow-sm">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-on-surface-variant text-sm font-semibold uppercase">Total Paid</span>
+                                    <div class="bg-blue-100 p-2 rounded-lg text-blue-700"><span class="material-symbols-outlined">check_circle</span></div>
+                                </div>
+                                <span class="text-3xl font-bold tracking-tight">$1,245,670.50</span>
+                                <p class="text-xs text-blue-700 font-medium mt-1">94% Collection Rate</p>
+                            </div>
+                            <div class="bg-white/70 backdrop-blur-xl p-6 rounded-xl border border-outline-variant/10 shadow-sm">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-on-surface-variant text-sm font-semibold uppercase">Adjustments</span>
+                                    <div class="bg-red-100 p-2 rounded-lg text-red-600"><span class="material-symbols-outlined">analytics</span></div>
+                                </div>
+                                <span class="text-3xl font-bold tracking-tight">$237,229.50</span>
+                                <p class="text-xs text-red-600 font-medium mt-1">Rejections optimized (-2.1%)</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-6 py-4 text-[11px] font-extrabold uppercase text-on-surface-variant">Trace Number</th>
+                                        <th class="px-6 py-4 text-[11px] font-extrabold uppercase text-on-surface-variant">Payer</th>
+                                        <th class="px-6 py-4 text-right text-[11px] font-extrabold uppercase text-on-surface-variant">Billed</th>
+                                        <th class="px-6 py-4 text-right text-[11px] font-extrabold uppercase text-on-surface-variant">Paid</th>
+                                        <th class="px-6 py-4 text-[11px] font-extrabold uppercase text-on-surface-variant">Status</th>
+                                        <th class="px-6 py-4"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {[
+                                        {id: '835-TRC-94281', payer: 'BCBS of Massachusetts', billed: '$12,450.00', paid: '$12,450.00', status: 'Paid', color: 'green'},
+                                        {id: '835-TRC-94290', payer: 'UnitedHealthcare', billed: '$4,200.00', paid: '$2,100.00', status: 'Partial', color: 'amber'},
+                                        {id: '835-TRC-94301', payer: 'CMS Medicare Part B', billed: '$1,890.00', paid: '$0.00', status: 'Denied', color: 'red'}
+                                    ].map((row, i) => (
+                                        <tr key={i} class="hover:bg-slate-50 cursor-pointer group">
+                                            <td class="px-6 py-4 font-bold text-sm">{row.id}</td>
+                                            <td class="px-6 py-4 text-sm font-medium">{row.payer}</td>
+                                            <td class="px-6 py-4 text-right text-sm">{row.billed}</td>
+                                            <td class="px-6 py-4 text-right text-sm font-bold text-primary">{row.paid}</td>
+                                            <td class="px-6 py-4">
+                                                <span class={`px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-${row.color}-100 text-${row.color}-700`}>{row.status}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-right">
+                                                <span class="material-symbols-outlined opacity-0 group-hover:opacity-100 text-slate-400">chevron_right</span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const MasterParserPage = () => {
+            return (
+                <div class="flex min-h-screen">
+                    <Sidebar />
+                    <TopNavBar />
+                    <main class="ml-64 mt-[64px] flex-1 flex overflow-hidden">
+                        <aside class="w-[280px] bg-slate-50 border-r border-slate-200 flex flex-col p-4 space-y-6">
+                            <div>
+                                <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Loop Tree View</h2>
+                                <div class="relative">
+                                    <span class="material-symbols-outlined absolute left-3 top-2.5 text-sm text-outline">search</span>
+                                    <input class="w-full pl-9 pr-4 py-2 bg-white border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20" placeholder="Filter loops..." />
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="p-2 bg-primary/10 rounded-lg flex items-center gap-2 text-primary font-bold text-xs"><span class="material-symbols-outlined text-sm">reorder</span>Segment Map</div>
+                                <div class="p-2 hover:bg-slate-200 rounded-lg flex items-center gap-2 text-slate-600 text-xs cursor-pointer"><span class="material-symbols-outlined text-sm">schema</span>Element Detail</div>
+                            </div>
+                        </aside>
+                        <section class="flex-1 flex flex-col min-w-0 bg-white">
+                            <div class="h-[60%] border-b border-slate-200 flex flex-col">
+                                <div class="px-6 py-3 flex justify-between items-center bg-slate-50 border-b border-slate-200">
+                                    <span class="px-2 py-1 bg-slate-200 rounded text-[10px] font-mono font-bold">FILE: CLAIM_837_v5010.edi</span>
+                                    <div class="flex gap-2">
+                                        <button class="material-symbols-outlined text-sm p-1.5 hover:bg-white rounded transition-colors">search</button>
+                                        <button class="material-symbols-outlined text-sm p-1.5 hover:bg-white rounded transition-colors">file_download</button>
+                                    </div>
+                                </div>
+                                <div class="flex-1 overflow-auto p-6 font-mono text-sm leading-relaxed bg-white">
+                                    <div class="flex gap-4">
+                                        <div class="text-slate-300 text-right w-8 border-r border-slate-100 pr-2">1<br/>2<br/>3<br/>4<br/>5</div>
+                                        <div>
+                                            <p>ISA*00*          *00*          *ZZ*SUBMITTERID    *ZZ*RECEIVERID*...</p>
+                                            <p>GS*HC*SUBMITTERID*RECEIVERID*20231024*1200*1*X*005010X222A1~</p>
+                                            <p>ST*837*0001*005010X222A1~</p>
+                                            <p class="bg-red-50 border-l-2 border-red-500 pl-2 -ml-2">BHT*0019*00*0123*20231024*<span class="edi-error-squiggle">INVALID_TIME</span>*CH~</p>
+                                            <p>NM1*41*1*SMITH*JOHN*L***46*123456789~</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="h-[40%] bg-slate-50/50 flex flex-col p-6 overflow-hidden">
+                                <h3 class="text-sm font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-red-600">report</span>Validation Log (2 Errors)</h3>
+                                <div class="space-y-3 overflow-y-auto custom-scrollbar">
+                                    <div class="p-4 bg-white rounded-xl shadow-sm border-l-4 border-red-500">
+                                        <h4 class="text-sm font-bold">Invalid BHT05 Value</h4>
+                                        <p class="text-xs text-slate-500 mt-1">Transaction Set Purpose Code requires standard HHMM format. Received 'INVALID_TIME'.</p>
+                                    </div>
+                                    <div class="p-4 bg-white rounded-xl shadow-sm border-l-4 border-red-500">
+                                        <h4 class="text-sm font-bold">REF02 Pattern Mismatch</h4>
+                                        <p class="text-xs text-slate-500 mt-1">Tax ID must be 9 numeric digits. Received alphanumeric string 'AB-12345-X'.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        <aside class="w-[320px] bg-blue-50/20 backdrop-blur-xl border-l border-blue-100 p-6 space-y-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white"><span class="material-symbols-outlined text-sm">auto_awesome</span></div>
+                                <h2 class="font-bold tracking-tight">Copilot Summary</h2>
+                            </div>
+                            <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-600/20">
+                                <h3 class="text-sm font-bold text-blue-700 flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-sm">magic_button</span>Fix Assistant</h3>
+                                <p class="text-xs text-slate-600 mb-4">I can automatically format the BHT05 time and sanitize the Tax ID based on historical provider records.</p>
+                                <button class="w-full py-2.5 bg-blue-600 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-600/20 active:scale-95 transition-all">Apply All Fixes</button>
+                            </div>
+                        </aside>
+                    </main>
+                </div>
+            );
+        };
+
+        const ClaimsPage = () => {
+            return (
+                <div class="flex min-h-screen">
+                    <Sidebar />
+                    <TopNavBar />
+                    <main class="ml-64 mt-16 p-8 flex-1 bg-surface">
+                        <header class="flex justify-between items-end mb-8">
+                            <div>
+                                <nav class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">EDI Gateway &gt; <span class="text-primary">837 Claims Audit</span></nav>
+                                <h1 class="text-4xl font-black tracking-tight">Auditing Claims</h1>
+                            </div>
+                            <button class="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-xl shadow-primary/20 active:scale-95 transition-all">Upload New Claims</button>
+                        </header>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                                <span class="text-slate-500 text-sm font-medium">Total Claims</span>
+                                <h3 class="text-3xl font-black mt-1">42,891</h3>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                                <span class="text-slate-500 text-sm font-medium">Billed Amount</span>
+                                <h3 class="text-3xl font-black mt-1">$4.2M</h3>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                                <span class="text-slate-500 text-sm font-medium">Validation Errors</span>
+                                <h3 class="text-3xl font-black text-red-600 mt-1">1,029</h3>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 border-b border-slate-100">
+                                    <tr>
+                                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase">Claim ID</th>
+                                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase">Provider</th>
+                                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase text-right">Billed Amt</th>
+                                        <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase">Status</th>
+                                        <th class="px-6 py-4"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    {[
+                                        {id: '#CLM-29384-01', provider: 'Northside Clinic', amt: '$1,245.00', status: 'Clean', color: 'green'},
+                                        {id: '#CLM-30192-44', provider: 'General Imaging', amt: '$4,820.50', status: 'Error', color: 'red'},
+                                        {id: '#CLM-44910-AI', provider: "St. Mary's Ortho", amt: '$312.00', status: 'Smart Parsed', color: 'blue'}
+                                    ].map((claim, idx) => (
+                                        <tr key={idx} class="hover:bg-slate-50 transition-colors cursor-pointer group">
+                                            <td class="px-6 py-4 text-sm font-bold">{claim.id}</td>
+                                            <td class="px-6 py-4 text-sm">{claim.provider}</td>
+                                            <td class="px-6 py-4 text-sm text-right font-bold">{claim.amt}</td>
+                                            <td class="px-6 py-4">
+                                                <span class={`px-3 py-1 rounded-full text-[10px] font-black uppercase bg-${claim.color}-100 text-${claim.color}-700`}>{claim.status}</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-right">
+                                                <button class="text-slate-400 group-hover:text-primary"><span class="material-symbols-outlined">more_vert</span></button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const EnrollmentPage = () => {
+            return (
+                <div class="flex min-h-screen">
+                    <Sidebar />
+                    <TopNavBar />
+                    <main class="ml-64 mt-16 p-8 flex-1 bg-surface-container-low flex gap-8">
+                        <div class="w-1/3 bg-white/40 backdrop-blur-xl border-r border-slate-200 rounded-3xl p-6 flex flex-col h-full shadow-lg">
+                            <h2 class="text-xl font-bold mb-4">Members</h2>
+                            <input class="w-full mb-6 bg-white border-none rounded-xl py-2 px-4 text-sm shadow-sm focus:ring-2 focus:ring-primary/20" placeholder="Search members..." />
+                            <div class="space-y-3 flex-1 overflow-y-auto no-scrollbar">
+                                {[
+                                    {name: 'Jordan Smith', ssn: 'XXX-XX-4829', type: 'Add', color: 'green'},
+                                    {name: 'Avery Williams', ssn: 'XXX-XX-9102', type: 'Update', color: 'blue', active: true},
+                                    {name: 'Morgan Knight', ssn: 'XXX-XX-1156', type: 'Term', color: 'red'}
+                                ].map((mem, i) => (
+                                    <div key={i} class={`p-4 rounded-2xl cursor-pointer transition-all ${mem.active ? 'bg-primary text-white shadow-xl' : 'bg-white/80 hover:bg-white shadow-sm'}`}>
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <p class="font-bold text-sm">{mem.name}</p>
+                                                <p class={`text-[10px] ${mem.active ? 'text-white/70' : 'text-slate-500'}`}>SSN: {mem.ssn}</p>
+                                            </div>
+                                            <span class={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase ${mem.active ? 'bg-white/20 text-white' : `bg-${mem.color}-100 text-${mem.color}-700`}`}>{mem.type}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div class="flex-1 space-y-8 max-w-4xl">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h2 class="text-3xl font-black">Avery Williams</h2>
+                                    <p class="text-slate-500">Effective Date: Jan 01, 2024</p>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button class="bg-slate-200 px-4 py-2 rounded-xl text-sm font-bold">Reject</button>
+                                    <button class="bg-primary text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg">Approve & Transmit</button>
+                                </div>
+                            </div>
+                            <div class="bg-white/60 backdrop-blur-xl p-8 rounded-[2rem] shadow-xl border border-white">
+                                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Demographic Data</h3>
+                                <div class="grid grid-cols-2 gap-8">
+                                    <div>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase">Legal Name</p>
+                                        <p class="font-bold">Avery J. Williams</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase">DOB</p>
+                                        <p class="font-bold">05/12/1988</p>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase">Address</p>
+                                        <p class="font-bold">1284 Oakwood Ave, Apt 4C, San Francisco, CA 94110</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-900 text-blue-300 p-8 rounded-[2rem] font-mono text-xs leading-loose shadow-2xl">
+                                <p>INS*Y*18*030*XN*A*E**FT~</p>
+                                <p>REF*0F*99823001~</p>
+                                <p>NM1*IL*1*WILLIAMS*AVERY*J***34*122334455~</p>
+                                <p>N3*1284 OAKWOOD AVE*APT 4C~</p>
+                                <p>N4*SAN FRANCISCO*CA*94110~</p>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const SettingsPage = () => {
+            return (
+                <div class="flex min-h-screen">
+                    <Sidebar />
+                    <TopNavBar />
+                    <main class="ml-64 mt-16 p-8 flex-1 bg-surface overflow-y-auto">
+                        <div class="max-w-4xl mx-auto">
+                            <h1 class="text-3xl font-extrabold mb-10">Account Settings</h1>
+                            <div class="grid grid-cols-12 gap-6">
+                                <div class="col-span-12 md:col-span-8 space-y-6">
+                                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                                        <h3 class="text-lg font-bold mb-6 flex items-center gap-2"><span class="material-symbols-outlined text-primary">security</span>Security Credentials</h3>
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-[11px] font-bold uppercase text-slate-400 mb-2">Email Address</label>
+                                                <div class="flex gap-3">
+                                                    <input class="flex-1 bg-slate-50 border-none rounded-lg px-4 py-2 text-sm" value="alex.vance@luminous-health.org" readOnly />
+                                                    <button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold">Change</button>
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div class="p-4 bg-slate-50 rounded-xl">
+                                                    <p class="font-bold text-sm">Password</p>
+                                                    <p class="text-xs text-slate-400">Last changed 4 months ago</p>
+                                                </div>
+                                                <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                                    <p class="font-bold text-sm text-blue-700">2FA Recovery</p>
+                                                    <p class="text-xs text-blue-500">Authenticator Enabled</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-span-12 md:col-span-4 space-y-6">
+                                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                                        <h3 class="text-xs font-bold text-slate-400 uppercase mb-4">Appearance</h3>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <button class="p-3 bg-white border-2 border-primary rounded-xl flex flex-col items-center gap-1"><span class="material-symbols-outlined text-primary">light_mode</span><span class="text-[10px] font-bold">Light</span></button>
+                                            <button class="p-3 bg-slate-900 text-white rounded-xl flex flex-col items-center gap-1"><span class="material-symbols-outlined">dark_mode</span><span class="text-[10px] font-bold">Dark</span></button>
+                                            <button class="p-3 bg-slate-100 rounded-xl flex flex-col items-center gap-1"><span class="material-symbols-outlined">settings_brightness</span><span class="text-[10px] font-bold">Auto</span></button>
+                                        </div>
+                                    </div>
+                                    <div class="bg-blue-600 text-white p-6 rounded-xl shadow-lg relative overflow-hidden">
+                                        <h3 class="text-xs font-bold uppercase mb-2">Team Access</h3>
+                                        <p class="text-2xl font-black mb-4">4 Members</p>
+                                        <button class="w-full bg-white text-blue-600 py-2 rounded-lg text-xs font-bold uppercase">Manage Permissions</button>
+                                        <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const HelpPage = () => {
+            return (
+                <div class="min-h-screen bg-background">
+                    <TopNavBar />
+                    <main class="pt-24 pb-12 px-6 max-w-7xl mx-auto">
+                        <section class="mb-16 text-center">
+                            <h1 class="text-5xl font-extrabold tracking-tight mb-6">How can we help?</h1>
+                            <div class="max-w-2xl mx-auto relative">
+                                <input class="w-full bg-white border-none rounded-xl py-5 px-6 text-lg shadow-xl outline-none" placeholder="Search help topics..." />
+                                <button class="absolute right-3 inset-y-3 px-8 bg-primary text-white rounded-lg font-bold">Search</button>
+                            </div>
+                        </section>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {[
+                                {icon: 'rocket_launch', title: 'Getting Started', desc: 'Everything you need to set up your account and file uploads.'},
+                                {icon: 'swap_horiz', title: 'EDI Transaction Types', desc: 'Deep dives into 837, 835, and 834 transactions.'},
+                                {icon: 'verified_user', title: 'Validation & Errors', desc: 'How to decode SNIP validation rules and remediation.'},
+                                {icon: 'build', title: 'Troubleshooting', desc: 'Solutions for parsing issues and SFTP connectivity.'},
+                                {icon: 'payments', title: 'Account & Billing', desc: 'Manage your enterprise subscription and usage reporting.'},
+                                {icon: 'support_agent', title: 'Contact Support', desc: 'Our experts are available 24/7 for complex cases.', action: true}
+                            ].map((cat, i) => (
+                                <div key={i} class={`p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-start ${cat.action ? 'bg-primary text-white' : 'bg-white'}`}>
+                                    <div class={`w-12 h-12 rounded-lg flex items-center justify-center mb-6 ${cat.action ? 'bg-white/20' : 'bg-blue-50 text-blue-600'}`}>
+                                        <span class="material-symbols-outlined">{cat.icon}</span>
+                                    </div>
+                                    <h3 class="text-xl font-bold mb-2">{cat.title}</h3>
+                                    <p class={`text-sm mb-6 ${cat.action ? 'text-white/80' : 'text-slate-500'}`}>{cat.desc}</p>
+                                    {!cat.action && <a class="text-primary text-sm font-bold flex items-center gap-2 mt-auto" href="#">Learn More <span class="material-symbols-outlined text-sm">arrow_forward</span></a>}
+                                    {cat.action && <button class="mt-auto bg-white text-primary px-6 py-2 rounded-lg font-bold">Open Ticket</button>}
+                                </div>
+                            ))}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const DocsPage = () => {
+            return (
+                <div class="bg-white min-h-screen flex">
+                    <aside class="w-72 bg-slate-50 border-r border-slate-100 p-8 fixed h-full flex flex-col">
+                        <h1 class="text-xl font-black mb-10 text-primary">DOCS</h1>
+                        <nav class="space-y-8">
+                            <div>
+                                <h4 class="text-[10px] font-bold uppercase text-slate-400 mb-4 tracking-widest">Introduction</h4>
+                                <ul class="space-y-3 text-sm font-medium text-slate-600">
+                                    <li class="text-primary">System Architecture</li>
+                                    <li>X12 Versions</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="text-[10px] font-bold uppercase text-slate-400 mb-4 tracking-widest">API Reference</h4>
+                                <ul class="space-y-3 text-sm font-medium text-slate-600">
+                                    <li>Authentication</li>
+                                    <li>Endpoints</li>
+                                </ul>
+                            </div>
+                        </nav>
+                    </aside>
+                    <main class="ml-72 p-16 flex-1 max-w-4xl">
+                        <span class="text-primary font-bold text-[10px] uppercase tracking-widest bg-blue-50 px-2 py-1 rounded">Getting Started</span>
+                        <h1 class="text-5xl font-black mt-4 mb-8">System Architecture</h1>
+                        <p class="text-lg text-slate-600 leading-relaxed mb-12">EdiPro is built on a distributed microservices framework designed specifically for high-throughput Healthcare EDI processing.</p>
+                        <div class="grid grid-cols-2 gap-8 mb-12">
+                            <div class="bg-slate-50 p-8 rounded-2xl">
+                                <h3 class="text-xl font-bold mb-3">Event-Driven Core</h3>
+                                <p class="text-sm text-slate-500">Utilizes Apache Kafka for durable message queuing and real-time streaming.</p>
+                            </div>
+                            <div class="bg-slate-50 p-8 rounded-2xl">
+                                <h3 class="text-xl font-bold mb-3">Hybrid Parser</h3>
+                                <p class="text-sm text-slate-500">Proprietary Rust-based engine that converts raw EDI to JSON/FHIR.</p>
+                            </div>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-6">Supported X12 Versions</h2>
+                        <div class="border border-slate-100 rounded-2xl overflow-hidden">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase">Set</th>
+                                        <th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-t border-slate-50">
+                                        <td class="px-6 py-4 font-mono font-bold text-primary">837 P/I/D</td>
+                                        <td class="px-6 py-4 text-slate-600">Health Care Claims</td>
+                                    </tr>
+                                    <tr class="border-t border-slate-50">
+                                        <td class="px-6 py-4 font-mono font-bold text-primary">835</td>
+                                        <td class="px-6 py-4 text-slate-600">Remittance Advice (ERA)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const ProfilePage = () => {
+            return (
+                <div class="flex min-h-screen">
+                    <Sidebar />
+                    <TopNavBar />
+                    <main class="ml-64 mt-16 p-8 flex-1 bg-surface overflow-y-auto">
+                        <div class="max-w-6xl mx-auto">
+                            <section class="flex items-end gap-8 pb-10 border-b border-slate-100 mb-10">
+                                <div class="w-32 h-32 rounded-3xl overflow-hidden shadow-2xl ring-4 ring-white">
+                                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3-Mck1EtgL198rqGvxMT51ioDGm2ouby4W8oKQ94Pvo1JaEB7jc2rzood-BXgkJq5cpgR270z1dQReQsCLyE62_FTkyQeaPHackvNPmzdEMs86eRmZuzU4ANKZzgk1vP3Nfri-7vSPQqyb0bC90yEJXJ1i9zzADKQ-O_22ufTfPNTdUb62CQyZhTk98Uj0u_TQJS1AICUhuDeEBEsinzv-WOHwqsVC_BqXmefA7maII9yxRntyUu9TYxvHe7tMtv4aE9JjqS9QYK2" class="w-full h-full object-cover" />
+                                </div>
+                                <div class="flex-1 pb-2">
+                                    <h1 class="text-4xl font-black tracking-tight">Marcus Sterling</h1>
+                                    <p class="text-lg text-slate-500 font-medium">Senior EDI Infrastructure Lead</p>
+                                </div>
+                                <button class="bg-primary text-white px-8 py-3 rounded-xl font-bold shadow-lg">Settings</button>
+                            </section>
+                            <div class="grid grid-cols-12 gap-8">
+                                <div class="col-span-4 bg-white/80 p-8 rounded-[2rem] shadow-sm border border-white">
+                                    <h3 class="font-bold mb-6 text-slate-400 uppercase text-xs tracking-widest">Personal Info</h3>
+                                    <div class="space-y-6">
+                                        <div><p class="text-[10px] font-bold text-slate-400 uppercase">Department</p><p class="font-bold">Clinical Data Systems</p></div>
+                                        <div><p class="text-[10px] font-bold text-slate-400 uppercase">Email</p><p class="font-bold text-primary">m.sterling@luminousledger.io</p></div>
+                                    </div>
+                                </div>
+                                <div class="col-span-8 bg-white/80 p-8 rounded-[2rem] shadow-sm border border-white">
+                                    <h3 class="font-bold mb-6 text-slate-400 uppercase text-xs tracking-widest">Active Channels</h3>
+                                    <div class="space-y-4">
+                                        <div class="p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
+                                            <div class="flex items-center gap-4"><span class="material-symbols-outlined text-primary">description</span><span class="font-bold">837 Claims - North Region</span></div>
+                                            <span class="text-xs font-bold text-slate-400">14 Facilities</span>
+                                        </div>
+                                        <div class="p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
+                                            <div class="flex items-center gap-4"><span class="material-symbols-outlined text-blue-600">payments</span><span class="font-bold">835 Remittance - BlueShield</span></div>
+                                            <span class="text-xs font-bold text-slate-400">Daily Cycle</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const NotificationsPage = () => {
+            return (
+                <div class="flex min-h-screen">
+                    <Sidebar />
+                    <TopNavBar />
+                    <main class="ml-64 mt-16 p-12 flex-1 bg-surface">
+                        <div class="max-w-4xl mx-auto">
+                            <h1 class="text-4xl font-black mb-10">Notification Center</h1>
+                            <div class="space-y-4">
+                                <div class="bg-white/70 p-8 rounded-[2rem] border-l-8 border-red-500 shadow-sm">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="text-xs font-bold uppercase text-red-600">Critical Alert</span>
+                                        <span class="text-xs text-slate-400">2 mins ago</span>
+                                    </div>
+                                    <h3 class="text-xl font-bold mb-2">Batch #4490 (837P) - 32 Validation Errors</h3>
+                                    <p class="text-slate-600 text-sm">Mandatory fields missing in 12 loops. Immediate re-validation required.</p>
+                                </div>
+                                <div class="bg-white/70 p-8 rounded-[2rem] border-l-8 border-green-500 shadow-sm">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="text-xs font-bold uppercase text-green-600">Success</span>
+                                        <span class="text-xs text-slate-400">1 hour ago</span>
+                                    </div>
+                                    <h3 class="text-xl font-bold mb-2">835 Remittance Processed</h3>
+                                    <p class="text-slate-600 text-sm">$142,500.00 reconciled across 420 claims.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        // --- App Shell ---
+
+        const App = () => {
+            return (
+                <MemoryRouter>
+                    <Routes>
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/" element={<DashboardPage />} />
+                        <Route path="/835-remittance" element={<RemittancePage />} />
+                        <Route path="/master-parser" element={<MasterParserPage />} />
+                        <Route path="/837-claims" element={<ClaimsPage />} />
+                        <Route path="/834-enrollment" element={<EnrollmentPage />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+                        <Route path="/help" element={<HelpPage />} />
+                        <Route path="/docs" element={<DocsPage />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/notifications" element={<NotificationsPage />} />
+                    </Routes>
+                </MemoryRouter>
+            );
+        };
+
+        const container = document.getElementById('root');
+        const root = createRoot(container);
+        root.render(<App />);
+
+    </script>
+</body>
+</html>
+

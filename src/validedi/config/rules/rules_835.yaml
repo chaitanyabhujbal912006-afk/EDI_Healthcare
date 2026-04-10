@@ -1,0 +1,138 @@
+rules:
+  # ── BPR Financial Information Validation ───────────────────────────────────
+  - id: '835-001'
+    type: 'required_segment'
+    target: 'BPR'
+    transaction_types: ['835']
+    severity: 'error'
+    message: 'BPR (Financial Information) segment is missing'
+    suggestion: 'BPR is required as the first data segment after ST in every 835 remittance. It must contain payment amount, payment method, and EFT/check information'
+  
+  - id: '835-002'
+    type: 'required_segment'
+    target: 'TRN'
+    transaction_types: ['835']
+    severity: 'error'
+    message: 'TRN (Reassociation Trace Number) segment is missing'
+    suggestion: 'TRN is required and provides the check or EFT trace number. Add TRN*1*<trace_number>*<payer_id>~ after BPR'
+  
+  - id: '835-003'
+    type: 'numeric_range'
+    target: 'BPR02'
+    transaction_types: ['835']
+    min_value: 0.01
+    severity: 'warning'
+    message: 'BPR02 total payment amount is negative or zero: {value}'
+    suggestion: 'Negative BPR02 is used for reversals. Verify this is an intentional payment reversal'
+  
+  - id: '835-004'
+    type: 'numeric_validation'
+    target: 'BPR02'
+    transaction_types: ['835']
+    severity: 'error'
+    message: 'BPR02 value {value} is not a valid monetary amount'
+    suggestion: 'BPR02 must be a numeric dollar amount representing the total payment'
+  
+  # ── CLP Claim Payment Validation ───────────────────────────────────────────
+  - id: '835-005'
+    type: 'required_segment'
+    target: 'CLP'
+    transaction_types: ['835']
+    severity: 'warning'
+    message: 'No CLP (Claim Payment Information) segments found'
+    suggestion: 'An 835 remittance should contain CLP segments for each claim payment detail. Verify this is not a zero-payment or coordination-only remittance'
+  
+  - id: '835-006'
+    type: 'code_set'
+    target: 'CLP02'
+    transaction_types: ['835']
+    code_set_id: 'claim_status_codes'
+    severity: 'warning'
+    message: 'CLP02 status code {value} is not a recognized X12 835 value'
+    suggestion: 'Valid CLP02 codes: 1=Processed as Primary, 2=Secondary, 3=Tertiary, 4=Denied, 19=Primary (Forwarded), 20=Secondary (Forwarded), 22=Reversal. Check the X12 835 implementation guide for your version'
+  
+  - id: '835-007'
+    type: 'builtin'
+    handler: 'bpr_clp_total_match'
+    transaction_types: ['835']
+    scope: 'transaction'
+    severity: 'warning'
+    message: 'BPR02 total payment does not match sum of CLP04 amounts'
+    suggestion: 'BPR02 should equal sum of all CLP04 amounts, adjusted by any PLB provider-level adjustments'
+  
+  # ── Required Payer/Payee Validation ────────────────────────────────────────
+  - id: '835-008'
+    type: 'required_entity'
+    target: 'N1'
+    entity_code: 'PR'
+    loop: '1000A'
+    transaction_types: ['835']
+    severity: 'error'
+    message: 'Missing N1*PR (Payer) identification loop'
+    suggestion: 'Loop 1000A requires an N1 segment with entity code PR identifying the payer'
+  
+  - id: '835-009'
+    type: 'required_entity'
+    target: 'N1'
+    entity_code: 'PE'
+    loop: '1000B'
+    transaction_types: ['835']
+    severity: 'error'
+    message: 'Missing N1*PE (Payee) identification loop'
+    suggestion: 'Loop 1000B requires an N1 segment with entity code PE identifying the payee (provider)'
+  
+  # ── Existing Rules ─────────────────────────────────────────────────────────
+  - id: 'CAS_GROUP_CODES'
+    type: 'code_set'
+    target: 'CAS01'
+    transaction_types: ['835']
+    code_set_id: 'cas_group_codes'
+    severity: 'error'
+    message: 'CAS01 group code {value} is not valid (must be PR, CO, OA, PI, or CR)'
+  
+  - id: 'CLP_PAID_VS_BILLED'
+    type: 'expression'
+    expression: 'CLP04 <= CLP03'
+    transaction_types: ['835']
+    loop: '2100'
+    severity: 'warning'
+    message: 'Paid amount exceeds billed amount'
+
+  # ── CAS Adjustment Balance Check ──────────────────────────────────────────
+  - id: '835-010'
+    type: 'builtin'
+    handler: 'cas_balance_check'
+    transaction_types: ['835']
+    scope: 'transaction'
+    severity: 'warning'
+    message: 'CAS adjustment amounts do not balance: CLP03 (charged) ≠ CLP04 (paid) + sum(CAS adjustments)'
+    suggestion: 'CLP03 must equal CLP04 plus all CAS adjustment amounts. Verify all adjustment reason codes and amounts are complete'
+
+  # ── Missing SVC Under CLP ─────────────────────────────────────────────────
+  - id: '835-011'
+    type: 'builtin'
+    handler: 'missing_svc_check'
+    transaction_types: ['835']
+    scope: 'transaction'
+    severity: 'warning'
+    message: 'CLP loop found with no SVC (service line) segments — line-level detail is missing'
+    suggestion: 'Add SVC segments under each CLP loop for line-level reconciliation. Most payers require SVC for auto-posting'
+
+  # ── PLB Orphan Reference Check ────────────────────────────────────────────
+  - id: '835-012'
+    type: 'builtin'
+    handler: 'plb_orphan_check'
+    transaction_types: ['835']
+    scope: 'transaction'
+    severity: 'warning'
+    message: 'PLB adjustment references claim {value} which does not appear in any CLP01 in this file'
+    suggestion: 'PLB adjustments must reference a valid CLP01 claim number. Verify the claim number in PLB04/PLB06/PLB08'
+
+  # ── Wrong ST01 in 835 ─────────────────────────────────────────────────────
+  - id: '835-ST01'
+    type: 'wrong_st_code'
+    target: '835'
+    transaction_types: ['835']
+    severity: 'error'
+    message: 'ST01 value {value} is wrong for a remittance file — expected 835'
+    suggestion: 'An 835 remittance file must have ST*835. Check that the correct file type is being processed'

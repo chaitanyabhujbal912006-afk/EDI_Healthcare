@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-error": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "tertiary-fixed": "#e2dfff",
+            "on-primary-fixed": "#001a41",
+            "surface-tint": "#005bc1",
+            "primary-container": "#0070eb",
+            "on-tertiary-fixed": "#0c006b",
+            "on-secondary-container": "#626267",
+            "on-primary-container": "#fefcff",
+            "on-secondary-fixed": "#1a1b1f",
+            "surface-bright": "#f9f9fb",
+            "tertiary-fixed-dim": "#c2c1ff",
+            "primary": "#0058bc",
+            "on-primary": "#ffffff",
+            "background": "#f9f9fb",
+            "surface-container-low": "#f3f3f5",
+            "inverse-on-surface": "#f0f0f2",
+            "on-error-container": "#93000a",
+            "tertiary-container": "#6462ec",
+            "outline-variant": "#c1c6d7",
+            "primary-fixed": "#d8e2ff",
+            "secondary": "#5d5e63",
+            "secondary-container": "#e0dfe4",
+            "secondary-fixed": "#e3e2e7",
+            "surface-variant": "#e2e2e4",
+            "inverse-surface": "#2f3132",
+            "surface": "#f9f9fb",
+            "primary-fixed-dim": "#adc6ff",
+            "on-primary-fixed-variant": "#004493",
+            "inverse-primary": "#adc6ff",
+            "error-container": "#ffdad6",
+            "outline": "#717786",
+            "on-surface-variant": "#414755",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-container": "#fffbff",
+            "surface-container-highest": "#e2e2e4",
+            "surface-dim": "#d9dadc",
+            "on-secondary-fixed-variant": "#46464b",
+            "error": "#ba1a1a",
+            "on-background": "#1a1c1d",
+            "on-tertiary-fixed-variant": "#332dbc",
+            "surface-container": "#eeeef0",
+            "on-secondary": "#ffffff",
+            "secondary-fixed-dim": "#c6c6cb",
+            "tertiary": "#4a47d2",
+            "on-surface": "#1a1c1d",
+            "surface-container-high": "#e8e8ea"
+          },
+          fontFamily: {
+            "headline": ["Inter"],
+            "body": ["Inter"],
+            "label": ["Inter"],
+            "mono": ["JetBrains Mono"]
+          },
+          borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+        },
+      },
+    }
+  </script>
+  <style>
+    .glass-blur {
+      backdrop-filter: blur(20px);
+    }
+
+    .edi-error-squiggle {
+      text-decoration: underline wavy #ba1a1a;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #e2e2e4;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body class="bg-background font-body text-on-background antialiased selection:bg-primary/10 selection:text-primary">
+  <!-- Top Navigation Anchor -->
+  <header
+    class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex justify-between items-center px-6 py-3 w-full shadow-sm dark:shadow-none transition-all duration-200">
+    <div class="flex items-center gap-8">
+      <span class="text-xl font-bold tracking-tighter text-slate-900 dark:text-white cursor-pointer"
+        onclick="window.location.reload()">EdiPro</span>
+      <nav class="hidden md:flex gap-6">
+        <a class="text-slate-500 dark:text-slate-400 hover:text-slate-800 py-1 transition-all"
+          href="../dashboard_sleek/code.html">Dashboard</a>
+        <a class="text-blue-700 dark:text-blue-400 font-semibold border-b-2 border-blue-700 py-1 transition-all"
+          href="../master_parser_sleek/code.html">Master Parser</a>
+        <a class="text-slate-500 dark:text-slate-400 hover:text-slate-800 py-1 transition-all"
+          href="../837_claims_view/code.html">Reports</a>
+      </nav>
+    </div>
+    <div class="flex items-center gap-3">
+      <div
+        class="hidden sm:flex items-center bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-full px-3 py-1.5 transition-all">
+        <span class="material-symbols-outlined text-[20px] text-slate-500">search</span>
+        <input class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-slate-400"
+          placeholder="Search files..." type="text" />
+      </div>
+      <a class="p-2 hover:bg-slate-100/50 rounded-full transition-all active:scale-95" href="../notifications/code.html"
+        aria-label="Open notifications">
+        <span class="material-symbols-outlined text-slate-600">notifications</span>
+      </a>
+      <a class="p-2 hover:bg-slate-100/50 rounded-full transition-all active:scale-95" href="../settings/code.html"
+        aria-label="Open settings">
+        <span class="material-symbols-outlined text-slate-600">settings</span>
+      </a>
+      <a class="h-8 w-8 rounded-full overflow-hidden bg-primary/10 ring-2 ring-white shadow-sm"
+        href="../user_profile/code.html" aria-label="Open user profile">
+        <img class="w-full h-full object-cover" data-alt="User Profile Avatar"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach" />
+      </a>
+      <button class="md:hidden p-2 hover:bg-slate-100/50 rounded-full transition-all active:scale-95" id="nav-toggle"
+        aria-label="Open navigation menu">
+        <span class="material-symbols-outlined text-slate-700">menu</span>
+      </button>
+    </div>
+  </header>
+  <div class="fixed inset-0 bg-slate-900/40 z-30 hidden" id="nav-overlay"></div>
+  <!-- Side Navigation Bar -->
+  <aside
+    class="fixed left-0 top-0 h-full w-64 z-40 bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-2xl border-r border-slate-200/30 dark:border-slate-800/30 shadow-xl dark:shadow-2xl flex flex-col h-full py-6 pt-20 transform -translate-x-full md:translate-x-0 transition-transform duration-300"
+    id="side-nav">
+    <div class="px-6 mb-8 flex items-center gap-3 cursor-pointer" onclick="window.location.reload()">
+      <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+        <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">hub</span>
+      </div>
+      <div>
+        <h2 class="text-lg font-black text-slate-900 dark:text-white leading-none">HealthConnect</h2>
+        <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-1">EDI Gateway</p>
+      </div>
+      <button class="md:hidden ml-auto p-2 hover:bg-slate-200/50 rounded-full" id="nav-close"
+        aria-label="Close navigation menu">
+        <span class="material-symbols-outlined text-slate-600">close</span>
+      </button>
+    </div>
+    <nav class="flex-1 px-2 space-y-1">
+      <a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]"
+        href="../dashboard_sleek/code.html" data-nav-link="true">
+        <span class="material-symbols-outlined">dashboard</span> Dashboard
+      </a>
+      <a class="bg-blue-50/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg mx-2 flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide scale-100 active:scale-[0.98] transition-transform duration-300"
+        href="../master_parser_sleek/code.html" data-nav-link="true">
+        <span class="material-symbols-outlined">analytics</span> Master Parser
+      </a>
+      <a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]"
+        href="../835_remittance_sleek/code.html" data-nav-link="true">
+        <span class="material-symbols-outlined">payments</span> 835 Remittance
+      </a>
+      <a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]"
+        href="../834_enrollment_sleek/code.html" data-nav-link="true">
+        <span class="material-symbols-outlined">group_add</span> 834 Enrollment
+      </a>
+      <a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 mx-2 rounded-lg flex items-center gap-3 px-4 py-3 text-sm font-medium tracking-wide hover:translate-x-1 transition-transform duration-300 active:scale-[0.98]"
+        href="../837_claims_view/code.html" data-nav-link="true">
+        <span class="material-symbols-outlined">description</span> 837 Claims
+      </a>
+    </nav>
+    <div class="mt-auto px-4 pb-4">
+      <button
+        class="w-full bg-primary text-white rounded-xl py-3 text-sm font-bold shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-all hover:brightness-95"
+        onclick="console.log('Open New Submission Dialog')">
+        <span class="material-symbols-outlined text-[20px]">add_circle</span>
+        New Submission
+      </button>
+    </div>
+    <div class="px-2 pt-4 border-t border-slate-200/30 mx-4 space-y-1">
+      <a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 rounded-lg flex items-center gap-3 px-4 py-2 text-xs font-medium tracking-wide hover:translate-x-1 transition-transform duration-300"
+        href="../help_center/code.html" data-nav-link="true">
+        <span class="material-symbols-outlined text-[18px]">help</span> Help Center
+      </a>
+      <a class="text-slate-600 dark:text-slate-400 hover:bg-slate-200/30 rounded-lg flex items-center gap-3 px-4 py-2 text-xs font-medium tracking-wide hover:translate-x-1 transition-transform duration-300"
+        href="../documentation/code.html" data-nav-link="true">
+        <span class="material-symbols-outlined text-[18px]">menu_book</span> Documentation
+      </a>
+    </div>
+  </aside>
+  <!-- Main Workspace Layout -->
+  <main class="ml-0 md:ml-64 pt-20 px-4 md:px-8 pb-8 min-h-screen bg-surface">
+    <div class="flex flex-col xl:flex-row gap-6 min-h-[calc(100vh-160px)]">
+      <!-- Center Working Area: Split Grid -->
+      <section class="flex-1 flex flex-col min-w-0 min-h-0 bg-surface">
+      <!-- Top Right: Raw EDI Viewer -->
+      <div class="flex-[3] border-b border-slate-200/30 flex flex-col min-h-0">
+        <div class="px-6 py-3 flex justify-between items-center bg-white/50 border-b border-slate-200/10">
+          <div class="flex items-center gap-3">
+            <span
+              class="px-2 py-1 bg-surface-container-highest rounded text-[10px] font-mono font-bold text-outline">FILE:
+              CLAIM_837_v5010.edi</span>
+            <span class="text-xs text-outline italic">ANSI X12 Standard</span>
+          </div>
+          <div class="flex gap-2">
+            <button class="material-symbols-outlined text-sm p-1.5 hover:bg-slate-100 rounded">search</button>
+            <button class="material-symbols-outlined text-sm p-1.5 hover:bg-slate-100 rounded">file_download</button>
+          </div>
+        </div>
+        <div class="flex-1 overflow-auto p-6 font-mono text-sm leading-relaxed custom-scrollbar bg-[#fdfdfe]">
+          <div class="flex gap-4">
+            <div class="text-outline/40 text-right select-none w-8 border-r border-slate-200/50 pr-2">
+              1<br />2<br />3<br />4<br />5<br />6<br />7<br />8<br />9<br />10<br />11
+            </div>
+            <div class="flex-1">
+              <p>ISA*00* *00* *ZZ*SUBMITTERID *ZZ*RECEIVERID *231024*1200*^*00501*000000001*0*T*:~</p>
+              <p>GS*HC*SUBMITTERID*RECEIVERID*20231024*1200*1*X*005010X222A1~</p>
+              <p>ST*837*0001*005010X222A1~</p>
+              <p class="bg-error/5 border-l-2 border-error pl-2 -ml-2">BHT*0019*00*0123*20231024*<span
+                  class="edi-error-squiggle">INVALID_TIME</span>*CH~</p>
+              <p>NM1*41*1*SMITH*JOHN*L***46*123456789~</p>
+              <p>PER*IC*JOHN SMITH*TE*8005551212~</p>
+              <p>NM1*40*2*HEALTHCARE PAYER****46*PAYER001~</p>
+              <p>HL*1**20*1~</p>
+              <p>NM1*85*2*PROVIDER GROUP****XX*9876543210~</p>
+              <p class="bg-error/5 border-l-2 border-error pl-2 -ml-2">REF*EI*<span
+                  class="edi-error-squiggle">AB-12345-X</span>~</p>
+              <p>N3*123 MAIN ST~</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Bottom Right: Validation Log -->
+      <div class="flex-[2] flex flex-col bg-surface-container-low/30 overflow-hidden min-h-0">
+        <div class="px-6 py-3 flex items-center justify-between border-b border-slate-200/30">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-error" data-icon="report">report</span>
+            <h3 class="text-sm font-bold tracking-tight">Validation Log (2 Critical Errors)</h3>
+          </div>
+          <div class="flex gap-2">
+            <span
+              class="px-2 py-0.5 bg-error-container text-on-error-container text-[10px] font-bold rounded-full">CRITICAL</span>
+            <span
+              class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full">WARNING</span>
+          </div>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+          <!-- Error Card -->
+          <div class="p-4 bg-white rounded-xl shadow-sm border-l-4 border-error flex items-start justify-between">
+            <div class="flex gap-4">
+              <div class="w-10 h-10 rounded-lg bg-error-container flex items-center justify-center text-error">
+                <span class="material-symbols-outlined">event_busy</span>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-on-surface">Invalid BHT05 Value</h4>
+                <p class="text-xs text-on-surface-variant mt-1">Transaction Set Purpose Code requires standard HHMM
+                  format. Received 'INVALID_TIME'.</p>
+                <div class="mt-2 flex items-center gap-2">
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 bg-surface-container rounded">LOOP: 1000A</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 bg-surface-container rounded">SEG: BHT</span>
+                </div>
+              </div>
+            </div>
+            <button class="text-primary text-xs font-bold hover:underline">Go to segment</button>
+          </div>
+          <div class="p-4 bg-white rounded-xl shadow-sm border-l-4 border-error flex items-start justify-between">
+            <div class="flex gap-4">
+              <div class="w-10 h-10 rounded-lg bg-error-container flex items-center justify-center text-error">
+                <span class="material-symbols-outlined">format_list_numbered</span>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-on-surface">REF02 Pattern Mismatch</h4>
+                <p class="text-xs text-on-surface-variant mt-1">Tax ID must be 9 numeric digits. Received alphanumeric
+                  string 'AB-12345-X'.</p>
+                <div class="mt-2 flex items-center gap-2">
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 bg-surface-container rounded">LOOP: 2010AA</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 bg-surface-container rounded">SEG: REF</span>
+                </div>
+              </div>
+            </div>
+            <button class="text-primary text-xs font-bold hover:underline">Go to segment</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Far Right: AI Copilot Side Panel -->
+    <aside
+      class="w-full xl:w-[320px] bg-tertiary-container/5 glass-blur border-l border-tertiary/10 flex flex-col z-40 relative">
+      <!-- Glass Overlay Subtle Gradient -->
+      <div class="absolute inset-0 bg-gradient-to-b from-white/40 to-white/10 pointer-events-none"></div>
+      <div class="relative z-10 flex flex-col h-full">
+        <div class="p-6 border-b border-tertiary/10 bg-white/40">
+          <div class="flex items-center gap-3 mb-1">
+            <div class="w-8 h-8 rounded-full bg-tertiary flex items-center justify-center text-white">
+              <span class="material-symbols-outlined text-sm" data-weight="fill"
+                style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+            </div>
+            <h2 class="text-lg font-bold tracking-tight text-on-surface">Copilot Summary</h2>
+          </div>
+          <p class="text-[10px] text-tertiary font-bold tracking-widest uppercase ml-11">Powered by Luminous AI</p>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar relative z-10">
+          <!-- AI Insight Section -->
+          <div>
+            <h3 class="text-xs font-bold text-outline uppercase tracking-widest mb-3">File Analysis</h3>
+            <ul class="space-y-3">
+              <li class="flex gap-3 items-start">
+                <span class="material-symbols-outlined text-tertiary text-lg">check_circle</span>
+                <p class="text-sm leading-snug">Interchange ISA/IEA headers are structurally sound.</p>
+              </li>
+              <li class="flex gap-3 items-start">
+                <span class="material-symbols-outlined text-tertiary text-lg">psychology</span>
+                <p class="text-sm leading-snug">Detected <span class="font-bold">Institutional Claim (837I)</span>
+                  layout with Medicare-specific identifiers.</p>
+              </li>
+              <li class="flex gap-3 items-start">
+                <span class="material-symbols-outlined text-error text-lg">warning</span>
+                <p class="text-sm leading-snug font-medium text-error">2 syntax violations detected that will cause
+                  gateway rejection.</p>
+              </li>
+            </ul>
+          </div>
+          <!-- Fix Assistant Section -->
+          <div class="bg-tertiary/10 rounded-2xl p-4 border border-tertiary/20 backdrop-blur-md">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="material-symbols-outlined text-tertiary" data-icon="magic_button">magic_button</span>
+              <h3 class="text-sm font-bold text-tertiary">Fix Assistant</h3>
+            </div>
+            <p class="text-xs text-on-surface-variant mb-4">I can automatically format the BHT05 time and sanitize the
+              Tax ID based on historical provider records.</p>
+            <div class="space-y-2 mb-4">
+              <div class="flex flex-col gap-2">
+                <div
+                  class="flex items-center justify-between gap-2 text-[11px] bg-white/60 p-2 rounded-lg border border-white/80 group hover:border-tertiary/40 transition-colors">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm text-tertiary">history</span>
+                    <span>Suggested: <strong class="font-mono">1200</strong></span>
+                  </div>
+                  <button class="text-[10px] font-bold text-tertiary hover:underline bg-tertiary/5 px-2 py-1 rounded"
+                    onclick="alert('Applied BHT05 fix')">Apply</button>
+                </div>
+                <div
+                  class="flex items-center justify-between gap-2 text-[11px] bg-white/60 p-2 rounded-lg border border-white/80 group hover:border-tertiary/40 transition-colors">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm text-tertiary">history</span>
+                    <span>Suggested: <strong class="font-mono">123456789</strong></span>
+                  </div>
+                  <button class="text-[10px] font-bold text-tertiary hover:underline bg-tertiary/5 px-2 py-1 rounded"
+                    onclick="alert('Applied REF02 fix')">Apply</button>
+                </div>
+              </div>
+            </div>
+            <button
+              class="w-full py-3 bg-tertiary text-white rounded-xl text-sm font-bold shadow-lg shadow-tertiary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+              onclick="alert('Applying all AI suggestions to the document...')">
+              <span class="material-symbols-outlined text-sm">auto_fix_high</span>
+              Apply All Fixes
+            </button>
+          </div>
+          <!-- Additional Metadata -->
+          <div class="pt-4">
+            <h3 class="text-xs font-bold text-outline uppercase tracking-widest mb-3">Transaction Health</h3>
+            <div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden flex">
+              <div class="h-full bg-primary" style="width: 75%"></div>
+              <div class="h-full bg-error" style="width: 25%"></div>
+            </div>
+            <div class="flex justify-between mt-2">
+              <span class="text-[10px] font-bold">75% VALID</span>
+              <span class="text-[10px] font-bold text-error">25% ERROR</span>
+            </div>
+          </div>
+        </div>
+        <!-- Copilot Footer Action -->
+        <div class="p-6 bg-white/40 border-t border-tertiary/10 relative z-10">
+          <div class="relative">
+            <input
+              class="w-full bg-white border border-tertiary/20 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-tertiary/20 pr-10"
+              placeholder="Ask Copilot a question..." type="text" />
+            <button class="absolute right-3 top-3 text-tertiary material-symbols-outlined">send</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+    </div>
+  </main>
+  <!-- Bottom Status Bar -->
+  <footer
+    class="h-8 bg-white border-t border-slate-200/50 flex items-center px-4 justify-between text-[10px] font-medium text-slate-500 z-50">
+    <div class="flex items-center gap-4">
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> System Online</span>
+      <span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">database</span> Connected to
+        Production Gateway</span>
+    </div>
+    <div class="flex items-center gap-4 uppercase tracking-tighter">
+      <span>Encoding: UTF-8</span>
+      <span>Standard: HIPAA 5010</span>
+      <span class="text-primary font-bold">Parser v2.4.0-Pro</span>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      const nav = document.getElementById('side-nav');
+      const overlay = document.getElementById('nav-overlay');
+      const toggle = document.getElementById('nav-toggle');
+      const close = document.getElementById('nav-close');
+      const navLinks = document.querySelectorAll('[data-nav-link="true"]');
+
+      if (!nav || !overlay || !toggle || !close) {
+        return;
+      }
+
+      function openNav() {
+        nav.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+      }
+
+      function closeNav() {
+        nav.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+
+      toggle.addEventListener('click', openNav);
+      close.addEventListener('click', closeNav);
+      overlay.addEventListener('click', closeNav);
+
+      navLinks.forEach((link) => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 768) {
+            closeNav();
+          }
+        });
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+          overlay.classList.add('hidden');
+          nav.classList.remove('-translate-x-full');
+          document.body.classList.remove('overflow-hidden');
+        } else {
+          nav.classList.add('-translate-x-full');
+        }
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      const storageKey = 'ediSubmissions';
+      const items = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const parsedItems = Array.isArray(items) ? items : [];
+      if (parsedItems.length > 0) {
+        return;
+      }
+      const main = document.querySelector('main');
+      if (!main) {
+        return;
+      }
+      main.innerHTML = '<div class="min-h-[70vh] flex items-center justify-center"><div class="bg-white/70 border border-outline-variant/20 rounded-2xl p-10 text-center max-w-xl"><h2 class="text-2xl font-black text-on-surface">No parsed file yet</h2><p class="text-sm text-on-surface-variant mt-3">Upload any supported EDI file from the dashboard to see parser output here.</p></div></div>';
+    })();
+  </script>
+</body>
+
+</html>

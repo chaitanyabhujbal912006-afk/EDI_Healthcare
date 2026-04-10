@@ -1,0 +1,11 @@
+code_set_id: 'claim_status_codes'
+description: 'CLP02 Claim Status Codes from 835 transactions'
+codes:
+  '1': 'Processed as Primary'
+  '2': 'Processed as Secondary'
+  '3': 'Processed as Tertiary'
+  '4': 'Denied'
+  '19': 'Processed as Primary, Forwarded to Additional Payer(s)'
+  '20': 'Processed as Secondary, Forwarded to Additional Payer(s)'
+  '21': 'Processed as Tertiary, Forwarded to Additional Payer(s)'
+  '22': 'Reversal of Previous Payment'

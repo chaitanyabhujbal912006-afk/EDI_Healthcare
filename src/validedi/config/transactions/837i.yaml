@@ -1,0 +1,89 @@
+transaction_type: '837i'
+description: 'Institutional Health Care Claim'
+
+loops:
+  - id: '1000A'
+    parent_id: null
+    trigger_segment: 'NM1'
+    trigger_qualifier:
+      element: 1
+      value: '41'
+    required_segments: ['NM1']
+    rules: []
+    
+  - id: '1000B'
+    parent_id: null
+    trigger_segment: 'NM1'
+    trigger_qualifier:
+      element: 1
+      value: '40'
+    required_segments: ['NM1']
+    rules: []
+    
+  - id: '2000A'
+    parent_id: null
+    trigger_segment: 'HL'
+    trigger_qualifier:
+      element: 3
+      value: '20'
+    required_segments: ['NM1', 'N3', 'N4']
+    rules: ['NPI_LUHN_2010AA']
+    
+  - id: '2010AA'
+    parent_id: '2000A'
+    trigger_segment: 'NM1'
+    trigger_qualifier:
+      element: 1
+      value: '85'
+    required_segments: ['NM1']
+    rules: []
+    
+  - id: '2000B'
+    parent_id: '2000A'
+    trigger_segment: 'HL'
+    trigger_qualifier:
+      element: 3
+      value: '22'
+    required_segments: ['NM1', 'DMG']
+    rules: ['FORMAT_CCYYMMDD_DMG']
+    
+  - id: '2010BA'
+    parent_id: '2000B'
+    trigger_segment: 'NM1'
+    trigger_qualifier:
+      element: 1
+      value: 'IL'
+    required_segments: ['NM1']
+    rules: []
+    
+  - id: '2010BB'
+    parent_id: '2000B'
+    trigger_segment: 'NM1'
+    trigger_qualifier:
+      element: 1
+      value: 'PR'
+    required_segments: ['NM1']
+    rules: []
+    
+  - id: '2000C'
+    parent_id: '2000B'
+    trigger_segment: 'HL'
+    trigger_qualifier:
+      element: 3
+      value: '23'
+    required_segments: ['PAT']
+    rules: []
+    
+  - id: '2300'
+    parent_id: '2000B'
+    trigger_segment: 'CLM'
+    trigger_qualifier: null
+    required_segments: ['CLM', 'DTP', 'HI']
+    rules: ['CHARGE_TOTAL_CHECK_I', 'ICD_CODE_VALIDATION']
+    
+  - id: '2400'
+    parent_id: '2300'
+    trigger_segment: 'SV2'
+    trigger_qualifier: null
+    required_segments: ['SV2']
+    rules: []

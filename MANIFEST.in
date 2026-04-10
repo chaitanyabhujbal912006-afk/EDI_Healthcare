@@ -1,0 +1,10 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include QUICKSTART.md
+recursive-include src/validedi/config *.yaml
+recursive-include docs *.md
+recursive-include examples *.py
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude *_backup_*.yaml
