@@ -3,353 +3,673 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>EdiPro — Healthcare EDI Gateway</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
+<title>EdiPro — Sign In · Healthcare EDI Gateway</title>
+<meta name="description" content="Sign in to EdiPro, the enterprise-grade HIPAA-compliant Healthcare EDI Gateway."/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg: #f5f5f7;
-    --surface: rgba(255,255,255,0.75);
-    --surface-hover: rgba(255,255,255,0.9);
-    --border: rgba(0,0,0,0.08);
-    --text-primary: #1d1d1f;
-    --text-secondary: #6e6e73;
-    --text-tertiary: #86868b;
-    --accent: #0071e3;
-    --accent-hover: #0077ed;
-    --accent-text: #ffffff;
-    --input-bg: rgba(0,0,0,0.04);
-    --input-border: rgba(0,0,0,0.1);
-    --input-focus: rgba(0,113,227,0.15);
-    --shadow-sm: 0 2px 12px rgba(0,0,0,0.06);
-    --shadow-lg: 0 24px 64px rgba(0,0,0,0.10);
-    --glow: rgba(0,113,227,0.15);
-    --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-    --pill-bg: rgba(0,0,0,0.05);
-    --badge-bg: rgba(0,113,227,0.08);
-    --badge-text: #0071e3;
-    --divider: rgba(0,0,0,0.07);
-  }
+:root {
+  --accent: #2563eb;
+  --accent-dim: rgba(37,99,235,0.10);
+  --accent-glow: rgba(37,99,235,0.28);
+  --purple: #7c3aed;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --text-primary: #0f1117;
+  --text-secondary: #5a5f73;
+  --text-tertiary: #9298aa;
+  --surface: rgba(255,255,255,0.88);
+  --border: rgba(0,0,0,0.09);
+  --input-bg: rgba(248,249,252,0.9);
+  --input-border: rgba(0,0,0,0.10);
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-smooth: cubic-bezier(0.4,0,0.2,1);
+}
+html.dark {
+  --accent: #3b82f6;
+  --accent-dim: rgba(59,130,246,0.12);
+  --accent-glow: rgba(59,130,246,0.30);
+  --text-primary: #eef0f8;
+  --text-secondary: #8890a8;
+  --text-tertiary: #505870;
+  --surface: rgba(16,20,36,0.92);
+  --border: rgba(255,255,255,0.08);
+  --input-bg: rgba(255,255,255,0.05);
+  --input-border: rgba(255,255,255,0.09);
+}
 
-  html.dark {
-    --bg: #000000;
-    --surface: rgba(28,28,30,0.85);
-    --surface-hover: rgba(36,36,40,0.95);
-    --border: rgba(255,255,255,0.08);
-    --text-primary: #f5f5f7;
-    --text-secondary: #a1a1a6;
-    --text-tertiary: #6e6e73;
-    --accent: #2997ff;
-    --accent-hover: #47a8ff;
-    --accent-text: #ffffff;
-    --input-bg: rgba(255,255,255,0.05);
-    --input-border: rgba(255,255,255,0.1);
-    --input-focus: rgba(41,151,255,0.15);
-    --shadow-sm: 0 2px 12px rgba(0,0,0,0.3);
-    --shadow-lg: 0 24px 64px rgba(0,0,0,0.5);
-    --glow: rgba(41,151,255,0.12);
-    --pill-bg: rgba(255,255,255,0.06);
-    --badge-bg: rgba(41,151,255,0.12);
-    --badge-text: #2997ff;
-    --divider: rgba(255,255,255,0.06);
-  }
+html, body { height: 100%; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  min-height: 100svh;
+  overflow: hidden;
+  transition: background 0.4s, color 0.4s;
+}
 
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: var(--bg);
-    color: var(--text-primary);
-    min-height: 100svh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    transition: background-color 0.4s ease, color 0.4s ease;
-    position: relative;
-    overflow: hidden;
-  }
+/* ── LEFT PANEL ───────────────────────────────────── */
+.left-panel {
+  flex: 0 0 58%;
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
+  justify-content: space-between;
+  padding: 44px 52px;
+}
+/* Animated mesh gradient */
+.left-panel::before {
+  content: '';
+  position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse at 15% 30%, #1e40af 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, #4f46e5 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, #0f172a 0%, transparent 60%),
+    radial-gradient(ellipse at 90% 90%, #312e81 0%, transparent 50%);
+  background-color: #0c1220;
+  animation: mesh-shift 16s ease-in-out infinite alternate;
+}
+@keyframes mesh-shift {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  50%  { filter: hue-rotate(18deg) brightness(1.05); }
+  100% { filter: hue-rotate(-10deg) brightness(0.95); }
+}
+/* Noise overlay */
+.left-panel::after {
+  content: '';
+  position: absolute; inset: 0; z-index: 1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
 
-  /* --- Ambient background orbs --- */
-  .orb {
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.45;
-    pointer-events: none;
-    transition: opacity 0.5s;
-  }
-  .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, #0071e3 0%, transparent 70%); top: -150px; left: -100px; animation: orb-drift 18s ease-in-out infinite alternate; }
-  .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, #bf5af2 0%, transparent 70%); bottom: -100px; right: -80px; animation: orb-drift 22s ease-in-out infinite alternate-reverse; }
-  .orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, #30d158 0%, transparent 70%); bottom: 20%; left: 10%; opacity: 0.18; animation: orb-drift 26s ease-in-out infinite alternate; }
-  html.dark .orb { opacity: 0.25; }
-  @keyframes orb-drift { 0%{transform:translate(0,0) scale(1);} 100%{transform:translate(40px,30px) scale(1.08);} }
+.lp-content { position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; gap: 0; }
+.lp-footer  { position: relative; z-index: 2; }
 
-  /* --- Dark mode toggle --- */
-  .theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 100;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 50px;
-    padding: 6px 14px 6px 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    user-select: none;
-  }
-  .theme-toggle:hover { background: var(--surface-hover); color: var(--text-primary); }
-  .theme-toggle .material-symbols-rounded { font-size: 18px; transition: transform 0.4s ease; }
-  .theme-toggle:hover .material-symbols-rounded { transform: rotate(20deg); }
+/* Brand on left */
+.lp-brand {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 52px;
+}
+.lp-brand-icon {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.08));
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.lp-brand-icon .ms { font-size: 22px; color: #fff; font-variation-settings: 'FILL' 1; }
+.lp-brand-name { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
+.lp-brand-sub  { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
 
-  /* --- Card --- */
-  .card {
-    position: relative;
-    z-index: 10;
-    width: 100%;
-    max-width: 420px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 40px 36px;
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.12);
-    transition: background 0.4s ease, border-color 0.4s ease;
-    animation: card-in 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
-  }
-  @keyframes card-in { 0%{opacity:0;transform:translateY(28px) scale(0.97);} 100%{opacity:1;transform:translateY(0) scale(1);} }
+/* Hero text */
+.lp-hero { margin-top: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.lp-tagline {
+  font-size: 44px; font-weight: 900; line-height: 1.08;
+  letter-spacing: -1.6px; color: #fff; margin-bottom: 20px;
+  animation: fade-in-up 0.8s var(--ease-smooth) 0.1s both;
+}
+.lp-tagline span {
+  background: linear-gradient(90deg, #93c5fd, #c4b5fd);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.lp-desc {
+  font-size: 16px; color: rgba(255,255,255,0.62); line-height: 1.7;
+  max-width: 400px;
+  animation: fade-in-up 0.8s var(--ease-smooth) 0.2s both;
+}
 
-  /* --- Logo --- */
-  .logo-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 32px;
-    text-align: center;
-  }
-  .logo-icon {
-    width: 60px; height: 60px;
-    background: linear-gradient(135deg, var(--accent) 0%, #bf5af2 100%);
-    border-radius: 17px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 24px var(--glow);
-    transition: box-shadow 0.3s;
-  }
-  .logo-icon .material-symbols-rounded { font-size: 30px; color: #fff; font-variation-settings: 'FILL' 1; }
-  .logo-title { font-size: 24px; font-weight: 800; letter-spacing: -0.6px; color: var(--text-primary); }
-  .logo-subtitle { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-tertiary); margin-top: 2px; }
-  .badge { display: inline-flex; align-items: center; gap: 5px; background: var(--badge-bg); color: var(--badge-text); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 50px; margin-top: 8px; letter-spacing: 0.04em; }
-  .badge .material-symbols-rounded { font-size: 13px; font-variation-settings: 'FILL' 1; }
+/* Feature pills */
+.lp-features {
+  display: flex; flex-wrap: wrap; gap: 10px; margin-top: 36px;
+  animation: fade-in-up 0.8s var(--ease-smooth) 0.3s both;
+}
+.lp-feat-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px; padding: 7px 14px;
+  font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.82);
+  backdrop-filter: blur(10px);
+  transition: background 0.2s, border-color 0.2s;
+}
+.lp-feat-pill:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.22); }
+.lp-feat-pill .ms { font-size: 15px; font-variation-settings: 'FILL' 1; }
+.pill-green .ms { color: #4ade80; }
+.pill-blue  .ms { color: #60a5fa; }
+.pill-purple .ms { color: #c4b5fd; }
+.pill-yellow .ms { color: #fcd34d; }
 
-  /* --- Form --- */
-  .form-group { margin-bottom: 16px; }
-  .form-group label { display: block; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px; }
-  .input-wrap { position: relative; }
-  .input-wrap .material-symbols-rounded { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--text-tertiary); pointer-events: none; font-variation-settings: 'FILL' 0; transition: color 0.2s; }
-  input[type="email"], input[type="password"] {
-    width: 100%;
-    background: var(--input-bg);
-    border: 1.5px solid var(--input-border);
-    border-radius: 12px;
-    padding: 13px 14px 13px 44px;
-    font-size: 15px;
-    font-family: 'Inter', sans-serif;
-    color: var(--text-primary);
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    outline: none;
-  }
-  input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--input-focus); background: var(--surface-hover); }
-  input:focus + .field-icon, .input-wrap:focus-within .material-symbols-rounded { color: var(--accent); }
-  .label-row { display: flex; align-items: center; justify-content: space-between; }
-  .forgot-link { font-size: 12px; font-weight: 600; color: var(--accent); text-decoration: none; opacity: 0.85; transition: opacity 0.2s; }
-  .forgot-link:hover { opacity: 1; }
-  .toggle-pw { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-tertiary); display: flex; align-items: center; transition: color 0.2s; }
-  .toggle-pw:hover { color: var(--accent); }
-  .toggle-pw .material-symbols-rounded { font-size: 20px; }
+/* Floating EDI cards */
+.lp-cards {
+  display: flex; flex-direction: column; gap: 12px; margin-top: 44px;
+  animation: fade-in-up 0.8s var(--ease-smooth) 0.4s both;
+}
+.edi-card {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px; padding: 14px 18px;
+  backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: space-between;
+  transition: all 0.3s;
+}
+.edi-card:hover { background: rgba(255,255,255,0.10); transform: translateX(4px); }
+.edi-card-left { display: flex; align-items: center; gap: 12px; }
+.edi-card-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.edi-card-icon .ms { font-size: 18px; font-variation-settings: 'FILL' 1; }
+.edi-card-type { font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.55); letter-spacing: 0.06em; }
+.edi-card-name { font-size: 14px; font-weight: 700; color: #fff; margin-top: 1px; }
+.edi-status {
+  font-size: 11px; font-weight: 700; padding: 4px 10px;
+  border-radius: 999px; display: flex; align-items: center; gap: 5px;
+}
+.edi-status-ok     { background: rgba(74,222,128,0.15); color: #4ade80; }
+.edi-status-warn   { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.edi-status-process{ background: rgba(96,165,250,0.15); color: #60a5fa; }
+.edi-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse-dot 1.8s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
 
-  /* --- Divider --- */
-  .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
-  .divider::before, .divider::after { content:''; flex:1; height:1px; background: var(--divider); }
-  .divider span { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); }
+/* Stats row */
+.lp-stats {
+  display: flex; gap: 28px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 24px; margin-top: 0;
+}
+.lp-stat { }
+.lp-stat-val { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+.lp-stat-lbl { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; font-weight: 600; }
 
-  /* --- Buttons --- */
-  .btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: var(--accent);
-    color: #fff;
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-    box-shadow: 0 4px 20px var(--glow);
-    margin-bottom: 12px;
-  }
-  .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 6px 28px var(--glow); }
-  .btn-primary:active { transform: scale(0.98); }
-  .btn-primary .material-symbols-rounded { font-size: 18px; }
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
 
-  .btn-secondary {
-    width: 100%;
-    padding: 13px;
-    background: var(--input-bg);
-    color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: background 0.2s, border-color 0.2s, transform 0.15s;
-  }
-  .btn-secondary:hover { background: var(--surface-hover); border-color: rgba(0,0,0,0.12); }
-  .btn-secondary:active { transform: scale(0.98); }
-  .btn-secondary img { width: 18px; height: 18px; }
+/* ── RIGHT PANEL ──────────────────────────────────── */
+.right-panel {
+  flex: 0 0 42%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px 40px;
+  background: #f0f2f7;
+  position: relative; overflow-y: auto;
+  transition: background 0.4s;
+}
+html.dark .right-panel { background: #080a10; }
 
-  /* --- Footer --- */
-  .card-footer { text-align: center; margin-top: 24px; }
-  .card-footer p { font-size: 13px; color: var(--text-secondary); }
-  .card-footer a { color: var(--accent); font-weight: 600; text-decoration: none; }
-  .card-footer a:hover { text-decoration: underline; }
-  .links-row { display: flex; gap: 20px; justify-content: center; margin-top: 12px; }
-  .links-row a { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); text-decoration: none; transition: color 0.2s; }
-  .links-row a:hover { color: var(--accent); }
+/* Theme toggle (top-right) */
+.theme-toggle {
+  position: fixed; top: 18px; right: 22px; z-index: 100;
+  display: flex; align-items: center; gap: 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px; padding: 6px 14px 6px 10px;
+  cursor: pointer; backdrop-filter: blur(20px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  font-size: 12.5px; font-weight: 700; font-family: inherit;
+  color: var(--text-secondary); user-select: none;
+  transition: all 0.25s;
+}
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent-dim); }
+.theme-toggle .ms { font-size: 17px; transition: transform 0.5s var(--ease-spring); }
+.theme-toggle:hover .ms { transform: rotate(22deg); }
 
-  /* --- Version watermark --- */
-  .version-mark { position: fixed; bottom: 16px; right: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-tertiary); opacity: 0.5; }
+/* Form card */
+.form-card {
+  width: 100%; max-width: 400px;
+  animation: scale-in 0.55s var(--ease-spring) both;
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) none; }
+}
+
+.form-header { text-align: left; margin-bottom: 32px; }
+.form-eyebrow {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.form-eyebrow::before {
+  content: ''; width: 20px; height: 2px;
+  background: var(--accent); border-radius: 2px;
+}
+.form-title {
+  font-size: 30px; font-weight: 900; letter-spacing: -0.8px;
+  color: var(--text-primary); line-height: 1.15;
+}
+.form-subtitle {
+  font-size: 14px; color: var(--text-secondary); margin-top: 8px; line-height: 1.6;
+}
+
+/* Form groups */
+.form-group { margin-bottom: 18px; }
+.form-label {
+  display: block; font-size: 11.5px; font-weight: 800;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--text-secondary); margin-bottom: 8px;
+}
+.label-row { display: flex; align-items: center; justify-content: space-between; }
+.forgot-link {
+  font-size: 12.5px; font-weight: 700; color: var(--accent);
+  text-decoration: none; opacity: 0.85; transition: opacity 0.2s;
+}
+.forgot-link:hover { opacity: 1; }
+
+.input-wrap { position: relative; }
+.input-wrap .ms {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  font-size: 18px; color: var(--text-tertiary); pointer-events: none;
+  transition: color 0.2s;
+}
+.input-wrap:focus-within .ms { color: var(--accent); }
+
+.input-wrap input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: 12px;
+  padding: 13px 14px 13px 44px;
+  font-size: 14.5px; font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  outline: none;
+}
+.input-wrap input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-dim);
+  background: #fff;
+}
+html.dark .input-wrap input:focus { background: rgba(255,255,255,0.07); }
+.input-wrap input::placeholder { color: var(--text-tertiary); }
+
+/* Error state */
+.input-wrap.error input { border-color: var(--danger) !important; box-shadow: 0 0 0 4px rgba(220,38,38,0.10) !important; }
+.field-error { font-size: 11.5px; color: var(--danger); margin-top: 6px; display: none; font-weight: 600; }
+.input-wrap.error ~ .field-error { display: block; }
+
+/* Toggle password */
+.pw-toggle {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--text-tertiary); display: flex; align-items: center;
+  transition: color 0.2s; padding: 4px;
+}
+.pw-toggle:hover { color: var(--accent); }
+.pw-toggle .ms { font-size: 18px; }
+
+/* Remember / checkbox row */
+.check-row { display: flex; align-items: center; gap: 10px; }
+.check-row input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
+.check-row label { font-size: 13px; color: var(--text-secondary); cursor: pointer; }
+
+/* Buttons */
+.btn-signin {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, var(--accent) 0%, #4f46e5 100%);
+  color: #fff; font-family: 'Inter', sans-serif;
+  font-size: 15px; font-weight: 800;
+  border: none; border-radius: 13px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.25s; box-shadow: 0 4px 18px var(--accent-glow);
+  letter-spacing: 0.01em; position: relative; overflow: hidden;
+}
+.btn-signin::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.12) 100%);
+  pointer-events: none;
+}
+.btn-signin:hover { filter: brightness(1.08); box-shadow: 0 8px 28px var(--accent-glow); transform: translateY(-1px); }
+.btn-signin:active { transform: scale(0.97); }
+.btn-signin .ms { font-size: 18px; }
+.btn-signin.loading .ms { display: none; }
+.btn-signin.loading::before {
+  content: '';
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Divider */
+.or-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.or-divider::before, .or-divider::after {
+  content:''; flex:1; height:1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+.or-divider span {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.10em;
+  text-transform: uppercase; color: var(--text-tertiary);
+}
+
+.btn-sso {
+  width: 100%; padding: 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 13px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 700;
+  color: var(--text-primary);
+  transition: all 0.2s;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.btn-sso:hover { border-color: #4285F4; box-shadow: 0 4px 16px rgba(66,133,244,0.15); transform: translateY(-1px); }
+.btn-sso:active { transform: scale(0.98); }
+
+/* Footer */
+.form-footer { text-align: center; margin-top: 24px; }
+.form-footer p { font-size: 13px; color: var(--text-secondary); }
+.form-footer a { color: var(--accent); font-weight: 700; text-decoration: none; }
+.form-footer a:hover { text-decoration: underline; }
+.form-footer .links { display: flex; gap: 20px; justify-content: center; margin-top: 16px; }
+.form-footer .links a {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-tertiary); text-decoration: none;
+  transition: color 0.2s;
+}
+.form-footer .links a:hover { color: var(--accent); }
+
+/* HIPAA badge */
+.hipaa-badge {
+  display: flex; align-items: center; gap: 7px; justify-content: center;
+  margin-top: 20px; font-size: 11px; font-weight: 600; color: var(--text-tertiary);
+}
+.hipaa-badge .ms { font-size: 14px; color: var(--success); font-variation-settings: 'FILL' 1; }
+
+/* Version */
+.ver { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--text-tertiary); opacity: 0.5; white-space: nowrap; }
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media(max-width:900px) {
+  body { flex-direction: column; overflow: auto; }
+  .left-panel { flex: 0 0 auto; padding: 36px 28px; min-height: 360px; }
+  .lp-cards { display: none; }
+  .lp-tagline { font-size: 32px; }
+  .right-panel { flex: 1; padding: 32px 24px; }
+}
+@media(max-width:480px) {
+  .left-panel { padding: 28px 20px; }
+  .lp-tagline { font-size: 26px; }
+  .lp-features { display: none; }
+  .right-panel { padding: 28px 16px; }
+  .form-title { font-size: 24px; }
+}
 </style>
 </head>
 <body>
 
-<div class="orb orb-1"></div>
-<div class="orb orb-2"></div>
-<div class="orb orb-3"></div>
-
+<!-- Theme Toggle -->
 <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
-  <span class="material-symbols-rounded" id="theme-icon">light_mode</span>
+  <span class="ms" id="theme-icon" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;">light_mode</span>
   <span id="theme-label">Light</span>
 </button>
 
-<div class="card" role="main">
-  <div class="logo-wrap">
-    <div class="logo-icon">
-      <span class="material-symbols-rounded">hub</span>
+<!-- Left Panel -->
+<div class="left-panel">
+  <div class="lp-content">
+    <!-- Brand -->
+    <div class="lp-brand">
+      <div class="lp-brand-icon">
+        <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;">hub</span>
+      </div>
+      <div>
+        <div class="lp-brand-name">EdiPro</div>
+        <div class="lp-brand-sub">Healthcare EDI Gateway</div>
+      </div>
     </div>
-    <div>
-      <div class="logo-title">EdiPro</div>
-      <div class="logo-subtitle">Healthcare EDI Gateway</div>
-    </div>
-    <div class="badge">
-      <span class="material-symbols-rounded">verified_user</span>
-      HIPAA Compliant · Encrypted
+
+    <!-- Hero -->
+    <div class="lp-hero">
+      <div class="lp-tagline">
+        Enterprise EDI<br/><span>Intelligence</span><br/>Platform
+      </div>
+      <div class="lp-desc">
+        Parse, validate, and analyze X12 EDI transactions in real time. Built for clinical and financial operations teams.
+      </div>
+
+      <!-- Feature pills -->
+      <div class="lp-features">
+        <div class="lp-feat-pill pill-green">
+          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;">verified_user</span>
+          HIPAA Compliant
+        </div>
+        <div class="lp-feat-pill pill-blue">
+          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;">bolt</span>
+          60+ Validation Rules
+        </div>
+        <div class="lp-feat-pill pill-purple">
+          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;">smart_toy</span>
+          AI-Powered Insights
+        </div>
+        <div class="lp-feat-pill pill-yellow">
+          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;">lock</span>
+          End-to-End Encrypted
+        </div>
+      </div>
+
+      <!-- Live EDI activity cards -->
+      <div class="lp-cards">
+        <div class="edi-card">
+          <div class="edi-card-left">
+            <div class="edi-card-icon" style="background:rgba(74,222,128,0.15);">
+              <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;color:#4ade80;">payments</span>
+            </div>
+            <div>
+              <div class="edi-card-type">835 · Remittance</div>
+              <div class="edi-card-name">Blue Cross Payment — $142,880</div>
+            </div>
+          </div>
+          <div class="edi-status edi-status-ok"><span class="edi-dot"></span> Validated</div>
+        </div>
+        <div class="edi-card">
+          <div class="edi-card-left">
+            <div class="edi-card-icon" style="background:rgba(96,165,250,0.15);">
+              <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;color:#60a5fa;">description</span>
+            </div>
+            <div>
+              <div class="edi-card-type">837P · Professional Claim</div>
+              <div class="edi-card-name">Aetna Claim Batch — 48 records</div>
+            </div>
+          </div>
+          <div class="edi-status edi-status-process"><span class="edi-dot"></span> Processing</div>
+        </div>
+        <div class="edi-card">
+          <div class="edi-card-left">
+            <div class="edi-card-icon" style="background:rgba(251,191,36,0.15);">
+              <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;color:#fbbf24;">group_add</span>
+            </div>
+            <div>
+              <div class="edi-card-type">834 · Enrollment</div>
+              <div class="edi-card-name">United Healthcare — 2 warnings</div>
+            </div>
+          </div>
+          <div class="edi-status edi-status-warn"><span class="edi-dot"></span> Review</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <form id="login-form" novalidate onsubmit="window.location.href='dashboard_sleek/code.html'; return false;">
-    <div class="form-group">
-      <label for="email">Professional Email</label>
-      <div class="input-wrap">
-        <span class="material-symbols-rounded">mail</span>
-        <input type="email" id="email" placeholder="name@organization.com" autocomplete="email"/>
+  <!-- Stats footer -->
+  <div class="lp-footer">
+    <div class="lp-stats">
+      <div class="lp-stat">
+        <div class="lp-stat-val">$2.4B+</div>
+        <div class="lp-stat-lbl">Claims Processed</div>
       </div>
-    </div>
-
-    <div class="form-group">
-      <div class="label-row">
-        <label for="password">Password</label>
-        <a href="#" class="forgot-link">Forgot password?</a>
+      <div class="lp-stat">
+        <div class="lp-stat-val">60+</div>
+        <div class="lp-stat-lbl">Validation Rules</div>
       </div>
-      <div class="input-wrap">
-        <span class="material-symbols-rounded">lock</span>
-        <input type="password" id="password" placeholder="••••••••••••" autocomplete="current-password"/>
-        <button type="button" class="toggle-pw" id="toggle-pw" aria-label="Show password">
-          <span class="material-symbols-rounded" id="pw-icon">visibility</span>
-        </button>
+      <div class="lp-stat">
+        <div class="lp-stat-val">99.97%</div>
+        <div class="lp-stat-lbl">Uptime SLA</div>
       </div>
-    </div>
-
-    <div style="margin-top:24px;">
-      <button type="submit" class="btn-primary">
-        Sign In
-        <span class="material-symbols-rounded">arrow_forward</span>
-      </button>
-
-      <div class="divider"><span>or</span></div>
-
-      <button type="button" class="btn-secondary" onclick="window.location.href='dashboard_sleek/code.html'">
-        <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-        Sign in with Google SSO
-      </button>
-    </div>
-  </form>
-
-  <div class="card-footer">
-    <p>New to the portal? <a href="#">Request access →</a></p>
-    <div class="links-row">
-      <a href="#">HIPAA Compliance</a>
-      <a href="#">Privacy Policy</a>
-      <a href="#">Support</a>
     </div>
   </div>
 </div>
 
-<div class="version-mark">System v4.2.0-Alpha</div>
+<!-- Right Panel -->
+<div class="right-panel">
+  <div class="form-card">
+    <div class="form-header">
+      <div class="form-eyebrow">Secure Portal</div>
+      <div class="form-title">Sign in to EdiPro</div>
+      <div class="form-subtitle">Access your healthcare EDI dashboard and processing tools.</div>
+    </div>
+
+    <form id="login-form" novalidate>
+      <!-- Email -->
+      <div class="form-group">
+        <label class="form-label" for="email">Professional Email</label>
+        <div class="input-wrap" id="email-wrap">
+          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;">mail</span>
+          <input type="email" id="email" placeholder="name@organization.com" autocomplete="email"/>
+        </div>
+        <div class="field-error" id="email-error">Please enter a valid email address.</div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <div class="label-row">
+          <label class="form-label" for="password">Password</label>
+          <a href="#" class="forgot-link">Forgot password?</a>
+        </div>
+        <div class="input-wrap" id="pw-wrap">
+          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;">lock</span>
+          <input type="password" id="password" placeholder="••••••••••••" autocomplete="current-password"/>
+          <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Toggle password visibility">
+            <span class="ms" id="pw-icon" style="font-family:'Material Symbols Rounded';font-style:normal;">visibility</span>
+          </button>
+        </div>
+        <div class="field-error" id="pw-error">Password is required.</div>
+      </div>
+
+      <!-- Remember -->
+      <div class="form-group">
+        <div class="check-row">
+          <input type="checkbox" id="remember"/>
+          <label for="remember">Keep me signed in for 30 days</label>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div style="margin-top:24px;">
+        <button type="submit" class="btn-signin" id="signin-btn">
+          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;">arrow_forward</span>
+          Sign In
+        </button>
+
+        <div class="or-divider"><span>or continue with</span></div>
+
+        <button type="button" class="btn-sso" onclick="window.location.href='dashboard_sleek/code.html'">
+          <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Sign in with Google SSO
+        </button>
+      </div>
+    </form>
+
+    <div class="form-footer">
+      <p>New to the portal? <a href="#">Request access →</a></p>
+      <div class="hipaa-badge">
+        <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;">verified_user</span>
+        HIPAA Compliant · TLS 1.3 Encrypted · SOC 2 Type II
+      </div>
+      <div class="links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Support</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ver">EdiPro v4.2.0 · HIPAA Gateway</div>
 
 <script>
-  const html = document.documentElement;
+  /* ── Theme ── */
+  const html  = document.documentElement;
   const toggle = document.getElementById('theme-toggle');
-  const themeIcon = document.getElementById('theme-icon');
-  const themeLabel = document.getElementById('theme-label');
-
-  const saved = localStorage.getItem('theme') || 'light';
+  const tIcon  = document.getElementById('theme-icon');
+  const tLabel = document.getElementById('theme-label');
+  const saved  = localStorage.getItem('theme') || 'light';
   applyTheme(saved);
-
   toggle.addEventListener('click', () => {
     const next = html.classList.contains('dark') ? 'light' : 'dark';
-    applyTheme(next);
-    localStorage.setItem('theme', next);
+    applyTheme(next); localStorage.setItem('theme', next);
   });
-
   function applyTheme(t) {
     html.classList.toggle('dark', t === 'dark');
-    themeIcon.textContent = t === 'dark' ? 'dark_mode' : 'light_mode';
-    themeLabel.textContent = t === 'dark' ? 'Dark' : 'Light';
+    tIcon.textContent  = t === 'dark' ? 'dark_mode' : 'light_mode';
+    tLabel.textContent = t === 'dark' ? 'Dark' : 'Light';
   }
 
-  // Password toggle
-  const pwInput = document.getElementById('password');
-  const pwToggle = document.getElementById('toggle-pw');
-  const pwIcon = document.getElementById('pw-icon');
+  /* ── Password toggle ── */
+  const pwInput  = document.getElementById('password');
+  const pwToggle = document.getElementById('pw-toggle');
+  const pwIcon   = document.getElementById('pw-icon');
   pwToggle.addEventListener('click', () => {
-    const isHidden = pwInput.type === 'password';
-    pwInput.type = isHidden ? 'text' : 'password';
-    pwIcon.textContent = isHidden ? 'visibility_off' : 'visibility';
+    const hidden = pwInput.type === 'password';
+    pwInput.type = hidden ? 'text' : 'password';
+    pwIcon.textContent = hidden ? 'visibility_off' : 'visibility';
+  });
+
+  /* ── Form submission ── */
+  const form = document.getElementById('login-form');
+  const signinBtn = document.getElementById('signin-btn');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    let valid = true;
+
+    const emailVal = document.getElementById('email').value.trim();
+    const emailWrap = document.getElementById('email-wrap');
+    const emailErr  = document.getElementById('email-error');
+    if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+      emailWrap.classList.add('error');
+      emailErr.style.display = 'block'; valid = false;
+    } else {
+      emailWrap.classList.remove('error');
+      emailErr.style.display = 'none';
+    }
+
+    const pwVal  = document.getElementById('password').value;
+    const pwWrap = document.getElementById('pw-wrap');
+    const pwErr  = document.getElementById('pw-error');
+    if (!pwVal) {
+      pwWrap.classList.add('error');
+      pwErr.style.display = 'block'; valid = false;
+    } else {
+      pwWrap.classList.remove('error');
+      pwErr.style.display = 'none';
+    }
+
+    if (!valid) return;
+
+    signinBtn.classList.add('loading');
+    signinBtn.textContent = 'Signing in…';
+    signinBtn.disabled = true;
+    setTimeout(() => { window.location.href = 'dashboard_sleek/code.html'; }, 1400);
+  });
+
+  /* ── Clear error on input ── */
+  document.getElementById('email').addEventListener('input', () => {
+    document.getElementById('email-wrap').classList.remove('error');
+    document.getElementById('email-error').style.display = 'none';
+  });
+  document.getElementById('password').addEventListener('input', () => {
+    document.getElementById('pw-wrap').classList.remove('error');
+    document.getElementById('pw-error').style.display = 'none';
   });
 </script>
 </body>
