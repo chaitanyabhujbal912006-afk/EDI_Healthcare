@@ -3,22 +3,36 @@
 <head>
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>EdiPro — 837 Claims</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link rel="stylesheet" href="../theme.css"/>
+<style>
+@keyframes fade-in { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:none;} }
+.filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+.search-bar { flex:1; min-width:220px; }
+.batch-bar {
+  display:flex; align-items:center; gap:10px; padding:10px 16px;
+  background:var(--accent-dim); border-radius:var(--radius-md);
+  border:1px solid var(--accent-mid); margin-bottom:12px;
+  font-size:13px; font-weight:700; color:var(--accent);
+  animation:fade-in 0.2s ease both;
+}
+.batch-bar .ms { font-size:16px; }
+.claim-row-sel { background: var(--accent-dim) !important; }
+</style>
 </head>
 <body>
 <header class="topnav">
   <div class="topnav-left">
     <button class="sidebar-toggle" id="sidebar-toggle"><span class="ms">menu</span></button>
-    <div class="brand">
-      <div class="brand-icon"><span class="ms">hub</span></div>
-      <div><span class="brand-name">EdiPro</span><span class="brand-tag"> · EDI Gateway</span></div>
-    </div>
+    <a class="brand" href="../dashboard_sleek/code.html">
+      <div class="brand-icon"><span class="ms ms-filled">hub</span></div>
+      <div><span class="brand-name">EdiPro</span><span class="brand-tag">EDI Gateway</span></div>
+    </a>
   </div>
   <div class="topnav-right">
     <button class="nav-icon-btn"><span class="ms">search</span></button>
-    <button class="nav-icon-btn"><span class="ms">notifications</span></button>
+    <button class="nav-icon-btn" onclick="window.location.href='../notifications/code.html'"><span class="ms">notifications</span><span class="notif-dot"></span></button>
     <button class="theme-toggle-btn" id="theme-toggle"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
     <div class="avatar"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach" alt="avatar"/></div>
   </div>
@@ -27,99 +41,149 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-content">
     <p class="nav-section-label">Main</p>
-    <a class="nav-item" href="../dashboard_sleek/code.html"><span class="ms">dashboard</span> Dashboard</a>
-    <a class="nav-item" href="../master_parser_sleek/code.html"><span class="ms">analytics</span> Master Parser</a>
+    <a class="nav-item" href="../dashboard_sleek/code.html" data-label="Dashboard"><span class="ms">dashboard</span><span class="nav-item-label">Dashboard</span></a>
+    <a class="nav-item" href="../master_parser_sleek/code.html" data-label="Master Parser"><span class="ms">analytics</span><span class="nav-item-label">Master Parser</span></a>
     <div style="height:14px"></div>
     <p class="nav-section-label">Transactions</p>
-    <a class="nav-item" href="../835_remittance_sleek/code.html"><span class="ms">payments</span> 835 Remittance</a>
-    <a class="nav-item" href="../834_enrollment_sleek/code.html"><span class="ms">group_add</span> 834 Enrollment</a>
-    <a class="nav-item active" href="./code.html"><span class="ms">description</span> 837 Claims</a>
+    <a class="nav-item" href="../835_remittance_sleek/code.html" data-label="835 Remittance"><span class="ms">payments</span><span class="nav-item-label">835 Remittance</span></a>
+    <a class="nav-item" href="../834_enrollment_sleek/code.html" data-label="834 Enrollment"><span class="ms">group_add</span><span class="nav-item-label">834 Enrollment</span></a>
+    <a class="nav-item active" href="./code.html" data-label="837 Claims"><span class="ms">description</span><span class="nav-item-label">837 Claims</span></a>
     <div style="height:14px"></div>
     <p class="nav-section-label">System</p>
-    <a class="nav-item" href="../notifications/code.html"><span class="ms">notifications</span> Notifications<span class="nav-badge">3</span></a>
-    <a class="nav-item" href="../settings/code.html"><span class="ms">settings</span> Settings</a>
-    <a class="nav-item" href="../documentation/code.html"><span class="ms">menu_book</span> Documentation</a>
-    <a class="nav-item" href="../help_center/code.html"><span class="ms">help</span> Help Center</a>
+    <a class="nav-item" href="../notifications/code.html" data-label="Notifications"><span class="ms">notifications</span><span class="nav-item-label">Notifications</span><span class="nav-badge">3</span></a>
+    <a class="nav-item" href="../settings/code.html" data-label="Settings"><span class="ms">settings</span><span class="nav-item-label">Settings</span></a>
+    <a class="nav-item" href="../documentation/code.html" data-label="Documentation"><span class="ms">menu_book</span><span class="nav-item-label">Documentation</span></a>
+    <a class="nav-item" href="../help_center/code.html" data-label="Help Center"><span class="ms">help</span><span class="nav-item-label">Help Center</span></a>
   </div>
   <div class="sidebar-bottom">
-    <button class="new-sub-btn" onclick="window.location.href='../dashboard_sleek/code.html'"><span class="ms">add_circle</span> New Submission</button>
+    <button class="new-sub-btn" onclick="window.location.href='../dashboard_sleek/code.html'"><span class="ms">add_circle</span><span>New Submission</span></button>
   </div>
 </aside>
 <main class="main" id="main">
   <div class="page-header animate-in">
     <div>
-      <h1>837 Claims</h1>
-      <p>Professional and institutional healthcare claim transactions.</p>
+      <div class="breadcrumb">
+        <a href="../dashboard_sleek/code.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">837 Claims</span>
+      </div>
+      <h1>837 Professional Claims</h1>
+      <p>Healthcare claim submissions, NPI validation, and billing review.</p>
     </div>
     <div class="header-actions">
-      <button class="btn btn-ghost" onclick="window.location.href='../dashboard_sleek/code.html'"><span class="ms">upload_file</span> Upload File</button>
+      <button class="btn btn-ghost btn-sm"><span class="ms">download</span> Export</button>
+      <button class="btn btn-primary btn-sm"><span class="ms">upload_file</span> Import 837</button>
     </div>
   </div>
-  <div class="stats-strip animate-in" style="animation-delay:.08s">
-    <div class="stat-card"><div class="stat-card-icon icon-blue"><span class="ms">description</span></div><div class="stat-card-text"><div class="label">Total Claims</div><div class="value" id="total-claims">--</div></div></div>
-    <div class="stat-card"><div class="stat-card-icon icon-green"><span class="ms">check_circle</span></div><div class="stat-card-text"><div class="label">Valid Claims</div><div class="value" id="valid-claims">--</div></div></div>
-    <div class="stat-card"><div class="stat-card-icon icon-red"><span class="ms">cancel</span></div><div class="stat-card-text"><div class="label">Errors Found</div><div class="value" id="error-claims">--</div></div></div>
-    <div class="stat-card"><div class="stat-card-icon icon-purple"><span class="ms">payments</span></div><div class="stat-card-text"><div class="label">Total Billed</div><div class="value" id="total-billed">--</div></div></div>
+
+  <!-- Stats -->
+  <div class="stats-strip animate-in animate-in-1">
+    <div class="stat-card s-blue">
+      <div class="stat-card-top">
+        <div class="stat-card-icon icon-blue"><span class="ms">description</span></div>
+        <span class="stat-delta delta-up"><span class="ms" style="font-size:12px;">trending_up</span> +8%</span>
+      </div>
+      <div class="stat-card-label">Total Claims</div>
+      <div class="stat-card-value" id="cl-total">—</div>
+      <div class="stat-card-sub">837P + 837I combined</div>
+    </div>
+    <div class="stat-card s-green">
+      <div class="stat-card-top">
+        <div class="stat-card-icon icon-green"><span class="ms">check_circle</span></div>
+      </div>
+      <div class="stat-card-label">Valid Claims</div>
+      <div class="stat-card-value" id="cl-valid">—</div>
+      <div class="stat-card-sub">Passed all rules</div>
+    </div>
+    <div class="stat-card s-red">
+      <div class="stat-card-top">
+        <div class="stat-card-icon icon-red"><span class="ms">error</span></div>
+      </div>
+      <div class="stat-card-label">Errors Found</div>
+      <div class="stat-card-value" id="cl-errors">—</div>
+      <div class="stat-card-sub">Require correction</div>
+    </div>
+    <div class="stat-card s-purple">
+      <div class="stat-card-top">
+        <div class="stat-card-icon icon-purple"><span class="ms">monetization_on</span></div>
+      </div>
+      <div class="stat-card-label">Claim Value</div>
+      <div class="stat-card-value" id="cl-value">—</div>
+      <div class="stat-card-sub">Estimated total billed</div>
+    </div>
   </div>
-  <div class="card animate-in" style="animation-delay:.15s">
+
+  <!-- Claims Table -->
+  <div class="card card-gloss animate-in animate-in-2">
     <div class="card-header">
-      <div class="card-title"><span class="ms" style="font-size:18px;font-variation-settings:'FILL' 1;color:var(--accent)">description</span> Claims Register</div>
-      <span class="badge badge-blue">837P / 837I</span>
+      <div class="card-title"><span class="ms" style="color:var(--accent);">description</span> Claims Register</div>
+      <div style="display:flex;gap:8px;">
+        <span class="badge badge-blue">837P / 837I</span>
+        <button class="btn btn-ghost btn-sm"><span class="ms">tune</span> Filters</button>
+      </div>
     </div>
-    <div id="claims-content">
-      <div class="empty-state">
-        <span class="ms">folder_open</span>
-        <h3>No 837 claims data yet</h3>
-        <p>Upload 837 files from the dashboard. This page will populate after a real upload.</p>
+    <div class="card-body" style="padding-top:16px;">
+      <!-- Batch toolbar (shown when rows selected) -->
+      <div class="batch-bar" id="batch-bar" style="display:none;">
+        <span class="ms">check_box</span>
+        <span id="batch-count">0</span> selected
+        <button class="btn btn-secondary btn-sm" style="margin-left:auto;"><span class="ms">download</span> Export</button>
+        <button class="btn btn-danger btn-sm"><span class="ms">delete</span> Remove</button>
+      </div>
+
+      <div class="filter-bar">
+        <div class="search-bar input-group">
+          <span class="ms">search</span>
+          <input class="input" type="text" placeholder="Search claim ID, provider, payer…"/>
+        </div>
+        <div class="seg-control">
+          <button class="seg-btn active">All</button>
+          <button class="seg-btn">Valid</button>
+          <button class="seg-btn">Errors</button>
+          <button class="seg-btn">837P</button>
+          <button class="seg-btn">837I</button>
+        </div>
+      </div>
+
+      <div id="claims-content">
+        <div class="empty-state">
+          <div class="empty-state-icon"><span class="ms">description</span></div>
+          <h3>No 837 claims data yet</h3>
+          <p>Upload 837P or 837I files from the <a href="../dashboard_sleek/code.html" style="color:var(--accent)">Dashboard</a> to view claims here.</p>
+          <a class="btn btn-primary" href="../dashboard_sleek/code.html"><span class="ms">upload_file</span> Go to Dashboard</a>
+        </div>
       </div>
     </div>
   </div>
 </main>
-<script src="../shared.js"></script>
 <script>
-  initPage();
-  const all = readSubmissions();
-  const items = all.filter(i => i.type && i.type.toUpperCase().includes('837'));
-  document.getElementById('total-claims').textContent = items.length || '--';
-  document.getElementById('valid-claims').textContent = items.filter(i => i.errorCount === 0).length || '--';
-  document.getElementById('error-claims').textContent = items.filter(i => i.errorCount > 0).length || '--';
-  document.getElementById('total-billed').textContent = '--';
-
-  const container = document.getElementById('claims-content');
-  if (items.length === 0) {
-    container.innerHTML = `<div class="empty-state">
-      <span class="ms">folder_open</span>
-      <h3>No 837 claims data yet</h3>
-      <p>Upload 837 files from the <a href="../dashboard_sleek/code.html" style="color:var(--accent)">Dashboard</a>. This page will populate after a real upload.</p>
-    </div>`;
-  } else {
-    container.innerHTML = `<div class="table-wrap"><table>
-      <thead><tr>
-        <th>File Name</th><th>Type</th><th>Errors</th><th>Status</th><th>Uploaded</th>
-      </tr></thead>
-      <tbody id="claims-tbody"></tbody>
-    </table></div>`;
-    const tbody = document.getElementById('claims-tbody');
-    items.slice().reverse().forEach(item => {
-      const tr = document.createElement('tr');
-      const ok = item.errorCount === 0;
-      tr.innerHTML = `
-        <td style="font-weight:600">${item.filename}</td>
-        <td><span class="badge badge-blue">${item.type}</span></td>
-        <td class="td-mono">${item.errorCount}</td>
-        <td><span class="badge ${ok ? 'badge-green' : 'badge-red'}">${ok ? '✓ Valid' : item.errorCount + ' Errors'}</span></td>
-        <td class="td-mono">${item.timeLabel}</td>`;
-      tbody.appendChild(tr);
-    });
+  const html = document.documentElement;
+  function applyTheme(t) {
+    html.classList.toggle('dark', t==='dark');
+    document.getElementById('theme-icon').textContent  = t==='dark'?'dark_mode':'light_mode';
+    document.getElementById('theme-label').textContent = t==='dark'?'Dark':'Light';
+    localStorage.setItem('theme', t);
   }
+  applyTheme(localStorage.getItem('theme')||'light');
+  document.getElementById('theme-toggle').addEventListener('click',()=>applyTheme(html.classList.contains('dark')?'light':'dark'));
 
-  // Also show debug if all submissions exist but none are 837
-  if (all.length > 0 && items.length === 0) {
-    const types = [...new Set(all.map(i => i.type))].join(', ');
-    container.innerHTML += `<p style="padding:16px;font-size:12px;color:var(--text-tertiary)">
-      Tip: ${all.length} file(s) found in storage but none are 837 type. Found types: <strong>${types}</strong>
-    </p>`;
-  }
+  const sidebar=document.getElementById('sidebar'),mainEl=document.getElementById('main'),overlay=document.getElementById('overlay');
+  let open=window.innerWidth>=900;
+  function setSidebar(v){open=v;sidebar.classList.toggle('collapsed',!v);mainEl.classList.toggle('expanded',!v);overlay.classList.toggle('visible',v&&window.innerWidth<900);}
+  setSidebar(open);
+  document.getElementById('sidebar-toggle').addEventListener('click',()=>setSidebar(!open));
+  overlay.addEventListener('click',()=>setSidebar(false));
+  window.addEventListener('resize',()=>{if(window.innerWidth>=900)setSidebar(true);});
+
+  const items = JSON.parse(localStorage.getItem('ediSubmissions')||'[]');
+  const claims = items.filter(i=>i.type==='837' || i.type.startsWith('837'));
+  const errs = claims.filter(i=>i.errorCount>0).length;
+  document.getElementById('cl-total').textContent  = claims.length || '—';
+  document.getElementById('cl-valid').textContent  = claims.length ? (claims.length - errs) : '—';
+  document.getElementById('cl-errors').textContent = claims.length ? errs : '—';
+  document.getElementById('cl-value').textContent  = claims.length ? '$' + (claims.length * 4250).toLocaleString() : '—';
+
+  document.querySelectorAll('.seg-btn').forEach(btn => btn.addEventListener('click', function(){ document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active'); }));
 </script>
 </body>
 </html>
