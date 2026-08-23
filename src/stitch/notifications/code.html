@@ -7,24 +7,77 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link rel="stylesheet" href="../theme.css"/>
 <style>
-  .notif-list{display:flex;flex-direction:column;gap:2px;}
-  .notif-item{display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-radius:12px;transition:background .15s;cursor:pointer;position:relative;}
-  .notif-item:hover{background:var(--accent-dim);}
-  .notif-item.unread::before{content:'';position:absolute;left:8px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:var(--accent);}
-  .notif-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .notif-icon .ms{font-size:20px;font-variation-settings:'FILL' 1;}
-  .notif-content{flex:1;min-width:0;}
-  .notif-title{font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:3px;}
-  .notif-desc{font-size:13px;color:var(--text-secondary);line-height:1.5;}
-  .notif-time{font-size:11px;color:var(--text-tertiary);margin-top:4px;font-style:italic;}
-  .notif-divider{height:1px;background:var(--divider);margin:4px 0;}
+@keyframes fade-in { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;} }
+@keyframes slide-out { to{opacity:0;transform:translateX(20px);height:0;padding:0;margin:0;overflow:hidden;} }
+
+/* Notification item */
+.notif-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 16px 20px; border-radius: var(--radius-md);
+  transition: all 0.2s var(--ease-smooth); cursor: pointer;
+  position: relative; border-bottom: 1px solid var(--divider);
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--accent-dim); }
+.notif-item.unread { background: var(--surface-2); }
+.notif-item.unread::before {
+  content: '';
+  position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  animation: notif-pulse 2.2s ease-in-out infinite;
+}
+@keyframes notif-pulse { 0%,100%{opacity:1;}50%{opacity:0.4;} }
+
+.notif-icon {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.notif-icon .ms { font-size: 20px; font-variation-settings: 'FILL' 1; }
+.notif-content { flex: 1; min-width: 0; }
+.notif-title { font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.notif-item.read .notif-title { font-weight: 500; color: var(--text-secondary); }
+.notif-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
+.notif-time { font-size: 11px; color: var(--text-tertiary); white-space: nowrap; padding-top: 3px; }
+
+/* Dismiss button */
+.notif-dismiss {
+  position: absolute; top: 12px; right: 12px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: none; border: none; cursor: pointer;
+  color: var(--text-tertiary); display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s, background 0.2s;
+}
+.notif-item:hover .notif-dismiss { opacity: 1; }
+.notif-dismiss:hover { background: var(--danger-dim); color: var(--danger); }
+.notif-dismiss .ms { font-size: 16px; }
+
+/* Group label */
+.notif-group-label {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-tertiary);
+  padding: 14px 20px 8px; display: flex; align-items: center; gap: 10px;
+}
+.notif-group-label::after { content: ''; flex: 1; height: 1px; background: var(--divider); }
+
+/* Unread count chip */
+.unread-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 800; padding: 2px 8px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 6px rgba(220,38,38,0.3);
+}
 </style>
 </head>
 <body>
 <header class="topnav">
   <div class="topnav-left">
     <button class="sidebar-toggle" id="sidebar-toggle"><span class="ms">menu</span></button>
-    <div class="brand"><div class="brand-icon"><span class="ms">hub</span></div><div><span class="brand-name">EdiPro</span><span class="brand-tag"> · EDI Gateway</span></div></div>
+    <a class="brand" href="../dashboard_sleek/code.html">
+      <div class="brand-icon"><span class="ms ms-filled">hub</span></div>
+      <div><span class="brand-name">EdiPro</span><span class="brand-tag">EDI Gateway</span></div>
+    </a>
   </div>
   <div class="topnav-right">
     <button class="nav-icon-btn"><span class="ms">search</span></button>
@@ -36,80 +89,196 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-content">
     <p class="nav-section-label">Main</p>
-    <a class="nav-item" href="../dashboard_sleek/code.html"><span class="ms">dashboard</span> Dashboard</a>
-    <a class="nav-item" href="../master_parser_sleek/code.html"><span class="ms">analytics</span> Master Parser</a>
+    <a class="nav-item" href="../dashboard_sleek/code.html" data-label="Dashboard"><span class="ms">dashboard</span><span class="nav-item-label">Dashboard</span></a>
+    <a class="nav-item" href="../master_parser_sleek/code.html" data-label="Master Parser"><span class="ms">analytics</span><span class="nav-item-label">Master Parser</span></a>
     <div style="height:14px"></div>
     <p class="nav-section-label">Transactions</p>
-    <a class="nav-item" href="../835_remittance_sleek/code.html"><span class="ms">payments</span> 835 Remittance</a>
-    <a class="nav-item" href="../834_enrollment_sleek/code.html"><span class="ms">group_add</span> 834 Enrollment</a>
-    <a class="nav-item" href="../837_claims_view/code.html"><span class="ms">description</span> 837 Claims</a>
+    <a class="nav-item" href="../835_remittance_sleek/code.html" data-label="835 Remittance"><span class="ms">payments</span><span class="nav-item-label">835 Remittance</span></a>
+    <a class="nav-item" href="../834_enrollment_sleek/code.html" data-label="834 Enrollment"><span class="ms">group_add</span><span class="nav-item-label">834 Enrollment</span></a>
+    <a class="nav-item" href="../837_claims_view/code.html" data-label="837 Claims"><span class="ms">description</span><span class="nav-item-label">837 Claims</span></a>
     <div style="height:14px"></div>
     <p class="nav-section-label">System</p>
-    <a class="nav-item active" href="./code.html"><span class="ms">notifications</span> Notifications<span class="nav-badge">3</span></a>
-    <a class="nav-item" href="../settings/code.html"><span class="ms">settings</span> Settings</a>
-    <a class="nav-item" href="../documentation/code.html"><span class="ms">menu_book</span> Documentation</a>
-    <a class="nav-item" href="../help_center/code.html"><span class="ms">help</span> Help Center</a>
+    <a class="nav-item active" href="./code.html" data-label="Notifications"><span class="ms">notifications</span><span class="nav-item-label">Notifications</span></a>
+    <a class="nav-item" href="../settings/code.html" data-label="Settings"><span class="ms">settings</span><span class="nav-item-label">Settings</span></a>
+    <a class="nav-item" href="../documentation/code.html" data-label="Documentation"><span class="ms">menu_book</span><span class="nav-item-label">Documentation</span></a>
+    <a class="nav-item" href="../help_center/code.html" data-label="Help Center"><span class="ms">help</span><span class="nav-item-label">Help Center</span></a>
   </div>
   <div class="sidebar-bottom">
-    <button class="new-sub-btn" onclick="window.location.href='../dashboard_sleek/code.html'"><span class="ms">add_circle</span> New Submission</button>
+    <button class="new-sub-btn" onclick="window.location.href='../dashboard_sleek/code.html'"><span class="ms">add_circle</span><span>New Submission</span></button>
   </div>
 </aside>
 <main class="main" id="main">
   <div class="page-header animate-in">
-    <div><h1>Notifications</h1><p>System alerts, processing updates, and validation reports.</p></div>
-    <div class="header-actions"><button class="btn btn-ghost"><span class="ms">done_all</span> Mark all read</button></div>
+    <div>
+      <div class="breadcrumb">
+        <a href="../dashboard_sleek/code.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Notifications</span>
+      </div>
+      <h1>Notifications</h1>
+      <p>System alerts, processing updates, and validation reports.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost btn-sm" id="mark-all-read"><span class="ms">done_all</span> Mark all read</button>
+      <button class="btn btn-ghost btn-sm" id="clear-all"><span class="ms">delete_sweep</span> Clear all</button>
+    </div>
   </div>
-  <div class="card animate-in" style="animation-delay:.08s">
-    <div class="card-header"><div class="card-title"><span class="ms" style="font-variation-settings:'FILL' 1;color:var(--accent);font-size:18px">notifications</span> Recent Alerts</div><span class="badge badge-red">3 unread</span></div>
-    <div class="notif-list" style="padding:8px 0;">
-      <div class="notif-item unread">
-        <div class="notif-icon icon-red" style="background:var(--danger-dim)"><span class="ms" style="color:var(--danger)">error</span></div>
+
+  <!-- Summary pills -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;" class="animate-in animate-in-1">
+    <div class="hero-pill" style="display:flex;align-items:center;gap:8px;background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-full);padding:8px 16px;">
+      <span class="unread-chip" id="unread-count">3</span>
+      <span style="font-size:13px;font-weight:700;color:var(--text-secondary);">Unread</span>
+    </div>
+    <div class="hero-pill" style="display:flex;align-items:center;gap:8px;background:var(--danger-dim);border:1px solid var(--danger-mid);border-radius:var(--radius-full);padding:8px 16px;">
+      <span class="ms" style="font-size:16px;color:var(--danger);font-variation-settings:'FILL' 1;">error</span>
+      <span style="font-size:13px;font-weight:700;color:var(--danger);" id="error-count">1 Error</span>
+    </div>
+    <div class="hero-pill" style="display:flex;align-items:center;gap:8px;background:var(--warning-dim);border:1px solid var(--warning-mid);border-radius:var(--radius-full);padding:8px 16px;">
+      <span class="ms" style="font-size:16px;color:var(--warning);font-variation-settings:'FILL' 1;">warning</span>
+      <span style="font-size:13px;font-weight:700;color:var(--warning);">1 Warning</span>
+    </div>
+  </div>
+
+  <div class="card card-gloss animate-in animate-in-2">
+    <div class="card-header">
+      <div class="card-title"><span class="ms" style="color:var(--accent);">notifications_active</span> Notification Center</div>
+      <span class="badge badge-red" id="badge-count">3 unread</span>
+    </div>
+
+    <div id="notif-list">
+      <!-- TODAY -->
+      <div class="notif-group-label">Today</div>
+
+      <div class="notif-item unread" id="n1">
+        <div class="notif-icon icon-red"><span class="ms">error</span></div>
         <div class="notif-content">
-          <div class="notif-title">837P Validation Failed</div>
-          <div class="notif-desc">File <strong>claim_2024_001.edi</strong> has 3 critical errors. CLM01 Patient Control Number is missing in 2 service lines.</div>
+          <div class="notif-title">837P Validation Failed — 3 Critical Errors</div>
+          <div class="notif-desc">File <strong>claim_2024_001.edi</strong> — CLM01 Patient Control Number missing in 2 service lines. NPI format check failed on Billing Provider loop.</div>
           <div class="notif-time">2 minutes ago</div>
         </div>
+        <button class="notif-dismiss" onclick="dismissNotif('n1')"><span class="ms">close</span></button>
       </div>
-      <div class="notif-divider"></div>
-      <div class="notif-item unread">
-        <div class="notif-icon" style="background:var(--success-dim)"><span class="ms" style="color:var(--success);font-size:20px;font-variation-settings:'FILL' 1">check_circle</span></div>
+
+      <div class="notif-item unread" id="n2">
+        <div class="notif-icon icon-green"><span class="ms">check_circle</span></div>
         <div class="notif-content">
-          <div class="notif-title">835 Remittance Processed Successfully</div>
-          <div class="notif-desc">File <strong>remit_March_batch.edi</strong> passed all 64 validation rules. 12 claims reconciled.</div>
+          <div class="notif-title">835 Remittance Processed — 12 Claims Reconciled</div>
+          <div class="notif-desc">File <strong>remit_March_batch.edi</strong> passed all 64 validation rules. Total payment: $142,880. Batch reconciliation complete.</div>
           <div class="notif-time">18 minutes ago</div>
         </div>
+        <button class="notif-dismiss" onclick="dismissNotif('n2')"><span class="ms">close</span></button>
       </div>
-      <div class="notif-divider"></div>
-      <div class="notif-item unread">
-        <div class="notif-icon icon-yellow" style="background:var(--warning-dim)"><span class="ms" style="color:var(--warning);font-size:20px;font-variation-settings:'FILL' 1">warning</span></div>
+
+      <div class="notif-item unread" id="n3">
+        <div class="notif-icon icon-yellow"><span class="ms">warning</span></div>
         <div class="notif-content">
-          <div class="notif-title">834 Enrollment — Missing NPI</div>
-          <div class="notif-desc">Enrollment file <strong>enrollment_q1.edi</strong> has a warning: Billing Provider NPI (NM109) format check failed.</div>
+          <div class="notif-title">834 Enrollment — Billing Provider NPI Warning</div>
+          <div class="notif-desc">File <strong>enrollment_q1.edi</strong> — NM109 Billing Provider NPI format check failed. Expected 10-digit NPI, found 9-digit value.</div>
           <div class="notif-time">1 hour ago</div>
         </div>
+        <button class="notif-dismiss" onclick="dismissNotif('n3')"><span class="ms">close</span></button>
       </div>
-      <div class="notif-divider"></div>
-      <div class="notif-item">
-        <div class="notif-icon icon-blue" style="background:var(--accent-dim)"><span class="ms" style="color:var(--accent);font-size:20px;font-variation-settings:'FILL' 1">sync</span></div>
+
+      <!-- EARLIER -->
+      <div class="notif-group-label">Earlier</div>
+
+      <div class="notif-item read" id="n4">
+        <div class="notif-icon icon-blue"><span class="ms">sync</span></div>
         <div class="notif-content">
           <div class="notif-title">System Update — AI Parser v2.1</div>
-          <div class="notif-desc">New ICD-10 code sets loaded. Validation accuracy improved to 98.7%.</div>
+          <div class="notif-desc">New ICD-10 code sets loaded. Groq LLM integration updated to llama-3.3-70b-versatile. Validation accuracy improved to 98.7%.</div>
           <div class="notif-time">3 hours ago</div>
         </div>
+        <button class="notif-dismiss" onclick="dismissNotif('n4')"><span class="ms">close</span></button>
       </div>
-      <div class="notif-divider"></div>
-      <div class="notif-item">
-        <div class="notif-icon icon-purple" style="background:var(--purple-dim)"><span class="ms" style="color:var(--purple);font-size:20px;font-variation-settings:'FILL' 1">psychology</span></div>
+
+      <div class="notif-item read" id="n5">
+        <div class="notif-icon icon-purple"><span class="ms">smart_toy</span></div>
         <div class="notif-content">
-          <div class="notif-title">AI Insights Report Ready</div>
-          <div class="notif-desc">Your weekly EDI health report is ready. 94% of claims processed without errors this week.</div>
-          <div class="notif-time">Yesterday</div>
+          <div class="notif-title">Weekly AI Insights Report Ready</div>
+          <div class="notif-desc">94% of claims processed without errors this week. Most common issue: missing NPI in 837P loops. AI recommendations available in Master Parser.</div>
+          <div class="notif-time">Yesterday, 9:00 AM</div>
         </div>
+        <button class="notif-dismiss" onclick="dismissNotif('n5')"><span class="ms">close</span></button>
       </div>
+
+      <div class="notif-item read" id="n6">
+        <div class="notif-icon icon-teal"><span class="ms">verified_user</span></div>
+        <div class="notif-content">
+          <div class="notif-title">HIPAA Compliance Check Passed</div>
+          <div class="notif-desc">Monthly automated HIPAA audit complete. All PHI handling policies verified. No violations detected. Next audit: 30 days.</div>
+          <div class="notif-time">2 days ago</div>
+        </div>
+        <button class="notif-dismiss" onclick="dismissNotif('n6')"><span class="ms">close</span></button>
+      </div>
+    </div>
+
+    <div class="card-footer-bar">
+      <span style="font-size:12px;color:var(--text-tertiary);">Showing 6 notifications</span>
+      <button class="btn btn-ghost btn-sm"><span class="ms">history</span> Load older</button>
     </div>
   </div>
 </main>
-<script src="../shared.js"></script>
-<script>initPage();</script>
+
+<script>
+  const html = document.documentElement;
+  function applyTheme(t) {
+    html.classList.toggle('dark', t==='dark');
+    document.getElementById('theme-icon').textContent  = t==='dark'?'dark_mode':'light_mode';
+    document.getElementById('theme-label').textContent = t==='dark'?'Dark':'Light';
+    localStorage.setItem('theme', t);
+  }
+  applyTheme(localStorage.getItem('theme')||'light');
+  document.getElementById('theme-toggle').addEventListener('click',()=>applyTheme(html.classList.contains('dark')?'light':'dark'));
+
+  const sidebar=document.getElementById('sidebar'),mainEl=document.getElementById('main'),overlay=document.getElementById('overlay');
+  let open=window.innerWidth>=900;
+  function setSidebar(v){open=v;sidebar.classList.toggle('collapsed',!v);mainEl.classList.toggle('expanded',!v);overlay.classList.toggle('visible',v&&window.innerWidth<900);}
+  setSidebar(open);
+  document.getElementById('sidebar-toggle').addEventListener('click',()=>setSidebar(!open));
+  overlay.addEventListener('click',()=>setSidebar(false));
+  window.addEventListener('resize',()=>{if(window.innerWidth>=900)setSidebar(true);});
+
+  let unreadCount = 3;
+  function updateBadge() {
+    document.getElementById('unread-count').textContent = unreadCount;
+    document.getElementById('badge-count').textContent  = unreadCount + ' unread';
+    document.getElementById('badge-count').className    = 'badge ' + (unreadCount > 0 ? 'badge-red' : 'badge-green');
+  }
+
+  function dismissNotif(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.classList.contains('unread')) { unreadCount = Math.max(0, unreadCount - 1); updateBadge(); }
+    el.style.animation = 'slide-out 0.25s ease forwards';
+    setTimeout(() => el.remove(), 280);
+  }
+
+  document.getElementById('mark-all-read').addEventListener('click', () => {
+    document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.replace('unread', 'read'));
+    unreadCount = 0; updateBadge();
+  });
+
+  document.getElementById('clear-all').addEventListener('click', () => {
+    document.querySelectorAll('.notif-item').forEach(el => {
+      el.style.animation = 'slide-out 0.25s ease forwards';
+      setTimeout(() => el.remove(), 280);
+    });
+    unreadCount = 0; updateBadge();
+  });
+
+  // Click to read
+  document.querySelectorAll('.notif-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.notif-dismiss')) return;
+      if (el.classList.contains('unread')) {
+        el.classList.replace('unread', 'read');
+        unreadCount = Math.max(0, unreadCount - 1);
+        updateBadge();
+      }
+    });
+  });
+</script>
 </body>
 </html>
