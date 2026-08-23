@@ -3,35 +3,84 @@
 <head>
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>EdiPro — Master Parser</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link rel="stylesheet" href="../theme.css"/>
 <style>
-  .log-box{background:var(--bg2);border:1px solid var(--divider);border-radius:12px;padding:16px;font-family:ui-monospace,'SF Mono',monospace;font-size:12px;color:var(--text-secondary);line-height:1.8;max-height:320px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;}
-  .log-line-ok{color:var(--success);}
-  .log-line-err{color:var(--danger);}
-  .log-line-info{color:var(--accent);}
-  .drag-upload{border:2px dashed var(--border);border-radius:var(--card-radius);padding:40px 24px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;cursor:pointer;transition:all .25s;}
-  .drag-upload:hover,.drag-upload.over{border-color:var(--accent);background:var(--accent-dim);}
-  .drag-upload .ms{font-size:42px;color:var(--accent);font-variation-settings:'FILL' 1;}
-  .drag-upload h3{font-size:16px;font-weight:700;color:var(--text-primary);}
-  .drag-upload p{font-size:13px;color:var(--text-secondary);}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-  @media(max-width:820px){.grid2{grid-template-columns:1fr;}}
+@keyframes fade-in { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;} }
+@keyframes float { 0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);} }
+
+/* Drop zone */
+.parse-drop {
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--card-radius); padding: 52px 28px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px; text-align: center;
+  cursor: pointer; transition: all 0.3s var(--ease-smooth);
+  background: var(--surface-0); position: relative; overflow: hidden;
+}
+.parse-drop::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 40%, var(--accent-dim) 0%, transparent 60%),
+              radial-gradient(ellipse at 75% 70%, var(--purple-dim) 0%, transparent 50%);
+  opacity: 0; transition: opacity 0.4s;
+}
+.parse-drop:hover::before, .parse-drop.over::before { opacity: 1; }
+.parse-drop:hover, .parse-drop.over {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-dim), var(--shadow-md);
+}
+.parse-drop .ms {
+  font-size: 48px; color: var(--accent);
+  font-variation-settings: 'FILL' 1; position: relative;
+  animation: float 3s ease-in-out infinite;
+}
+.parse-drop h3 { font-size: 17px; font-weight: 800; color: var(--text-primary); position: relative; }
+.parse-drop p  { font-size: 13px; color: var(--text-secondary); position: relative; }
+
+/* Log */
+.log-box {
+  background: var(--bg-2);
+  border: 1px solid var(--divider); border-radius: var(--radius-md);
+  padding: 16px 18px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px; color: var(--text-secondary);
+  line-height: 2.0; max-height: 380px; overflow-y: auto;
+  white-space: pre-wrap; word-break: break-all;
+}
+html.dark .log-box { background: #06080f; border-color: rgba(255,255,255,0.06); }
+.log-ok   { color: var(--success); }
+.log-err  { color: var(--danger); }
+.log-warn { color: var(--warning); }
+.log-info { color: var(--accent); }
+.log-dim  { color: var(--text-tertiary); }
+.log-hi   { color: var(--purple); }
+
+/* JSON tree line highlight */
+.log-box .key    { color: var(--purple); }
+.log-box .str    { color: var(--success); }
+.log-box .num    { color: var(--orange); }
+
+/* Parser stats row */
+.parser-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.p-stat { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+.p-stat .ms { font-size: 18px; font-variation-settings: 'FILL' 1; }
+.p-stat-val { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+.p-stat-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); }
 </style>
 </head>
 <body>
 <header class="topnav">
   <div class="topnav-left">
     <button class="sidebar-toggle" id="sidebar-toggle"><span class="ms">menu</span></button>
-    <div class="brand">
-      <div class="brand-icon"><span class="ms">hub</span></div>
-      <div><span class="brand-name">EdiPro</span><span class="brand-tag"> · EDI Gateway</span></div>
-    </div>
+    <a class="brand" href="../dashboard_sleek/code.html">
+      <div class="brand-icon"><span class="ms ms-filled">hub</span></div>
+      <div><span class="brand-name">EdiPro</span><span class="brand-tag">EDI Gateway</span></div>
+    </a>
   </div>
   <div class="topnav-right">
     <button class="nav-icon-btn"><span class="ms">search</span></button>
-    <button class="nav-icon-btn"><span class="ms">notifications</span></button>
+    <button class="nav-icon-btn" onclick="window.location.href='../notifications/code.html'"><span class="ms">notifications</span><span class="notif-dot"></span></button>
     <button class="theme-toggle-btn" id="theme-toggle"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
     <div class="avatar"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach" alt="avatar"/></div>
   </div>
@@ -40,97 +89,246 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-content">
     <p class="nav-section-label">Main</p>
-    <a class="nav-item" href="../dashboard_sleek/code.html"><span class="ms">dashboard</span> Dashboard</a>
-    <a class="nav-item active" href="./code.html"><span class="ms">analytics</span> Master Parser</a>
+    <a class="nav-item" href="../dashboard_sleek/code.html" data-label="Dashboard"><span class="ms">dashboard</span><span class="nav-item-label">Dashboard</span></a>
+    <a class="nav-item active" href="./code.html" data-label="Master Parser"><span class="ms">analytics</span><span class="nav-item-label">Master Parser</span></a>
     <div style="height:14px"></div>
     <p class="nav-section-label">Transactions</p>
-    <a class="nav-item" href="../835_remittance_sleek/code.html"><span class="ms">payments</span> 835 Remittance</a>
-    <a class="nav-item" href="../834_enrollment_sleek/code.html"><span class="ms">group_add</span> 834 Enrollment</a>
-    <a class="nav-item" href="../837_claims_view/code.html"><span class="ms">description</span> 837 Claims</a>
+    <a class="nav-item" href="../835_remittance_sleek/code.html" data-label="835 Remittance"><span class="ms">payments</span><span class="nav-item-label">835 Remittance</span></a>
+    <a class="nav-item" href="../834_enrollment_sleek/code.html" data-label="834 Enrollment"><span class="ms">group_add</span><span class="nav-item-label">834 Enrollment</span></a>
+    <a class="nav-item" href="../837_claims_view/code.html" data-label="837 Claims"><span class="ms">description</span><span class="nav-item-label">837 Claims</span></a>
     <div style="height:14px"></div>
     <p class="nav-section-label">System</p>
-    <a class="nav-item" href="../notifications/code.html"><span class="ms">notifications</span> Notifications<span class="nav-badge">3</span></a>
-    <a class="nav-item" href="../settings/code.html"><span class="ms">settings</span> Settings</a>
-    <a class="nav-item" href="../documentation/code.html"><span class="ms">menu_book</span> Documentation</a>
-    <a class="nav-item" href="../help_center/code.html"><span class="ms">help</span> Help Center</a>
+    <a class="nav-item" href="../notifications/code.html" data-label="Notifications"><span class="ms">notifications</span><span class="nav-item-label">Notifications</span><span class="nav-badge">3</span></a>
+    <a class="nav-item" href="../settings/code.html" data-label="Settings"><span class="ms">settings</span><span class="nav-item-label">Settings</span></a>
+    <a class="nav-item" href="../documentation/code.html" data-label="Documentation"><span class="ms">menu_book</span><span class="nav-item-label">Documentation</span></a>
+    <a class="nav-item" href="../help_center/code.html" data-label="Help Center"><span class="ms">help</span><span class="nav-item-label">Help Center</span></a>
   </div>
   <div class="sidebar-bottom">
-    <button class="new-sub-btn" id="new-sub-btn"><span class="ms">add_circle</span> New Submission</button>
+    <button class="new-sub-btn" id="new-sub-btn"><span class="ms">add_circle</span><span>New Submission</span></button>
   </div>
 </aside>
 <main class="main" id="main">
   <div class="page-header animate-in">
-    <div><h1>Master Parser</h1><p>Deep inspection and real-time parsing of all EDI transaction types.</p></div>
+    <div>
+      <div class="breadcrumb">
+        <a href="../dashboard_sleek/code.html">Dashboard</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-current">Master Parser</span>
+      </div>
+      <h1>Master Parser</h1>
+      <p>Deep inspection and real-time parsing of all EDI transaction types.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost btn-sm" id="clear-parser"><span class="ms">refresh</span> Clear</button>
+      <button class="btn btn-primary btn-sm" id="parse-trigger"><span class="ms">upload_file</span> Select File</button>
+    </div>
   </div>
-  <div class="gap-section animate-in" style="animation-delay:.08s">
-    <div class="drag-upload" id="drop-zone">
+
+  <!-- Parser stats row -->
+  <div class="parser-stats animate-in animate-in-1">
+    <div class="p-stat">
+      <span class="ms" style="color:var(--accent);">data_object</span>
+      <div><div class="p-stat-val" id="ps-type">—</div><div class="p-stat-lbl">TX Type</div></div>
+    </div>
+    <div class="p-stat">
+      <span class="ms" style="color:var(--success);">check_circle</span>
+      <div><div class="p-stat-val" id="ps-status">Ready</div><div class="p-stat-lbl">Status</div></div>
+    </div>
+    <div class="p-stat">
+      <span class="ms" style="color:var(--orange);">timer</span>
+      <div><div class="p-stat-val" id="ps-time">—</div><div class="p-stat-lbl">Parse Time</div></div>
+    </div>
+    <div class="p-stat">
+      <span class="ms" style="color:var(--danger);">error</span>
+      <div><div class="p-stat-val" id="ps-errors">—</div><div class="p-stat-lbl">Errors</div></div>
+    </div>
+  </div>
+
+  <!-- Drop zone -->
+  <div class="gap-section animate-in animate-in-1">
+    <div class="parse-drop" id="drop-zone">
       <span class="ms">cloud_upload</span>
       <h3>Drop any EDI file here to inspect</h3>
-      <p>Supports 837P, 837I, 835, 834 · .edi .txt .dat .x12</p>
-      <button class="btn btn-primary" id="parse-trigger" type="button"><span class="ms">upload_file</span> Select File</button>
+      <p>Supports 837P · 837I · 835 · 834 &nbsp;·&nbsp; .edi .txt .dat .x12</p>
+      <button class="btn btn-primary" id="parse-btn" type="button"><span class="ms">folder_open</span> Browse Files</button>
       <input type="file" id="parse-input" style="display:none" accept=".edi,.txt,.dat,.x12"/>
     </div>
   </div>
-  <div class="grid2 animate-in" style="animation-delay:.15s">
-    <div class="card">
-      <div class="card-header"><div class="card-title"><span class="ms" style="font-variation-settings:'FILL' 1;color:var(--accent);font-size:18px">data_object</span> Parsed Output</div><span class="badge badge-blue" id="tx-type-badge">Awaiting file</span></div>
-      <div class="card-body">
-        <div class="log-box" id="parsed-output">// Parsed EDI data will appear here after upload...</div>
+
+  <!-- Progress bar (hidden until parsing) -->
+  <div id="parse-progress-wrap" style="display:none;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <span class="ms" style="color:var(--accent);font-variation-settings:'FILL' 1;animation:float 2s ease-in-out infinite;">sync</span>
+      <span id="parse-progress-label" style="font-size:13px;font-weight:700;color:var(--text-secondary);">Parsing…</span>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="parse-progress-bar" style="width:0%"></div></div>
+  </div>
+
+  <!-- Output Grid -->
+  <div class="grid-2 animate-in animate-in-2">
+    <div class="card card-gloss">
+      <div class="card-header">
+        <div class="card-title"><span class="ms" style="color:var(--accent);">data_object</span> Parsed Output</div>
+        <span class="badge badge-blue" id="tx-type-badge">Awaiting file</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="log-box" id="parsed-output" style="border-radius:0 0 var(--card-radius) var(--card-radius);max-height:420px;"><span class="log-dim">// Parsed EDI data will appear here after upload…</span></div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title"><span class="ms" style="font-variation-settings:'FILL' 1;color:var(--danger);font-size:18px">bug_report</span> Validation Log</div><span class="badge badge-gray" id="val-badge">No file</span></div>
-      <div class="card-body">
-        <div class="log-box" id="validation-log">// Validation results will appear here...</div>
+    <div class="card card-gloss">
+      <div class="card-header">
+        <div class="card-title"><span class="ms" style="color:var(--danger);">bug_report</span> Validation Log</div>
+        <span class="badge badge-gray" id="val-badge">No file</span>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="log-box" id="validation-log" style="border-radius:0 0 var(--card-radius) var(--card-radius);max-height:420px;"><span class="log-dim">// Validation results will appear here…</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Segment breakdown card -->
+  <div class="card card-gloss animate-in animate-in-3" style="margin-top:20px;">
+    <div class="card-header">
+      <div class="card-title"><span class="ms" style="color:var(--purple);">segment</span> EDI Segment Reference</div>
+      <span class="badge badge-purple">X12 ANSI</span>
+    </div>
+    <div class="card-body">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Segment</th>
+              <th>Name</th>
+              <th>TX Types</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="td-mono">ISA</span></td><td>Interchange Control Header</td><td><span class="chip chip-blue">All</span></td><td>Outer envelope; sender/receiver IDs, date, version</td></tr>
+            <tr><td><span class="td-mono">GS</span></td><td>Functional Group Header</td><td><span class="chip chip-blue">All</span></td><td>Groups related transactions; application sender ID</td></tr>
+            <tr><td><span class="td-mono">ST</span></td><td>Transaction Set Header</td><td><span class="chip chip-blue">All</span></td><td>Transaction type identifier (837, 835, 834…)</td></tr>
+            <tr><td><span class="td-mono">CLM</span></td><td>Claim Information</td><td><span class="chip chip-purple">837</span></td><td>Patient control number, total charge, place of service</td></tr>
+            <tr><td><span class="td-mono">CLP</span></td><td>Claim-Level Payment</td><td><span class="chip chip-success">835</span></td><td>Claim payment amount, status code, payer claim ID</td></tr>
+            <tr><td><span class="td-mono">NM1</span></td><td>Individual or Organization Name</td><td><span class="chip chip-blue">All</span></td><td>Named entity — patient, provider, payer, subscriber</td></tr>
+            <tr><td><span class="td-mono">SVC</span></td><td>Service Payment Info</td><td><span class="chip chip-success">835</span></td><td>Procedure code, submitted vs paid amount</td></tr>
+            <tr><td><span class="td-mono">CAS</span></td><td>Claim Adjustment</td><td><span class="chip chip-success">835</span></td><td>Adjustment group code, reason code, amount</td></tr>
+            <tr><td><span class="td-mono">REF</span></td><td>Reference Identification</td><td><span class="chip chip-blue">All</span></td><td>Reference numbers: NPI, EIN, policy, ICN</td></tr>
+            <tr><td><span class="td-mono">SE / GE / IEA</span></td><td>Control Trailers</td><td><span class="chip chip-blue">All</span></td><td>Segment/group/interchange counts and control numbers</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </main>
 <script src="../shared.js"></script>
 <script>
-  initPage();
-  const parseInput = document.getElementById('parse-input');
+  // Theme + sidebar init (shared.js initPage handles this if present, fallback below)
+  const html = document.documentElement;
+  function applyTheme(t) {
+    html.classList.toggle('dark', t==='dark');
+    document.getElementById('theme-icon').textContent  = t==='dark'?'dark_mode':'light_mode';
+    document.getElementById('theme-label').textContent = t==='dark'?'Dark':'Light';
+    localStorage.setItem('theme', t);
+  }
+  try { initPage(); } catch {
+    applyTheme(localStorage.getItem('theme')||'light');
+    document.getElementById('theme-toggle').addEventListener('click',()=>applyTheme(html.classList.contains('dark')?'light':'dark'));
+    const sb=document.getElementById('sidebar'),mn=document.getElementById('main'),ov=document.getElementById('overlay');
+    let op=window.innerWidth>=900;
+    function setSB(v){op=v;sb.classList.toggle('collapsed',!v);mn.classList.toggle('expanded',!v);ov.classList.toggle('visible',v&&window.innerWidth<900);}
+    setSB(op);
+    document.getElementById('sidebar-toggle').addEventListener('click',()=>setSB(!op));
+    ov.addEventListener('click',()=>setSB(false));
+    window.addEventListener('resize',()=>{if(window.innerWidth>=900)setSB(true);});
+  }
+
+  const parseInput   = document.getElementById('parse-input');
   const parseTrigger = document.getElementById('parse-trigger');
-  const dropZone = document.getElementById('drop-zone');
-  const parsedOut = document.getElementById('parsed-output');
-  const valLog = document.getElementById('validation-log');
-  const txBadge = document.getElementById('tx-type-badge');
-  const valBadge = document.getElementById('val-badge');
+  const parseBtn     = document.getElementById('parse-btn');
+  const newSubBtn    = document.getElementById('new-sub-btn');
+  const dropZone     = document.getElementById('drop-zone');
+  const parsedOut    = document.getElementById('parsed-output');
+  const valLog       = document.getElementById('validation-log');
+  const txBadge      = document.getElementById('tx-type-badge');
+  const valBadge     = document.getElementById('val-badge');
+  const psType       = document.getElementById('ps-type');
+  const psStatus     = document.getElementById('ps-status');
+  const psTime       = document.getElementById('ps-time');
+  const psErrors     = document.getElementById('ps-errors');
+  const progressWrap = document.getElementById('parse-progress-wrap');
+  const progressBar  = document.getElementById('parse-progress-bar');
+  const progressLabel= document.getElementById('parse-progress-label');
+  const clearBtn     = document.getElementById('clear-parser');
 
   parseTrigger.addEventListener('click', () => parseInput.click());
-  document.getElementById('new-sub-btn').addEventListener('click', () => parseInput.click());
-  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
-  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('over'); handleFile(e.dataTransfer.files[0]); });
-  parseInput.addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+  parseBtn.addEventListener('click',     () => parseInput.click());
+  newSubBtn.addEventListener('click',    () => parseInput.click());
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('over'); });
+  dropZone.addEventListener('dragleave', ()=> dropZone.classList.remove('over'));
+  dropZone.addEventListener('drop',      e => { e.preventDefault(); dropZone.classList.remove('over'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  parseInput.addEventListener('change',  e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+  clearBtn.addEventListener('click', () => {
+    parsedOut.innerHTML = '<span class="log-dim">// Cleared. Drop a file to begin…</span>';
+    valLog.innerHTML    = '<span class="log-dim">// Validation results will appear here…</span>';
+    txBadge.textContent = 'Awaiting file'; txBadge.className = 'badge badge-blue';
+    valBadge.textContent = 'No file';      valBadge.className = 'badge badge-gray';
+    psType.textContent = '—'; psStatus.textContent = 'Ready'; psTime.textContent = '—'; psErrors.textContent = '—';
+  });
 
   async function handleFile(file) {
-    parsedOut.textContent = '// Uploading ' + file.name + '...';
-    valLog.textContent = '// Running validation...';
-    txBadge.textContent = 'Processing...';
+    const start = Date.now();
+    progressWrap.style.display = 'block';
+    progressBar.style.width = '20%';
+    progressLabel.textContent = `Parsing ${file.name}…`;
+    parsedOut.innerHTML = `<span class="log-info">// Uploading ${file.name}…</span>`;
+    valLog.innerHTML    = `<span class="log-dim">// Running validation rules…</span>`;
+    txBadge.textContent = 'Processing…'; txBadge.className = 'badge badge-blue';
+    psType.textContent = '…'; psStatus.textContent = 'Parsing…';
+    progressBar.style.width = '55%';
     try {
       const fd = new FormData(); fd.append('file', file);
       const res = await fetch('/api/upload', { method: 'POST', body: fd });
-      if (!res.ok) throw new Error('Upload failed');
+      if (!res.ok) throw new Error('Upload failed: ' + res.status);
+      progressBar.style.width = '80%';
       const data = await res.json();
       const report = data.report || {};
       const pr = report.parse_result || {};
       const vr = report.validation_result || {};
-      txBadge.textContent = pr.transaction_type || 'Unknown';
-      txBadge.className = 'badge badge-blue';
-      parsedOut.innerHTML = `<span class="log-line-info">// Transaction: ${pr.transaction_type || '?'}</span>\n<span class="log-line-info">// Sender: ${pr.sender_id || '?'} → Receiver: ${pr.receiver_id || '?'}</span>\n\n${JSON.stringify(pr, null, 2)}`;
+      const elapsed = ((Date.now() - start) / 1000).toFixed(2) + 's';
+      const type = pr.transaction_type || 'Unknown';
+      txBadge.textContent = type; txBadge.className = 'badge badge-blue';
+      psType.textContent  = type;
+      psTime.textContent  = elapsed;
       const issues = vr.issues || [];
-      const errCount = issues.filter(i=>i.level==='error').length;
+      const errCount = issues.filter(i => (i.level||i.severity) === 'error').length;
+      psErrors.textContent = errCount;
+      psStatus.textContent = errCount === 0 ? '✓ Valid' : `${errCount} Errors`;
+
+      // Syntax-highlighted parsed output
+      const pretty = JSON.stringify(pr, null, 2)
+        .replace(/"([^"]+)":/g, '<span class="log-hi">"$1"</span>:')
+        .replace(/: "([^"]*)"/g, ': <span class="log-ok">"$1"</span>')
+        .replace(/: (\d+\.?\d*)/g, ': <span class="log-warn">$1</span>');
+      parsedOut.innerHTML = `<span class="log-info">// Transaction: ${type}</span>\n<span class="log-info">// Sender: ${pr.sender_id||'?'} → Receiver: ${pr.receiver_id||'?'}</span>\n<span class="log-info">// Parse time: ${elapsed}</span>\n\n${pretty}`;
+
       valBadge.textContent = errCount === 0 ? '✓ Valid' : errCount + ' Errors';
-      valBadge.className = 'badge ' + (errCount === 0 ? 'badge-green' : 'badge-red');
+      valBadge.className   = 'badge ' + (errCount === 0 ? 'badge-green' : 'badge-red');
       valLog.innerHTML = issues.length === 0
-        ? '<span class="log-line-ok">// ✓ No issues found. File passed all validation rules.</span>'
-        : issues.map(i => `<span class="${i.level==='error'?'log-line-err':'log-line-info'}">[${i.level?.toUpperCase()}] ${i.code}: ${i.message}</span>`).join('\n');
+        ? '<span class="log-ok">// ✓ All validation rules passed. No issues detected.</span>'
+        : issues.map(i => {
+            const lv = (i.level || i.severity || 'info').toLowerCase();
+            const cls = lv === 'error' ? 'log-err' : lv === 'warning' ? 'log-warn' : 'log-info';
+            return `<span class="${cls}">[${lv.toUpperCase()}] ${i.code||''}: ${i.message||''}</span>`;
+          }).join('\n');
     } catch(e) {
-      parsedOut.innerHTML = '<span class="log-line-err">// Error: ' + e.message + '</span>';
-      valLog.innerHTML = '<span class="log-line-err">// Validation could not run.</span>';
+      parsedOut.innerHTML = `<span class="log-err">// Error: ${e.message}</span>\n<span class="log-dim">// Check that the backend is running at http://localhost:8000</span>`;
+      valLog.innerHTML    = `<span class="log-err">// Validation could not run — upload error.</span>`;
       txBadge.textContent = 'Error'; txBadge.className = 'badge badge-red';
       valBadge.textContent = 'Error'; valBadge.className = 'badge badge-red';
+      psStatus.textContent = 'Error'; psErrors.textContent = '?';
+    } finally {
+      progressBar.style.width = '100%';
+      setTimeout(() => { progressWrap.style.display = 'none'; progressBar.style.width = '0%'; }, 700);
     }
   }
 </script>
