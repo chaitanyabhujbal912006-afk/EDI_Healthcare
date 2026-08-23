@@ -521,29 +521,60 @@ class RuleExecutor:
         """Validate SE01 matches actual segment count."""
         se_segs = self._find_segments('SE', loops)
         st_segs = self._find_segments('ST', loops)
-        if not se_segs or not st_segs:
-            return []
+        if not se_segs and parsed and parsed.segments:
+            se_segs = [s for s in parsed.segments if s.segment_id == 'SE']
+        if not st_segs and parsed and parsed.segments:
+            st_segs = [s for s in parsed.segments if s.segment_id == 'ST']
 
-        reported_str = se_segs[0].get_value(1).strip()
-        try:
-            reported = int(reported_str)
-        except ValueError:
-            return []
+        reported = None
+        se_pos = 0
 
-        # Count all segments from ST through SE inclusive
-        all_segs = self._all_segments(loops)
-        # Find positions of ST and SE
-        st_pos = st_segs[0].position
-        se_pos = se_segs[0].position
-        actual = sum(1 for s in all_segs if st_pos <= s.position <= se_pos)
+        if se_segs:
+            reported_str = se_segs[0].get_value(1).strip()
+            try:
+                reported = int(reported_str)
+                se_pos = se_segs[0].position
+            except ValueError:
+                pass
 
-        if reported != actual:
-            return [ValidationError(
-                code=rule.id, severity=rule.severity,
-                segment='SE', element='SE01', loop=rule.loop,
-                position=se_segs[0].position,
-                message=self._fmt(rule, reported=reported, actual=actual),
-            )]
+        if reported is None and parsed and parsed.raw:
+            raw = parsed.raw
+            isa_start = raw.find('ISA')
+            sep = raw[isa_start + 3] if isa_start != -1 and len(raw) > isa_start + 3 else '*'
+            term = raw[isa_start + 105] if isa_start != -1 and len(raw) > isa_start + 105 else '~'
+            segs = [s.strip() for s in raw.split(term) if s.strip()]
+            for i, s in enumerate(segs):
+                if s.startswith('SE' + sep):
+                    parts = s.split(sep)
+                    if len(parts) > 1 and parts[1].isdigit():
+                        reported = int(parts[1])
+                        se_pos = i + 1
+                        break
+            if reported is not None:
+                st_idx = next((i for i, s in enumerate(segs) if s.startswith('ST' + sep)), -1)
+                se_idx = next((i for i, s in enumerate(segs) if s.startswith('SE' + sep)), -1)
+                if st_idx != -1 and se_idx != -1:
+                    actual = se_idx - st_idx + 1
+                    if reported != actual:
+                        return [ValidationError(
+                            code=rule.id, severity=rule.severity,
+                            segment='SE', element='SE01', loop=rule.loop,
+                            position=se_pos,
+                            message=self._fmt(rule, reported=reported, actual=actual),
+                        )]
+
+        if reported is not None and st_segs and se_segs:
+            all_segs = self._all_segments(loops) or parsed.segments
+            st_pos = st_segs[0].position
+            actual = sum(1 for s in all_segs if st_pos <= s.position <= se_pos)
+            if reported != actual:
+                return [ValidationError(
+                    code=rule.id, severity=rule.severity,
+                    segment='SE', element='SE01', loop=rule.loop,
+                    position=se_pos,
+                    message=self._fmt(rule, reported=reported, actual=actual),
+                )]
+
         return []
 
     def _rule_paired_segments(
@@ -553,8 +584,25 @@ class RuleExecutor:
         if not rule.segment_pair or len(rule.segment_pair) < 2:
             return []
         open_id, close_id = rule.segment_pair[0], rule.segment_pair[1]
-        open_count = len(self._find_segments(open_id, loops))
-        close_count = len(self._find_segments(close_id, loops))
+        open_segs = self._find_segments(open_id, loops)
+        close_segs = self._find_segments(close_id, loops)
+        if not open_segs and parsed and parsed.segments:
+            open_segs = [s for s in parsed.segments if s.segment_id == open_id]
+        if not close_segs and parsed and parsed.segments:
+            close_segs = [s for s in parsed.segments if s.segment_id == close_id]
+
+        open_count = len(open_segs)
+        close_count = len(close_segs)
+
+        if open_count == 0 and close_count == 0 and parsed and parsed.raw:
+            raw = parsed.raw
+            isa_start = raw.find('ISA')
+            sep = raw[isa_start + 3] if isa_start != -1 and len(raw) > isa_start + 3 else '*'
+            term = raw[isa_start + 105] if isa_start != -1 and len(raw) > isa_start + 105 else '~'
+            segs = [s.strip() for s in raw.split(term) if s.strip()]
+            open_count = sum(1 for s in segs if s.startswith(open_id + sep))
+            close_count = sum(1 for s in segs if s.startswith(close_id + sep))
+
         if open_count != close_count:
             return [ValidationError(
                 code=rule.id, severity=rule.severity,
@@ -570,11 +618,15 @@ class RuleExecutor:
     ) -> list[ValidationError]:
         """Check HL01 is sequential starting at 1."""
         errors: list[ValidationError] = []
-        seg_id = rule.target[:3] if rule.target else 'HL'
-        try:
-            elem_idx = int(rule.target[3:]) if len(rule.target) > 3 else 1
-        except ValueError:
-            elem_idx = 1
+        if not rule.target:
+            seg_id, elem_idx = 'HL', 1
+        else:
+            m = re.match(r'^([A-Z0-9]+?)(\d+)?$', rule.target)
+            if m:
+                seg_id = m.group(1)
+                elem_idx = int(m.group(2)) if m.group(2) else 1
+            else:
+                seg_id, elem_idx = rule.target, 1
 
         segs = self._find_segments(seg_id, loops)
         for i, seg in enumerate(segs):
