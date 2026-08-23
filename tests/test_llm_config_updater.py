@@ -35,11 +35,11 @@ class MockLLM:
                 return response
         
         # Default responses
-        if "config_type" in prompt.lower() or "configuration type" in prompt.lower():
-            return "rule"
-        elif "target file" in prompt.lower() or "which file" in prompt.lower():
+        if "available files" in prompt.lower() or "which configuration file" in prompt.lower():
             return "rules_core.yaml"
-        elif "validation" in prompt.lower() and "checklist" in prompt.lower():
+        elif "determine the configuration type" in prompt.lower() or "detect configuration type" in prompt.lower():
+            return "rule"
+        elif "validation checklist" in prompt.lower() or ("validation" in prompt.lower() and "checklist" in prompt.lower()):
             return "VALID"
         else:
             # Generate a simple rule
@@ -163,7 +163,7 @@ def test_detect_target_file_existing(updater):
 
 def test_detect_target_file_new(updater):
     """Test detecting new file creation."""
-    mock_llm = MockLLM(responses={"which file": "NEW:custom_rules.yaml"})
+    mock_llm = MockLLM(responses={"available files": "NEW:custom_rules.yaml"})
     updater_with_mock = LLMConfigUpdater(
         llm=mock_llm,
         config_dir=updater.config_dir,
@@ -260,7 +260,7 @@ def test_validate_rule_structure_invalid_severity(updater):
 
 def test_validate_code_set_structure_valid(updater):
     """Test validating valid code set structure."""
-    yaml_str = """code_set_id: 'test_codes'
+    yaml_str = """code_set_id: 'unique_test_codes_999'
 description: 'Test codes'
 codes:
   - 'A'
@@ -378,21 +378,21 @@ def test_handle_llm_failure(temp_config_dir):
 def test_handle_invalid_yaml_from_llm(temp_config_dir):
     """Test handling invalid YAML from LLM."""
     def bad_yaml_llm(prompt: str) -> str:
-        if "configuration type" in prompt.lower():
-            return "rule"
-        elif "which file" in prompt.lower():
+        if "available files" in prompt.lower():
             return "rules_core.yaml"
+        elif "determine the configuration type" in prompt.lower():
+            return "rule"
         else:
-            return "this is not valid yaml: [[[{"
-    
+            return "this is not valid yaml: [[["
+
     updater = LLMConfigUpdater(
         llm=bad_yaml_llm,
         config_dir=temp_config_dir,
         dry_run=True
     )
-    
+
     result = updater.add_custom_config("test", config_type="rule")
-    
+
     assert not result.success
     assert any("Invalid YAML syntax" in err for err in result.validation_errors)
 

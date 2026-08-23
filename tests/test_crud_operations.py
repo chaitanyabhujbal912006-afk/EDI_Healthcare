@@ -34,15 +34,22 @@ def mock_llm_create(prompt: str) -> str:
 
 def mock_llm_update(prompt: str) -> str:
     """Mock LLM that returns an updated rule."""
+    rule_id = 'EXISTING-001' if 'EXISTING-001' in prompt else 'TEST-001'
     if 'severity' in prompt.lower() and 'warning' in prompt.lower():
-        return """- id: 'TEST-001'
+        return f"""- id: '{rule_id}'
   type: 'regex'
   target: 'CLM02'
   pattern: '^[0-9]+\\.[0-9]{2}$'
   severity: 'warning'
   message: 'Claim amount should be in format XXXXX.XX'
   suggestion: 'Ensure CLM02 contains a valid monetary amount'"""
-    return mock_llm_create(prompt)
+    return f"""- id: '{rule_id}'
+  type: 'regex'
+  target: 'CLM02'
+  pattern: '^[0-9]+\\.[0-9]{2}$'
+  severity: 'error'
+  message: 'Claim amount must be in format XXXXX.XX'
+  suggestion: 'Ensure CLM02 contains a valid monetary amount'"""
 
 
 @pytest.fixture

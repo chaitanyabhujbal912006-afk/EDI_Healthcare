@@ -70,7 +70,7 @@ r fix, this test PASSES — confirming all 12 types now emit errors.
     loop = make_loop('ROOT', [make_segment('HL', ['1', '', '20', '1'])])
     executor = make_executor([rule])
     errors = executor.execute_all([loop], make_parsed())
-    assert len(errors) >M, got []"
+    assert len(errors) > 0, "required_segment: expected error for missing CLM, got []"
 
     # 2. required_element: CLM01 is blank
     rule = RuleConfig(id='837-003', type='required_element', target='CLM01', severity='error',
@@ -98,7 +98,7 @@ r fix, this test PASSES — confirming all 12 types now emit errors.
     assert len(errors) > 0, "numeric_range: expected error for CLM02=-5.00, got []"
 
     # 5. numeric_validation: CLM02 = 'ABC'
-    ridation', target='CLM02', severity='error',
+    rule = RuleConfig(id='837-005', type='numeric_validation', target='CLM02', severity='error',
                       message='CLM02 value {value} is not numeric')
     loop = make_loop('ROOT', [make_segment('CLM', ['CLAIM001', 'ABC', '11'])])
     executor = make_executor([rule])
@@ -106,7 +106,7 @@ r fix, this test PASSES — confirming all 12 types now emit errors.
     assert len(errors) > 0, "numeric_validation: expected error for CLM02=ABC, got []"
 
     # 6. date_format: DTP03 = 20240231 (Feb 31 doesn't exist)
-    rule = RuleConfig(ity='error',
+    rule = RuleConfig(id='837-006', type='date_format', target='DTP03', severity='error',
                       message='DTP date {value} is invalid', format_qualifier='DTP02',
                       expected_format='D8')
     loop = make_loop('ROOT', [make_segment('DTP', ['472', 'D8', '20240231'])])
@@ -115,13 +115,13 @@ r fix, this test PASSES — confirming all 12 types now emit errors.
     assert len(errors) > 0, "date_format: expected error for 20240231, got []"
 
     # 7. control_number_match: ISA13=000000001, IEA02=000000002
-    rule = RuleConfig(id='CTL-001'mber_match', source='ISA13', target='IEA02',
+    rule = RuleConfig(id='CTL-001', type='control_number_match', source='ISA13', target='IEA02',
                       severity='error',
                       message='IEA02 {target_value} does not match ISA13 {source_value}')
     raw = 'ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*T*:~GS*HC*SENDER*RECEIVER*20240101*1200*1*X*005010X222A1~ST*837*0001~SE*4*0001~GE*1*1~IEA*1*000000002~'
     executor = make_executor([rule])
     errors = executor.execute_all([], make_parsed(raw))
-ntrol_number_match: expected error for ISA13!=IEA02, got []"
+    assert len(errors) > 0, "control_number_match: expected error for ISA13!=IEA02, got []"
 
     # 8. segment_count: SE01=5 but actual=7
     rule = RuleConfig(id='CNT-001', type='segment_count', target='SE01', severity='error',
@@ -149,7 +149,7 @@ ntrol_number_match: expected error for ISA13!=IEA02, got []"
     loop = make_loop('ROOT', [hl1, hl2, hl5])
     executor = make_executor([rule])
     errors = executor.execute_all([loop], make_parsed())
-    assert len(errors) > 0, "sequential_nu"
+    assert len(errors) > 0, "sequential_numbering: expected error for non-sequential HL01, got []"
 
     # 11. minimum_count: only 1 HL segment, min_count=2
     rule = RuleConfig(id='837-007', type='minimum_count', target='HL', severity='warning',
@@ -159,14 +159,14 @@ ntrol_number_match: expected error for ISA13!=IEA02, got []"
     errors = executor.execute_all([loop], make_parsed())
     assert len(errors) > 0, "minimum_count: expected error for 1 HL (min=2), got []"
 
-    # 12. conGN present but INS absent
+    # 12. conditional_required: BGN present but INS absent
     rule = RuleConfig(id='COND-001', type='conditional_required', condition_segment='BGN',
                       required_segment='INS', severity='error',
                       message='INS required when BGN present')
     loop = make_loop('ROOT', [make_segment('BGN', ['00', 'REF001', '20240101'])])
     executor = make_executor([rule])
     errors = executor.execute_all([loop], make_parsed())
-    assert len(errors) > 0, "conditiogot []"
+    assert len(errors) > 0, "conditional_required: expected error for missing INS, got []"
 
 
 # ── Preservation Baseline (skeleton for Task 2) ────────────────────────────
