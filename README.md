@@ -77,6 +77,16 @@ The application includes an LLM integration layer (`examples/llm_chatbot.py`) to
     python examples/llm_chatbot.py sample_837p.edi
     ```
 
+## 🚀 Production Deployment
+
+EdiPro includes containerized deployment workflows for Docker Compose, AWS ECS, GCP Cloud Run, and Kubernetes.
+
+```powershell
+# Quick single-command Docker Compose launch
+docker compose up --build -d
+```
+For complete enterprise deployment instructions, SSL Nginx configuration, HIPAA security policies, and CI/CD pipelines, see the [Deployment Guide](DEPLOYMENT.md).
+
 ## 🔒 Security & Compliance Reminder
 
 This system is configured to process raw EDI formatted data. If handling live production transactions, ensure the environment you execute on correctly guards server access mapping in line with U.S. HIPAA regulations regarding PHI and network egress encryption.
@@ -84,3 +94,4 @@ This system is configured to process raw EDI formatted data. If handling live pr
 ## 📄 License
 
 This code is provided under an open-source MIT implementation allowance. Modify and extend internal endpoints as needed for your specific hospital/billing firm standards.
+
