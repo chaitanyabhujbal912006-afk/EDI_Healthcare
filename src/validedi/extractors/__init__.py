@@ -24,9 +24,9 @@ def extract_claims(parsed_edi):
     Raises:
         ValueError: If transaction type is not 837P or 837I
     """
-    tx_type = parsed_edi.envelope.transaction_type
+    tx_type = (parsed_edi.envelope.transaction_type or '').lower()
     
-    if tx_type == '837p':
+    if tx_type in ('837p', '837'):
         return extract_claims_837p(parsed_edi)
     elif tx_type == '837i':
         return extract_claims_837i(parsed_edi)
@@ -47,8 +47,9 @@ def extract_payments(parsed_edi):
     Raises:
         ValueError: If transaction type is not 835
     """
-    if parsed_edi.envelope.transaction_type != '835':
-        raise ValueError(f"extract_payments() only supports 835, got {parsed_edi.envelope.transaction_type}")
+    tx_type = (parsed_edi.envelope.transaction_type or '').lower()
+    if tx_type != '835':
+        raise ValueError(f"extract_payments() only supports 835, got {tx_type}")
     
     return extract_payments_835(parsed_edi)
 
@@ -66,8 +67,9 @@ def extract_enrollments(parsed_edi):
     Raises:
         ValueError: If transaction type is not 834
     """
-    if parsed_edi.envelope.transaction_type != '834':
-        raise ValueError(f"extract_enrollments() only supports 834, got {parsed_edi.envelope.transaction_type}")
+    tx_type = (parsed_edi.envelope.transaction_type or '').lower()
+    if tx_type != '834':
+        raise ValueError(f"extract_enrollments() only supports 834, got {tx_type}")
     
     return extract_enrollments_834(parsed_edi)
 
