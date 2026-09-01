@@ -1,4 +1,32 @@
-# Docker Compose configuration
-# Orchestrates backend (FastAPI) and frontend (React) services
-# Enables one-command startup: docker-compose up
-# Defines service dependencies, ports, volumes, and environment variables
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./src
+      dockerfile: backend/Dockerfile
+    container_name: edipro-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./src/stitch
+      dockerfile: Dockerfile
+    container_name: edipro-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_TARGET=http://backend:8000
+    depends_on:
+      - backend

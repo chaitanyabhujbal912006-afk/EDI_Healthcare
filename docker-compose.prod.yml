@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      target: backend
+    container_name: edipro-prod-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      target: frontend
+    container_name: edipro-prod-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend

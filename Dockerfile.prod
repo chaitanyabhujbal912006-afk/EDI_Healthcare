@@ -1,0 +1,28 @@
+# Multi-stage Docker build for EdiPro Production Deployment
+
+# --- Stage 1: Build Frontend Assets ---
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app
+COPY src/stitch/package*.json ./
+RUN npm ci
+COPY src/stitch/ .
+RUN npm run build
+
+# --- Stage 2: Production Nginx Frontend Server ---
+FROM nginx:alpine AS frontend
+COPY --from=frontend-builder /app/dist /usr/share/nginx/html
+COPY src/stitch/nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+
+# --- Stage 3: Production FastAPI Backend Service ---
+FROM python:3.12-slim AS backend
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src:/app
+COPY src/backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY src/backend/app ./app
+COPY src/validedi ./validedi
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
