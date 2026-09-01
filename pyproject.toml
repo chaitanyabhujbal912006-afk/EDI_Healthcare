@@ -55,7 +55,7 @@ where = ["src"]
 validedi = ["py.typed", "config/**/*.yaml", "config/**/*.json"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "src/backend"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
