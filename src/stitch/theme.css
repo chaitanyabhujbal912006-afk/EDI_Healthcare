@@ -1011,3 +1011,115 @@ html.dark .log-box { background: #06080f; }
 @media(max-width:400px) {
   .stats-strip { grid-template-columns: 1fr; }
 }
+
+/* ── BUTTON MICRO-INTERACTIONS ───────────────────────────────── */
+button, .btn, .nav-item, .chip, .new-sub-btn {
+  user-select: none;
+  touch-action: manipulation;
+}
+button:active, .btn:active, .new-sub-btn:active {
+  transform: scale(0.98) !important;
+}
+
+/* ── TOAST NOTIFICATIONS ─────────────────────────────────────── */
+.toast-container {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: 380px; width: calc(100vw - 48px);
+  pointer-events: none;
+}
+.toast-item {
+  pointer-events: auto;
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--surface-3); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md); padding: 14px 16px;
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: blur(16px);
+  animation: toast-in 0.35s var(--ease-spring) both;
+  transition: opacity 0.25s, transform 0.25s;
+}
+.toast-item.toast-hiding {
+  opacity: 0; transform: translateY(12px) scale(0.95);
+}
+.toast-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+.toast-success .toast-icon { color: var(--success); }
+.toast-error .toast-icon   { color: var(--danger); }
+.toast-warning .toast-icon { color: var(--warning); }
+.toast-info .toast-icon    { color: var(--accent); }
+
+.toast-content { flex: 1; min-width: 0; }
+.toast-title { font-size: 13.5px; font-weight: 700; color: var(--text-primary); }
+.toast-message { font-size: 12px; color: var(--text-secondary); margin-top: 2px; line-height: 1.4; }
+.toast-close {
+  background: none; border: none; font-size: 18px; color: var(--text-tertiary);
+  cursor: pointer; padding: 0 0 0 8px; line-height: 1;
+}
+.toast-close:hover { color: var(--text-primary); }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── COMMAND PALETTE ──────────────────────────────────────────── */
+.cmd-palette-backdrop {
+  position: fixed; inset: 0; z-index: 9900;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 12vh; opacity: 0; pointer-events: none;
+  transition: opacity 0.2s var(--ease-smooth);
+}
+.cmd-palette-backdrop.visible { opacity: 1; pointer-events: auto; }
+.cmd-palette-modal {
+  width: 100%; max-width: 620px;
+  background: var(--surface-solid); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl); overflow: hidden;
+  transform: translateY(-12px) scale(0.98);
+  transition: transform 0.25s var(--ease-spring);
+}
+.cmd-palette-backdrop.visible .cmd-palette-modal {
+  transform: translateY(0) scale(1);
+}
+.cmd-palette-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  background: var(--surface-1);
+}
+.cmd-palette-header .ms { font-size: 22px; color: var(--text-tertiary); }
+.cmd-palette-header input {
+  flex: 1; border: none; background: transparent;
+  font-size: 15px; font-weight: 500; font-family: inherit;
+  color: var(--text-primary); outline: none;
+}
+.cmd-palette-results { max-height: 380px; overflow-y: auto; padding: 8px; }
+.cmd-group-label {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-tertiary);
+  padding: 8px 12px 4px;
+}
+.cmd-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: var(--radius-md);
+  font-size: 13.5px; font-weight: 500; color: var(--text-primary);
+  cursor: pointer; transition: background 0.15s;
+}
+.cmd-item:hover { background: var(--accent-dim); color: var(--accent); }
+.cmd-item .ms { font-size: 18px; color: var(--text-secondary); }
+.cmd-item:hover .ms { color: var(--accent); }
+.cmd-item .kbd { margin-left: auto; }
+
+/* ── QUICK DEMO LOADERS & BADGES ────────────────────────────── */
+.demo-loaders {
+  display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap;
+}
+.demo-loader-label { font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; }
+.demo-btn {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-full); padding: 5px 12px;
+  font-size: 11.5px; font-weight: 600; color: var(--accent);
+  cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px;
+}
+.demo-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); transform: translateY(-1px); }
+.demo-btn .ms { font-size: 14px; }
+
