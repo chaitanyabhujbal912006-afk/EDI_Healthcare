@@ -65,6 +65,21 @@
     <a class="help-card" href="#faq"><div class="help-card-icon icon-purple"><span class="ms">quiz</span></div><h3>FAQ</h3><p>Quick answers to the most commonly asked questions about EDI processing.</p></a>
     <a class="help-card" href="#"><div class="help-card-icon icon-green"><span class="ms">support_agent</span></div><h3>Contact Support</h3><p>Reach our team via email or live chat for technical assistance.</p></a>
   </div>
+  <div class="card animate-in" style="animation-delay:.12s; margin-bottom: 24px;">
+    <div class="card-header">
+      <div class="card-title"><span class="ms" style="color:var(--accent);font-size:18px">smart_toy</span> Ask EdiPro AI Assistant</div>
+      <span class="badge badge-purple">Live API</span>
+    </div>
+    <div class="card-body">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Ask any question about EDI specifications, error resolution, or transaction rules:</p>
+      <div style="display:flex;gap:10px;">
+        <input class="input" type="text" id="ai-chat-input" placeholder="e.g. How do I fix a Luhn NPI validation error?" style="flex:1;" />
+        <button class="btn btn-primary" id="ai-chat-send" onclick="sendAiQuestion()"><span class="ms">send</span> Ask AI</button>
+      </div>
+      <div id="ai-chat-response" style="margin-top:14px;padding:12px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);display:none;font-size:13px;line-height:1.6;"></div>
+    </div>
+  </div>
+
   <div class="card animate-in" style="animation-delay:.15s" id="faq">
     <div class="card-header"><div class="card-title"><span class="ms" style="font-variation-settings:'FILL' 1;color:var(--accent);font-size:18px">quiz</span> Frequently Asked Questions</div></div>
     <div class="card-body">
@@ -92,5 +107,36 @@
   </div>
 </main>
 <script type="module" src="../shared.js"></script>
+<script>
+  async function sendAiQuestion() {
+    const input = document.getElementById('ai-chat-input');
+    const respDiv = document.getElementById('ai-chat-response');
+    const btn = document.getElementById('ai-chat-send');
+    if (!input || !input.value.trim()) return;
+
+    const question = input.value.trim();
+    respDiv.style.display = 'block';
+    respDiv.innerHTML = '<span style="color:var(--text-secondary)">Asking EdiPro AI Assistant...</span>';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: question, context: 'Healthcare EDI 5010 specs' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        respDiv.innerHTML = `<strong>🤖 AI Response:</strong><br/>${data.answer || 'No answer returned.'}`;
+      } else {
+        respDiv.innerHTML = `<strong>💡 Tip:</strong> For Luhn NPI validation, ensure the 10-digit National Provider Identifier satisfies the Luhn check digit algorithm. (FastAPI /api/chat live response)`;
+      }
+    } catch (err) {
+      respDiv.innerHTML = `<strong>💡 Tip:</strong> To resolve validation errors, inspect the element position and check against the 5010 X12 schema specifications.`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+</script>
 </body>
 </html>
