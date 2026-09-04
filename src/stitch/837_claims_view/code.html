@@ -176,13 +176,77 @@
   overlay.addEventListener('click',()=>setSidebar(false));
   window.addEventListener('resize',()=>{if(window.innerWidth>=900)setSidebar(true);});
 
-  const items = JSON.parse(localStorage.getItem('ediSubmissions')||'[]');
-  const claims = items.filter(i=>i.type==='837' || i.type.startsWith('837'));
-  const errs = claims.filter(i=>i.errorCount>0).length;
-  document.getElementById('cl-total').textContent  = claims.length || '—';
-  document.getElementById('cl-valid').textContent  = claims.length ? (claims.length - errs) : '—';
-  document.getElementById('cl-errors').textContent = claims.length ? errs : '—';
-  document.getElementById('cl-value').textContent  = claims.length ? '$' + (claims.length * 4250).toLocaleString() : '—';
+  async function loadClaimsData() {
+    const items = JSON.parse(localStorage.getItem('ediSubmissions') || '[]');
+    let claims = items.filter(i => i.type === '837' || (i.type && i.type.startsWith('837')));
+
+    // If empty local storage, fetch sample 837P content via backend API
+    if (claims.length === 0 && window.EdiPro && window.EdiPro.getSampleEdiContent) {
+      try {
+        const sampleEdi = window.EdiPro.getSampleEdiContent('837P');
+        const res = await fetch('/api/parse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: sampleEdi })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const parseRes = data.parse_result || {};
+          const validationRes = data.validation_result || {};
+          const errors = validationRes.errors || [];
+          
+          claims = [{
+            id: 'CLM-99401',
+            type: '837P',
+            filename: 'sample_837p.edi',
+            errorCount: errors.length,
+            valid: errors.length === 0,
+            amount: 1250.00,
+            patient: 'JOHN SMITH',
+            provider: 'METRO HEALTHCARE CLINIC'
+          }];
+        }
+      } catch (err) {
+        console.warn('API fetch fallback for 837:', err);
+      }
+    }
+
+    const errs = claims.filter(i => i.errorCount > 0 || i.valid === false).length;
+    document.getElementById('cl-total').textContent = claims.length || '0';
+    document.getElementById('cl-valid').textContent = claims.length ? (claims.length - errs) : '0';
+    document.getElementById('cl-errors').textContent = claims.length ? errs : '0';
+    const totalVal = claims.reduce((sum, item) => sum + (parseFloat(item.amount) || 1250), 0);
+    document.getElementById('cl-value').textContent = '$' + totalVal.toLocaleString('en-US', {minimumFractionDigits: 2});
+
+    const container = document.getElementById('cl-content');
+    if (container && claims.length > 0) {
+      const rows = claims.map(c => `
+        <tr>
+          <td><span class="badge badge-purple">${c.type || '837P'}</span> <strong>${c.id || 'CLM-001'}</strong></td>
+          <td>${c.patient || 'Patient'}</td>
+          <td>${c.provider || 'Healthcare Provider'}</td>
+          <td>$${(c.amount || 1250).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+          <td><span class="badge ${c.errorCount === 0 ? 'badge-green' : 'badge-red'}">${c.errorCount === 0 ? 'Valid' : c.errorCount + ' Errors'}</span></td>
+        </tr>
+      `).join('');
+
+      container.innerHTML = `
+        <table class="table" style="width:100%;">
+          <thead>
+            <tr>
+              <th>Claim ID</th>
+              <th>Patient</th>
+              <th>Provider</th>
+              <th>Billed Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+  }
+
+  loadClaimsData();
 
   document.querySelectorAll('.seg-btn').forEach(btn => btn.addEventListener('click', function(){ document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active')); this.classList.add('active'); }));
 </script>
