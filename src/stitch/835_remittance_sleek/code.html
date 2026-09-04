@@ -201,11 +201,88 @@
   overlay.addEventListener('click', () => setSidebar(false));
   window.addEventListener('resize', () => { if(window.innerWidth>=900) setSidebar(true); });
 
-  // Load data from storage
-  const items = JSON.parse(localStorage.getItem('ediSubmissions')||'[]');
-  const rm = items.filter(i => i.type === '835');
-  document.getElementById('rm-count').textContent = rm.length || '—';
-  document.getElementById('rm-total').textContent = rm.length > 0 ? '$' + (rm.length * 142880).toLocaleString() : '—';
+  // Load data from storage & API backend
+  async function loadRemittanceData() {
+    const items = JSON.parse(localStorage.getItem('ediSubmissions') || '[]');
+    let rm = items.filter(i => i.type === '835');
+
+    // If no local storage items, auto-fetch sample 835 via backend API
+    if (rm.length === 0 && window.EdiPro && window.EdiPro.getSampleEdiContent) {
+      try {
+        const sampleEdi = window.EdiPro.getSampleEdiContent('835');
+        const res = await fetch('/api/parse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: sampleEdi })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const parseRes = data.parse_result || {};
+          const segments = parseRes.segments || [];
+          const clpSegs = segments.filter(s => s.id === 'CLP');
+          
+          rm = clpSegs.map((clp, idx) => ({
+            id: clp.elements[0] || `CLM-${idx+1}`,
+            type: '835',
+            filename: 'sample_835.edi',
+            timestamp: new Date().toLocaleDateString(),
+            status: clp.elements[1] === '1' ? 'Paid' : 'Processed',
+            amount: parseFloat(clp.elements[3] || '0') || 1100.00,
+            billed: parseFloat(clp.elements[2] || '0') || 1250.00,
+            patient: 'JOHN SMITH'
+          }));
+        }
+      } catch (err) {
+        console.warn('API fetch fallback for 835:', err);
+      }
+    }
+
+    document.getElementById('rm-count').textContent = rm.length || '0';
+    const totalAmount = rm.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    document.getElementById('rm-total').textContent = totalAmount > 0 ? '$' + totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2}) : '$0.00';
+
+    const container = document.getElementById('rm-content');
+    if (!container) return;
+
+    if (rm.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon"><span class="ms">receipt_long</span></div>
+          <h3>No 835 remittance data yet</h3>
+          <p>Upload 835 files from the <a href="../dashboard_sleek/code.html" style="color:var(--accent)">Dashboard</a> to see payment data here.</p>
+          <a class="btn btn-primary" href="../dashboard_sleek/code.html"><span class="ms">upload_file</span> Go to Dashboard</a>
+        </div>`;
+      return;
+    }
+
+    let rowsHtml = rm.map(item => `
+      <tr class="rm-table-row">
+        <td><span class="badge badge-green">835</span> <strong>${item.id || 'CLM-835'}</strong></td>
+        <td>${item.patient || 'Patient'}</td>
+        <td>$${(item.billed || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+        <td><strong style="color:var(--success)">$${(item.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</strong></td>
+        <td><span class="badge badge-blue">${item.status || 'Paid'}</span></td>
+        <td>${item.timestamp || 'Today'}</td>
+      </tr>
+    `).join('');
+
+    container.innerHTML = `
+      <table class="table" style="width:100%;">
+        <thead>
+          <tr>
+            <th>Claim ID</th>
+            <th>Patient</th>
+            <th>Billed Amount</th>
+            <th>Paid Amount</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>`;
+  }
+
+  loadRemittanceData();
 
   function filterRM(type, btn) {
     document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
