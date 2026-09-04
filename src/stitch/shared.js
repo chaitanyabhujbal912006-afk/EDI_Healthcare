@@ -258,6 +258,9 @@ function initPage() {
   /* ---- Highlight Navigation ---- */
   highlightActiveNav();
 
+  /* ---- Backend API Health Indicator ---- */
+  checkBackendHealth();
+
   /* ---- Attach Command Palette Triggers ---- */
   const searchInputs = document.querySelectorAll('.search-trigger, .nav-search');
   searchInputs.forEach(input => {
@@ -266,6 +269,38 @@ function initPage() {
       openCommandPalette();
     });
   });
+}
+
+async function checkBackendHealth() {
+  const topnavRight = document.querySelector('.topnav-right');
+  if (!topnavRight) return;
+
+  let badge = document.getElementById('api-health-badge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'api-health-badge';
+    badge.className = 'api-health-badge';
+    badge.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;background:var(--surface-2, #f1f5f9);border:1px solid var(--border, #e2e8f0);color:var(--text-secondary, #64748b);margin-right:8px;';
+    topnavRight.insertBefore(badge, topnavRight.firstChild);
+  }
+
+  try {
+    const res = await fetch('/api/health', { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.status === 'ok') {
+        badge.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;"></span> API Online`;
+        badge.title = "FastAPI Backend Connected";
+        return true;
+      }
+    }
+  } catch (err) {
+    // API offline or static fallback
+  }
+
+  badge.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Offline Mode`;
+  badge.title = "FastAPI Backend Offline — using client fallback";
+  return false;
 }
 
 function readSubmissions() {
@@ -293,9 +328,11 @@ window.EdiPro = {
   closeCommandPalette,
   getSampleEdiContent,
   readSubmissions,
-  saveSubmission
+  saveSubmission,
+  checkBackendHealth
 };
 window.showToast = showToast;
 window.openCommandPalette = openCommandPalette;
 window.getSampleEdiContent = getSampleEdiContent;
+
 
