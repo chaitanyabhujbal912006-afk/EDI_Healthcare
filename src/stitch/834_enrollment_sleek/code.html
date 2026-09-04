@@ -63,12 +63,38 @@
 </main>
 <script type="module" src="../shared.js"></script>
 <script>
-  const all = readSubmissions();
-  const items = all.filter(i => i.type && i.type.toUpperCase().includes('834'));
-  document.getElementById('enroll-count').textContent = items.length || '--';
+  async function loadEnrollmentData() {
+    const all = readSubmissions();
+    let items = all.filter(i => i.type && i.type.toUpperCase().includes('834'));
 
-  const container = document.getElementById('enrollment-content');
-  if (container) {
+    // Fetch sample 834 data from backend API if empty
+    if (items.length === 0 && window.EdiPro && window.EdiPro.getSampleEdiContent) {
+      try {
+        const sampleEdi = window.EdiPro.getSampleEdiContent('834');
+        const res = await fetch('/api/parse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: sampleEdi })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          items = [{
+            filename: 'sample_834.edi',
+            type: '834',
+            errorCount: (data.validation_result && data.validation_result.errors) ? data.validation_result.errors.length : 0,
+            timeLabel: new Date().toLocaleTimeString()
+          }];
+        }
+      } catch (err) {
+        console.warn('API fetch fallback for 834:', err);
+      }
+    }
+
+    document.getElementById('enroll-count').textContent = items.length || '0';
+
+    const container = document.getElementById('enrollment-content');
+    if (!container) return;
+
     if (items.length === 0) {
       const hint = all.length > 0
         ? `Tip: ${all.length} file(s) in storage but none are 834. Found: <strong>${[...new Set(all.map(i=>i.type))].join(', ')}</strong>.`
@@ -94,11 +120,13 @@
           <td><span class="badge badge-blue">${item.type}</span></td>
           <td class="td-mono">${item.errorCount}</td>
           <td><span class="badge ${ok ? 'badge-green' : 'badge-red'}">${ok ? '✓ Valid' : item.errorCount + ' Errors'}</span></td>
-          <td class="td-mono">${item.timeLabel}</td>`;
+          <td class="td-mono">${item.timeLabel || 'Just now'}</td>`;
         tbody.appendChild(tr);
       });
     }
   }
+
+  loadEnrollmentData();
 </script>
 </body>
 </html>
