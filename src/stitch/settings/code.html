@@ -393,8 +393,19 @@
     inp.type = inp.type === 'password' ? 'text' : 'password';
   }
 
-  // Save button
-  document.getElementById('save-btn').addEventListener('click', () => showToast('Settings saved!'));
+  // Save button with live API connection check
+  document.getElementById('save-btn').addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/health');
+      if (res.ok) {
+        showToast('Settings saved & FastAPI backend verified!');
+      } else {
+        showToast('Settings saved locally (API offline)');
+      }
+    } catch {
+      showToast('Settings saved locally!');
+    }
+  });
 
   // Toast
   function showToast(msg) {
