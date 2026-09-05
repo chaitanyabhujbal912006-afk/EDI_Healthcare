@@ -123,10 +123,10 @@ r fix, this test PASSES — confirming all 12 types now emit errors.
     errors = executor.execute_all([], make_parsed(raw))
     assert len(errors) > 0, "control_number_match: expected error for ISA13!=IEA02, got []"
 
-    # 8. segment_count: SE01=5 but actual=7
+    # 8. segment_count: SE01=5 but actual=3
     rule = RuleConfig(id='CNT-001', type='segment_count', target='SE01', severity='error',
                       message='SE01 is {reported}, actual is {actual}')
-    raw = 'ISA*00*     GE*1*1~IEA*1*000000001~'
+    raw = 'ISA*00*          *00*          *ZZ*SENDER         *ZZ*RECEIVER       *240101*1200*^*00501*000000001*0*T*:~GS*HC*SENDER*RECEIVER*20240101*1200*1*X*005010X222A1~ST*837*0001~CLM*123~SE*5*0001~GE*1*1~IEA*1*000000001~'
     executor = make_executor([rule])
     errors = executor.execute_all([], make_parsed(raw))
     assert len(errors) > 0, "segment_count: expected error for SE01 mismatch, got []"

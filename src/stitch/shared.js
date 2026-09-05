@@ -303,6 +303,19 @@ async function checkBackendHealth() {
   return false;
 }
 
+function escapeHtml(str) {
+  if (typeof str !== 'string') return str == null ? '' : String(str);
+  return str.replace(/[&<>"']/g, function(m) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[m];
+  });
+}
+
 function readSubmissions() {
   try { const p = JSON.parse(localStorage.getItem('ediSubmissions') || '[]'); return Array.isArray(p) ? p : []; }
   catch { return []; }
@@ -329,10 +342,12 @@ window.EdiPro = {
   getSampleEdiContent,
   readSubmissions,
   saveSubmission,
-  checkBackendHealth
+  checkBackendHealth,
+  escapeHtml
 };
 window.showToast = showToast;
 window.openCommandPalette = openCommandPalette;
 window.getSampleEdiContent = getSampleEdiContent;
+window.escapeHtml = escapeHtml;
 
 

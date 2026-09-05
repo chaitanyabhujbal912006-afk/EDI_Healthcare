@@ -115,33 +115,29 @@ def _read_source(source: str | Path) -> str:
 def _is_file_path(s: str) -> bool:
     """
     Check if string looks like a file path.
-    
-    Heuristic: If it contains path separators or file extensions,
-    or if the file exists, treat it as a path.
-    
-    Supported file extensions: .edi, .x12, .dat, .txt (case-insensitive)
+
+    Heuristic:
+    - If the file exists on disk, treat it as a path.
+    - If it contains path separators ('/' or '\\') or ends with a supported extension (.edi, .x12, .dat, .txt) and does not look like raw EDI, treat it as a path.
+    - Otherwise, treat it as raw EDI content.
     """
-    # Check if file exists
-    if Path(s).exists():
-        return True
-    
-    # Check for EDI-related file extensions (case-insensitive)
+    try:
+        if Path(s).exists():
+            return True
+    except Exception:
+        pass
+
+    # If it contains EDI segment terminators or ISA header, it's raw EDI text
+    if s.strip().startswith('ISA') or '~' in s or '*' in s:
+        return False
+
     lower_s = s.lower()
     if lower_s.endswith(('.edi', '.x12', '.dat', '.txt')):
         return True
-    
-    # Check for path separators
+
     if '/' in s or '\\' in s:
         return True
-    
-    # If it starts with ISA, it's probably raw EDI content
-    if s.strip().startswith('ISA'):
-        return False
-    
-    # Default: if it's short and has no newlines, might be a filename
-    if len(s) < 200 and '\n' not in s and '~' not in s:
-        return True
-    
+
     return False
 
 

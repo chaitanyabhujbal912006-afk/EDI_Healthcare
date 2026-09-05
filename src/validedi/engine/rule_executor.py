@@ -521,10 +521,11 @@ class RuleExecutor:
         """Validate SE01 matches actual segment count."""
         se_segs = self._find_segments('SE', loops)
         st_segs = self._find_segments('ST', loops)
-        if not se_segs and parsed and parsed.segments:
-            se_segs = [s for s in parsed.segments if s.segment_id == 'SE']
-        if not st_segs and parsed and parsed.segments:
-            st_segs = [s for s in parsed.segments if s.segment_id == 'ST']
+        parsed_segs = getattr(parsed, 'segments', [])
+        if not se_segs and parsed_segs:
+            se_segs = [s for s in parsed_segs if s.segment_id == 'SE']
+        if not st_segs and parsed_segs:
+            st_segs = [s for s in parsed_segs if s.segment_id == 'ST']
 
         reported = None
         se_pos = 0
@@ -564,7 +565,7 @@ class RuleExecutor:
                         )]
 
         if reported is not None and st_segs and se_segs:
-            all_segs = self._all_segments(loops) or parsed.segments
+            all_segs = self._all_segments(loops) or parsed_segs
             st_pos = st_segs[0].position
             actual = sum(1 for s in all_segs if st_pos <= s.position <= se_pos)
             if reported != actual:
@@ -586,19 +587,24 @@ class RuleExecutor:
         open_id, close_id = rule.segment_pair[0], rule.segment_pair[1]
         open_segs = self._find_segments(open_id, loops)
         close_segs = self._find_segments(close_id, loops)
-        if not open_segs and parsed and parsed.segments:
-            open_segs = [s for s in parsed.segments if s.segment_id == open_id]
-        if not close_segs and parsed and parsed.segments:
-            close_segs = [s for s in parsed.segments if s.segment_id == close_id]
+        parsed_segs = getattr(parsed, 'segments', [])
+        if not open_segs and parsed_segs:
+            open_segs = [s for s in parsed_segs if s.segment_id == open_id]
+        if not close_segs and parsed_segs:
+            close_segs = [s for s in parsed_segs if s.segment_id == close_id]
 
         open_count = len(open_segs)
         close_count = len(close_segs)
 
-        if open_count == 0 and close_count == 0 and parsed and parsed.raw:
+        if (open_count == 0 or close_count == 0) and parsed and parsed.raw:
             raw = parsed.raw
             isa_start = raw.find('ISA')
             sep = raw[isa_start + 3] if isa_start != -1 and len(raw) > isa_start + 3 else '*'
-            term = raw[isa_start + 105] if isa_start != -1 and len(raw) > isa_start + 105 else '~'
+            term = '~'
+            if isa_start != -1 and len(raw) > isa_start + 105 and raw[isa_start + 105] in ('~', '\n', '\r'):
+                term = raw[isa_start + 105]
+            elif '~' in raw:
+                term = '~'
             segs = [s.strip() for s in raw.split(term) if s.strip()]
             open_count = sum(1 for s in segs if s.startswith(open_id + sep))
             close_count = sum(1 for s in segs if s.startswith(close_id + sep))

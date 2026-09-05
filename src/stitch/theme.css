@@ -1123,3 +1123,24 @@ button:active, .btn:active, .new-sub-btn:active {
 .demo-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); transform: translateY(-1px); }
 .demo-btn .ms { font-size: 14px; }
 
+/* ── UI VISUAL POLISH & MICRO-INTERACTIONS ────────────────────── */
+.card-gloss {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card-gloss:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -8px var(--shadow-color, rgba(0,0,0,0.08));
+}
+.stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+.table tbody tr {
+  transition: background 0.15s ease;
+}
+.table tbody tr:hover {
+  background: var(--accent-dim) !important;
+}
+

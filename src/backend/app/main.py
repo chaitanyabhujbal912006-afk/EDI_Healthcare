@@ -38,6 +38,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
 
 STITCH_DIR = Path(__file__).resolve().parents[2] / "stitch"
 if STITCH_DIR.exists():
@@ -66,14 +75,24 @@ def parse_raw(request: ParseRequest) -> dict[str, Any]:
     }
 
 
+MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50 MB
+MAX_BATCH_SIZE = 100 * 1024 * 1024  # 100 MB
+
+
 @app.post("/api/upload", response_model=UploadResponse)
 async def upload_file(file: UploadFile = File(...)) -> UploadResponse:
-    content = (await file.read()).decode("utf-8", errors="ignore")
+    file_bytes = await file.read()
+    if len(file_bytes) > MAX_UPLOAD_SIZE:
+        raise HTTPException(status_code=413, detail="File size exceeds maximum limit of 50 MB.")
+
+    content = file_bytes.decode("utf-8", errors="ignore")
     parsed = parse_x12(content)
     validation = validate(parsed)
 
+    safe_filename = Path(file.filename or "uploaded.edi").name
+
     report = ParsedFileReport(
-        filename=file.filename or "uploaded.edi",
+        filename=safe_filename,
         parse_result=parsed,
         validation_result=validation,
     )
@@ -94,18 +113,22 @@ async def batch_upload(file: UploadFile = File(...)) -> BatchResult:
         raise HTTPException(status_code=400, detail="Please upload a ZIP file for batch processing.")
 
     content = await file.read()
+    if len(content) > MAX_BATCH_SIZE:
+        raise HTTPException(status_code=413, detail="Batch ZIP file size exceeds maximum limit of 100 MB.")
+
     zip_buffer = io.BytesIO(content)
     reports: list[ParsedFileReport] = []
 
     with zipfile.ZipFile(zip_buffer) as zf:
         for name in zf.namelist():
-            if not name.lower().endswith((".edi", ".txt", ".dat", ".x12")):
+            safe_name = Path(name).name
+            if not safe_name or not safe_name.lower().endswith((".edi", ".txt", ".dat", ".x12")):
                 continue
             data = zf.read(name).decode("utf-8", errors="ignore")
             parsed = parse_x12(data)
             validation = validate(parsed)
             reports.append(
-                ParsedFileReport(filename=name, parse_result=parsed, validation_result=validation)
+                ParsedFileReport(filename=safe_name, parse_result=parsed, validation_result=validation)
             )
 
     failed = sum(1 for r in reports if not r.validation_result.valid)
