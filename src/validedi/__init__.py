@@ -10,7 +10,9 @@ Features:
 - LLM-powered explanations (bring your own LLM)
 - Plain-English error messages
 - Structured data extraction (claims, payments, enrollments)
-- JSON export
+- JSON and CSV export
+- Batch validation with concurrent processing
+- Rich validation summary via ValidationResult.summary()
 """
 
 from validedi.engine.models import (
@@ -33,6 +35,7 @@ from validedi.utils.exceptions import (
 # Import core functions
 from validedi.engine.parser import parse
 from validedi.engine.validator import validate
+from validedi.engine.batch import batch_validate
 
 # Import extractors
 from validedi.extractors import (
@@ -42,20 +45,24 @@ from validedi.extractors import (
 )
 
 # Import exporters
-from validedi.exporters import export_json
+from validedi.exporters import export_json, export_json_to_file, export_errors_csv, export_claims_csv
 
-__version__ = "0.3.5"
+__version__ = "0.4.0"
 
 __all__ = [
     # Core functions
     "parse",
     "validate",
+    "batch_validate",
     # Extractors
     "extract_claims",
     "extract_payments",
     "extract_enrollments",
     # Exporters
     "export_json",
+    "export_json_to_file",
+    "export_errors_csv",
+    "export_claims_csv",
     # Models
     "ParsedEDI",
     "ValidationResult",
