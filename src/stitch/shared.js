@@ -271,17 +271,26 @@ function initPage() {
   });
 }
 
-async function checkBackendHealth() {
+let healthCheckInterval = null;
+
+async function checkBackendHealth(isManual = false) {
   const topnavRight = document.querySelector('.topnav-right');
   if (!topnavRight) return;
 
   let badge = document.getElementById('api-health-badge');
   if (!badge) {
-    badge = document.createElement('div');
+    badge = document.createElement('button');
     badge.id = 'api-health-badge';
     badge.className = 'api-health-badge';
-    badge.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;background:var(--surface-2, #f1f5f9);border:1px solid var(--border, #e2e8f0);color:var(--text-secondary, #64748b);margin-right:8px;';
+    badge.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;background:var(--surface-2, #f1f5f9);border:1px solid var(--border, #e2e8f0);color:var(--text-secondary, #64748b);margin-right:8px;cursor:pointer;transition:all 0.2s ease;';
+    badge.addEventListener('click', () => {
+      checkBackendHealth(true);
+    });
     topnavRight.insertBefore(badge, topnavRight.firstChild);
+  }
+
+  if (isManual) {
+    badge.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:#3b82f6;display:inline-block;animation:pulse 1s infinite;"></span> Checking...`;
   }
 
   try {
@@ -289,8 +298,12 @@ async function checkBackendHealth() {
     if (res.ok) {
       const data = await res.json();
       if (data.status === 'ok') {
-        badge.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;"></span> API Online`;
-        badge.title = "FastAPI Backend Connected";
+        badge.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;display:inline-block;"></span> API Online`;
+        badge.title = "FastAPI Backend Connected (Click to re-test)";
+        badge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+        if (isManual && window.showToast) {
+          showToast('Backend Online', 'Connected to FastAPI EDI Gateway.', 'success', 2500);
+        }
         return true;
       }
     }
@@ -299,8 +312,17 @@ async function checkBackendHealth() {
   }
 
   badge.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Offline Mode`;
-  badge.title = "FastAPI Backend Offline — using client fallback";
+  badge.title = "FastAPI Backend Offline — Click to retry connection";
+  badge.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+  if (isManual && window.showToast) {
+    showToast('Backend Offline', 'Could not reach /api/health. Ensure uvicorn server is running.', 'warning', 3000);
+  }
   return false;
+}
+
+// Start periodic polling once
+if (!healthCheckInterval && typeof window !== 'undefined') {
+  healthCheckInterval = setInterval(() => checkBackendHealth(false), 20000);
 }
 
 function escapeHtml(str) {
