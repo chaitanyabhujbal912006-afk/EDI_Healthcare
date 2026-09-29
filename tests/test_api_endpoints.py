@@ -173,3 +173,13 @@ def test_export_errors_pdf() -> None:
     response = client.post("/api/export/errors-pdf", json=payload)
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/pdf"
+
+
+def test_system_stats_overview() -> None:
+    response = client.get("/api/stats/overview")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "online"
+    assert "837P" in data["supported_transactions"]
+    assert data["total_built_in_rules"] > 0
+    assert "active_rule_categories" in data

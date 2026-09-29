@@ -65,6 +65,25 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/api/stats/overview")
+def get_system_stats() -> dict[str, Any]:
+    return {
+        "status": "online",
+        "supported_transactions": ["837P", "837I", "835", "834"],
+        "active_rule_categories": [
+            "Mandatory Segment Coverage",
+            "NPI Luhn 10-Digit Verification",
+            "ICD-10 / Diagnosis Code Formatting",
+            "Balanced Claim Line Pricing",
+            "HIPAA 5010 Segment Demarcation",
+            "Cross-Segment & Date Consistency",
+        ],
+        "total_built_in_rules": 64,
+        "max_upload_mb": MAX_UPLOAD_SIZE // (1024 * 1024),
+        "engine_version": "1.0.0",
+    }
+
+
 @app.post("/api/parse")
 def parse_raw(request: ParseRequest) -> dict[str, Any]:
     parsed = parse_x12(request.content)
