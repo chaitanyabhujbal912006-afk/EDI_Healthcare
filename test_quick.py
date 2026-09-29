@@ -4,6 +4,7 @@ Covers: parse, validate, loop navigation, segment access,
         error handling, LLM explain (rule-based), ask_followup
 """
 
+import sys
 from pathlib import Path
 from validedi import (
     parse, validate,
@@ -13,14 +14,30 @@ from validedi import (
 )
 from validedi.llm import explain, ask_followup, ExplainResult
 
-PASS = "✅"
-FAIL = "❌"
+# Ensure UTF-8 output on Windows consoles
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+try:
+    "✅".encode(sys.stdout.encoding or "ascii")
+    PASS = "✅"
+    FAIL = "❌"
+    ARROW = "→"
+except Exception:
+    PASS = "[PASS]"
+    FAIL = "[FAIL]"
+    ARROW = "->"
+
 results = []
 
 def check(label: str, condition: bool, detail: str = ""):
     status = PASS if condition else FAIL
     results.append((status, label))
-    print(f"  {status}  {label}" + (f"  →  {detail}" if detail else ""))
+    print(f"  {status}  {label}" + (f"  {ARROW}  {detail}" if detail else ""))
 
 def section(title: str):
     print(f"\n{'='*60}")
