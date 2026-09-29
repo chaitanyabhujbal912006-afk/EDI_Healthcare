@@ -183,3 +183,22 @@ def test_system_stats_overview() -> None:
     assert "837P" in data["supported_transactions"]
     assert data["total_built_in_rules"] > 0
     assert "active_rule_categories" in data
+
+
+def test_export_reconciliation_csv() -> None:
+    payload = {
+        "rows": [
+            {
+                "claim_id": "CLM999",
+                "837_billed": 500.0,
+                "835_billed": 500.0,
+                "835_paid": 450.0,
+                "variance": 50.0,
+            }
+        ]
+    }
+    response = client.post("/api/export/reconciliation-csv", json=payload)
+    assert response.status_code == 200
+    assert "text/csv" in response.headers["content-type"]
+    assert b"CLM999" in response.content
+    assert b"500.0" in response.content

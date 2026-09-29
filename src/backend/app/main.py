@@ -263,6 +263,16 @@ def export_members_csv(payload: dict[str, Any]) -> StreamingResponse:
     )
 
 
+@app.post("/api/export/reconciliation-csv")
+def export_reconciliation_csv(payload: dict[str, Any]) -> StreamingResponse:
+    rows = payload.get("rows", [])
+    return StreamingResponse(
+        io.BytesIO(csv_bytes(rows)),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=reconciliation.csv"},
+    )
+
+
 @app.post("/api/export/corrected-edi")
 def export_corrected_edi(payload: dict[str, Any]) -> StreamingResponse:
     segments = payload.get("segments", [])
