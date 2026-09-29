@@ -78,6 +78,38 @@ def build_family_grouping(members: list[dict[str, str]]) -> list[dict[str, objec
     return [{"family_key": k, "members": v, "count": len(v)} for k, v in grouped.items()]
 
 
+def build_837i_summary(segments: list[Segment]) -> list[dict[str, object]]:
+    claims: list[dict[str, object]] = []
+    current_claim: dict[str, object] = {}
+
+    for seg in segments:
+        if seg.id == "CLM" and len(seg.elements) > 1:
+            if current_claim:
+                claims.append(current_claim)
+            facility_code = seg.elements[4] if len(seg.elements) > 4 else ""
+            current_claim = {
+                "claim_id": seg.elements[0],
+                "total_billed": _to_float(seg.elements[1]),
+                "facility_type": facility_code,
+                "revenue_lines": [],
+                "statement_dates": "",
+            }
+        elif seg.id == "SV2" and current_claim and len(seg.elements) > 2:
+            rev_lines: list = current_claim.setdefault("revenue_lines", [])  # type: ignore
+            rev_lines.append({
+                "revenue_code": seg.elements[0],
+                "charge_amount": _to_float(seg.elements[2]),
+                "units": _to_float(seg.elements[4]) if len(seg.elements) > 4 else 1.0,
+            })
+        elif seg.id == "DTP" and current_claim and len(seg.elements) > 2 and seg.elements[0] == "434":
+            current_claim["statement_dates"] = seg.elements[2]
+
+    if current_claim:
+        claims.append(current_claim)
+
+    return claims
+
+
 def _to_float(value: str) -> float:
     try:
         return float(value)
