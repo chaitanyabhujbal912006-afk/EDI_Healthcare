@@ -68,6 +68,20 @@ def _check_required_segments(parsed: ParseResult, issues: list[ValidationIssue])
 
 def _check_element_formats(parsed: ParseResult, issues: list[ValidationIssue]) -> None:
     for seg in parsed.segments:
+        if parsed.transaction_type in {"837P", "837I"} and seg.id == "NM1" and len(seg.elements) > 0 and seg.elements[0] == "85":
+            has_npi = len(seg.elements) > 8 and seg.elements[7] == "XX" and bool(seg.elements[8])
+            if not has_npi:
+                issues.append(
+                    ValidationIssue(
+                        code="BILLING_NPI_REQUIRED",
+                        severity="error",
+                        message="Billing Provider (NM1*85) requires qualifier 'XX' in NM108 and a valid 10-digit NPI in NM109.",
+                        loop_location="2010AA",
+                        segment_id="NM1",
+                        element_position=9,
+                    )
+                )
+
         if seg.id == "NM1" and len(seg.elements) > 8:
             nm108 = seg.elements[7]
             nm109 = seg.elements[8]
