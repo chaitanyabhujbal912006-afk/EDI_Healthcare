@@ -254,6 +254,24 @@ html.dark .hero-left h1 {
 .act-title { font-size: 13px; font-weight: 700; color: var(--text-primary); }
 .act-sub { font-size: 12px; color: var(--text-tertiary); margin-top: 3px; }
 .act-time { font-size: 11px; color: var(--text-tertiary); white-space: nowrap; padding-top: 2px; }
+/* Live session clock */
+.session-clock {
+  display: flex; flex-direction: column; align-items: flex-end;
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 5px 12px;
+  font-size: 11px; font-weight: 700; color: var(--text-secondary);
+  letter-spacing: 0.04em; line-height: 1.3;
+  user-select: none; cursor: default;
+}
+.session-clock .clock-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 700; color: var(--text-primary);
+  letter-spacing: 0.06em;
+}
+.session-clock .clock-uptime {
+  font-size: 10px; color: var(--success);
+  font-weight: 600;
+}
 </style>
 </head>
 <body>
@@ -278,6 +296,11 @@ html.dark .hero-left h1 {
     </a>
   </div>
   <div class="topnav-right">
+    <!-- Live session clock -->
+    <div class="session-clock" id="session-clock" title="Session clock — time and uptime since page load">
+      <span class="clock-time" id="clock-time">00:00:00</span>
+      <span class="clock-uptime" id="clock-uptime">Up 0s</span>
+    </div>
     <button class="nav-icon-btn" aria-label="Search" title="Search (⌘K)">
       <span class="ms">search</span>
     </button>
@@ -622,6 +645,23 @@ html.dark .hero-left h1 {
 
 <script>
 (function () {
+  /* ── Live session clock ── */
+  const SESSION_START = Date.now();
+  const clockTimeEl   = document.getElementById('clock-time');
+  const clockUptimeEl = document.getElementById('clock-uptime');
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function tickClock() {
+    const now = new Date();
+    clockTimeEl.textContent = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+    const elapsed = Math.floor((Date.now() - SESSION_START) / 1000);
+    const m = Math.floor(elapsed / 60);
+    const s = elapsed % 60;
+    clockUptimeEl.textContent = m > 0 ? `Up ${m}m ${pad2(s)}s` : `Up ${s}s`;
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
   /* ── Theme ── */
   const html = document.documentElement;
   const themeBtn   = document.getElementById('theme-toggle');
