@@ -2,9 +2,14 @@ from __future__ import annotations
 
 import io
 import json
+import platform
+import sys
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+_SERVER_START_TIME: datetime = datetime.now(timezone.utc)
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -63,6 +68,49 @@ def frontend_home() -> RedirectResponse:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/health/detailed")
+def health_detailed() -> dict[str, Any]:
+    uptime_seconds = (datetime.now(timezone.utc) - _SERVER_START_TIME).total_seconds()
+    return {
+        "status": "ok",
+        "uptime_seconds": round(uptime_seconds, 1),
+        "started_at": _SERVER_START_TIME.isoformat(),
+        "python_version": platform.python_version(),
+        "platform": platform.system(),
+        "supported_transactions": ["837P", "837I", "835", "834"],
+        "total_built_in_rules": 64,
+        "engine_version": "1.0.0",
+        "llm_providers": ["Groq/Llama-3.3", "HuggingFace", "Rule-based Fallback"],
+    }
+
+
+@app.get("/api/version")
+def version() -> dict[str, Any]:
+    return {
+        "application": "EdiPro Healthcare EDI Gateway",
+        "api_version": "1.0.0",
+        "library": "validedi",
+        "library_version": "0.4.0",
+        "python_version": sys.version,
+        "python_short": platform.python_version(),
+        "platform": platform.system(),
+        "supported_transactions": ["837P", "837I", "835", "834"],
+        "hipaa_standard": "5010",
+        "max_upload_mb": MAX_UPLOAD_SIZE // (1024 * 1024),
+        "max_batch_mb": MAX_BATCH_SIZE // (1024 * 1024),
+        "features": [
+            "X12 EDI parsing",
+            "HIPAA 5010 validation",
+            "Batch processing",
+            "835/837 reconciliation",
+            "834 member delta",
+            "Eligibility checking",
+            "LLM-powered insights",
+            "CSV/JSON/PDF export",
+        ],
+    }
 
 
 @app.get("/api/stats/overview")
