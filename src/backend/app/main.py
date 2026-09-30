@@ -29,7 +29,7 @@ from app.models import (
 )
 from app.parser.x12_parser import parse_x12, to_segment_text
 from app.services.chat import ask_huggingface
-from app.services.exports import csv_bytes, error_report_pdf_bytes, json_bytes
+from app.services.exports import csv_bytes, error_report_pdf_bytes, json_bytes, tsv_bytes
 from app.services.summaries import build_834_summary, build_835_summary, build_family_grouping
 from app.validation.rules import validate
 
@@ -308,6 +308,17 @@ def export_members_csv(payload: dict[str, Any]) -> StreamingResponse:
         io.BytesIO(csv_bytes(rows)),
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=members.csv"},
+    )
+
+
+@app.post("/api/export/members-tsv")
+def export_members_tsv(payload: dict[str, Any]) -> StreamingResponse:
+    """Tab-separated export — avoids comma issues in provider/member names."""
+    rows = payload.get("rows", [])
+    return StreamingResponse(
+        io.BytesIO(tsv_bytes(rows)),
+        media_type="text/tab-separated-values",
+        headers={"Content-Disposition": "attachment; filename=members.tsv"},
     )
 
 
