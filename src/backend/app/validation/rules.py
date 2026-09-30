@@ -40,6 +40,7 @@ def validate(parsed: ParseResult) -> ValidationResult:
     _check_element_formats(parsed, issues)
     _check_qualifiers(parsed, issues)
     _check_cross_segment_consistency(parsed, issues)
+    _check_control_segment_counts(parsed, issues)
 
     if tx_type == "835":
         _check_835_rules(parsed, issues)
@@ -209,6 +210,66 @@ def _check_qualifiers(parsed: ParseResult, issues: list[ValidationIssue]) -> Non
                             current_value=proc,
                         )
                     )
+
+def _check_control_segment_counts(parsed: ParseResult, issues: list[ValidationIssue]) -> None:
+    """Validate SE02 segment count and GE02 transaction-set count."""
+    segments = parsed.segments
+    seg_ids = [s.id for s in segments]
+
+    # --- SE segment count check ---
+    # X12: SE02 must equal the count of segments from ST through SE inclusive.
+    try:
+        st_idx = seg_ids.index("ST")
+        se_idx = seg_ids.index("SE")
+        expected_count = se_idx - st_idx + 1  # inclusive of both ST and SE
+        se_seg = segments[se_idx]
+        if len(se_seg.elements) > 0:
+            declared = int(se_seg.elements[0]) if se_seg.elements[0].isdigit() else -1
+            if declared != -1 and declared != expected_count:
+                issues.append(
+                    ValidationIssue(
+                        code="SE_COUNT_MISMATCH",
+                        severity="error",
+                        message=(
+                            f"SE01 segment count {declared} does not match actual "
+                            f"segment count {expected_count} (ST through SE inclusive)."
+                        ),
+                        loop_location="ENVELOPE",
+                        segment_id="SE",
+                        element_position=1,
+                        current_value=str(declared),
+                        suggested_value=str(expected_count),
+                    )
+                )
+    except ValueError:
+        pass  # ST or SE not present — caught by required-segment check
+
+    # --- GE transaction-set count check ---
+    # X12: GE01 must equal the number of transaction sets (ST/SE pairs) in the group.
+    try:
+        ge_idx = seg_ids.index("GE")
+        ge_seg = segments[ge_idx]
+        if len(ge_seg.elements) > 0:
+            st_count = seg_ids.count("ST")
+            declared_ge = int(ge_seg.elements[0]) if ge_seg.elements[0].isdigit() else -1
+            if declared_ge != -1 and declared_ge != st_count:
+                issues.append(
+                    ValidationIssue(
+                        code="GE_COUNT_MISMATCH",
+                        severity="warning",
+                        message=(
+                            f"GE01 transaction-set count {declared_ge} does not match "
+                            f"actual ST/SE pair count {st_count}."
+                        ),
+                        loop_location="ENVELOPE",
+                        segment_id="GE",
+                        element_position=1,
+                        current_value=str(declared_ge),
+                        suggested_value=str(st_count),
+                    )
+                )
+    except ValueError:
+        pass  # GE not present — caught by required-segment check
 
 
 def _check_cross_segment_consistency(parsed: ParseResult, issues: list[ValidationIssue]) -> None:
