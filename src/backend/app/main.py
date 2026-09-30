@@ -30,7 +30,7 @@ from app.models import (
 from app.parser.x12_parser import parse_x12, to_segment_text
 from app.services.chat import ask_huggingface
 from app.services.exports import csv_bytes, error_report_pdf_bytes, json_bytes, tsv_bytes
-from app.services.summaries import build_834_summary, build_835_summary, build_family_grouping
+from app.services.summaries import build_834_summary, build_835_summary, build_837i_summary, build_family_grouping
 from app.validation.rules import validate
 
 app = FastAPI(title="EdiPro Healthcare EDI Parser API", version="1.0.0")
@@ -139,6 +139,28 @@ def parse_raw(request: ParseRequest) -> dict[str, Any]:
     return {
         "parse_result": parsed.model_dump(),
         "validation_result": validation.model_dump(),
+    }
+
+
+@app.post("/api/summary/837i")
+def summarize_837i(request: ParseRequest) -> dict[str, Any]:
+    """Return a structured 837I institutional claim summary from raw EDI content.
+
+    Each entry in the response includes claim_id, total_billed, facility_type,
+    statement_dates, and a list of SV2 revenue line items.
+    """
+    parsed = parse_x12(request.content)
+    if parsed.transaction_type not in {"837I", "UNKNOWN"}:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Expected 837I transaction; detected '{parsed.transaction_type}'.",
+        )
+    claims = build_837i_summary(parsed.segments)
+    return {
+        "transaction_type": parsed.transaction_type,
+        "claim_count": len(claims),
+        "total_billed": round(sum(float(c.get("total_billed", 0)) for c in claims), 2),
+        "claims": claims,
     }
 
 
