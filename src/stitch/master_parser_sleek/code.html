@@ -61,6 +61,19 @@ html.dark .log-box { background: #06080f; border-color: rgba(255,255,255,0.06); 
 .log-box .str    { color: var(--success); }
 .log-box .num    { color: var(--orange); }
 
+/* Copy-to-clipboard button */
+.copy-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 4px 10px;
+  font-size: 11px; font-weight: 700; font-family: inherit;
+  color: var(--text-secondary); cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+}
+.copy-btn:hover { background: var(--accent-dim); color: var(--accent); border-color: var(--accent-mid); }
+.copy-btn .ms { font-size: 14px; }
+.copy-btn.copied { background: var(--success-dim); color: var(--success); border-color: var(--success-mid); }
+
 /* Parser stats row */
 .parser-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
 .p-stat { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
@@ -181,7 +194,12 @@ html.dark .log-box { background: #06080f; border-color: rgba(255,255,255,0.06); 
     <div class="card card-gloss">
       <div class="card-header">
         <div class="card-title"><span class="ms" style="color:var(--accent);">data_object</span> Parsed Output</div>
-        <span class="badge badge-blue" id="tx-type-badge">Awaiting file</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="badge badge-blue" id="tx-type-badge">Awaiting file</span>
+          <button class="copy-btn" id="copy-parsed-btn" title="Copy parsed output to clipboard">
+            <span class="ms">content_copy</span> Copy
+          </button>
+        </div>
       </div>
       <div class="card-body" style="padding:0;">
         <div class="log-box" id="parsed-output" style="border-radius:0 0 var(--card-radius) var(--card-radius);max-height:420px;"><span class="log-dim">// Parsed EDI data will appear here after upload…</span></div>
@@ -190,7 +208,12 @@ html.dark .log-box { background: #06080f; border-color: rgba(255,255,255,0.06); 
     <div class="card card-gloss">
       <div class="card-header">
         <div class="card-title"><span class="ms" style="color:var(--danger);">bug_report</span> Validation Log</div>
-        <span class="badge badge-gray" id="val-badge">No file</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="badge badge-gray" id="val-badge">No file</span>
+          <button class="copy-btn" id="copy-val-btn" title="Copy validation log to clipboard">
+            <span class="ms">content_copy</span> Copy
+          </button>
+        </div>
       </div>
       <div class="card-body" style="padding:0;">
         <div class="log-box" id="validation-log" style="border-radius:0 0 var(--card-radius) var(--card-radius);max-height:420px;"><span class="log-dim">// Validation results will appear here…</span></div>
@@ -279,6 +302,31 @@ html.dark .log-box { background: #06080f; border-color: rgba(255,255,255,0.06); 
   dropZone.addEventListener('dragleave', ()=> dropZone.classList.remove('over'));
   dropZone.addEventListener('drop',      e => { e.preventDefault(); dropZone.classList.remove('over'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
   parseInput.addEventListener('change',  e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+  // Copy-to-clipboard helpers
+  function attachCopyBtn(btnId, targetId) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const el = document.getElementById(targetId);
+      if (!el) return;
+      const text = el.innerText || el.textContent || '';
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        btn.innerHTML = '<span class="ms">check_circle</span> Copied!';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = '<span class="ms">content_copy</span> Copy';
+        }, 2000);
+      }).catch(() => {
+        btn.textContent = 'Failed';
+        setTimeout(() => { btn.innerHTML = '<span class="ms">content_copy</span> Copy'; }, 1500);
+      });
+    });
+  }
+  attachCopyBtn('copy-parsed-btn', 'parsed-output');
+  attachCopyBtn('copy-val-btn', 'validation-log');
+
   clearBtn.addEventListener('click', () => {
     parsedOut.innerHTML = '<span class="log-dim">// Cleared. Drop a file to begin…</span>';
     valLog.innerHTML    = '<span class="log-dim">// Validation results will appear here…</span>';
