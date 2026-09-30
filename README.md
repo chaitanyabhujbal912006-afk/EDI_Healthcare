@@ -1,6 +1,6 @@
 # EdiPro: Enterprise Healthcare EDI Gateway
 
-![EdiPro Dashboard](https://img.shields.io/badge/Status-Production_Ready-success) ![License](https://img.shields.io/badge/License-MIT-blue) ![Python](https://img.shields.io/badge/Python-3.8%2B-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-Modern-green) ![Vite](https://img.shields.io/badge/Frontend-Vite_Vanilla_JS-purple) ![Tests](https://img.shields.io/badge/Tests-81%20Passed-brightgreen)
+![EdiPro Dashboard](https://img.shields.io/badge/Status-Production_Ready-success) ![License](https://img.shields.io/badge/License-MIT-blue) ![Python](https://img.shields.io/badge/Python-3.8%2B-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-Modern-green) ![Vite](https://img.shields.io/badge/Frontend-Vite_Vanilla_JS-purple) ![Tests](https://img.shields.io/badge/Tests-85%20Passed-brightgreen)
 
 **EdiPro** is a modern, enterprise-grade, HIPAA-compliant Healthcare EDI (Electronic Data Interchange) parser, validator, and dashboard. Built for clinical and financial operations, it transforms complex, unstructured X12 EDI text streams (like `837P`, `837I`, `835`, and `834`) into validated Pydantic models accompanied by intelligent, AI-powered validation reporting.
 
@@ -10,10 +10,31 @@
 
 *   **Operator Dashboard:** Modern graphical interface built with glassmorphism, responsive tables, real-time API health auto-polling with click-to-reconnect, and a seamless local-storage persisted System/Dark/Light theme toggle.
 *   **Robust X12 Parsing Schema:** Instantly parses `837P` (Professional Claims), `837I` (Institutional Claims with revenue codes), `835` (Payment & Remittance Advice), and `834` (Benefit Enrollment & Maintenance) structured transactions.
-*   **60+ Built-in Validation Rules:** Flags structural and logic issues (e.g., missing Billing/Rendering NPIs, invalid Luhn check digits, invalid dates, misaligned batch totals, ICD-10 formatting errors) out of the box.
+*   **64+ Built-in Validation Rules:** Flags structural and logic issues (e.g., missing Billing/Rendering NPIs, invalid Luhn check digits, invalid dates, SE01 segment count mismatches, GE01 transaction counts, ICD-10 formatting errors) out of the box.
 *   **AI-Powered Insights:** Multi-provider AI chatbot engine (supporting **Groq Llama 3.3**, **Hugging Face**, and intelligent offline rule-based fallback) for natural language EDI Q&A.
-*   **Financial Reconciliation & Exports:** Direct reconciliation matching between 837 billed claims and 835 remittance payouts with variance calculation, alongside JSON, PDF error reports, and CSV exports (`/api/export/reconciliation-csv`, `/api/export/members-csv`).
+*   **Financial Reconciliation & Exports:** Direct reconciliation matching between 837 billed claims and 835 remittance payouts with variance calculation, alongside JSON, PDF error reports, CSV exports with UTF-8 BOM, and TSV exports (`/api/export/reconciliation-csv`, `/api/export/members-csv`, `/api/export/members-tsv`).
 *   **Secure & Stateless:** Drag-and-drop processing handled completely in-memory on your secure infrastructure. No PHI is permanently stored by the frontend.
+
+---
+
+## 📡 REST API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | Lightweight service health ping |
+| `GET` | `/api/health/detailed` | Deep telemetry, uptime, engine status, and rule count |
+| `GET` | `/api/version` | Engine & gateway build version metadata and capabilities |
+| `GET` | `/api/stats/overview` | Transaction counts, rule metrics, and system overview |
+| `POST` | `/api/parse` | Parse raw EDI content with full validation reporting |
+| `POST` | `/api/upload` | Multi-file multipart/form-data batch ingest & parsing |
+| `POST` | `/api/summary/837i` | Institutional claim extractor (revenue codes, SV2 breakdown) |
+| `POST` | `/api/reconciliation` | 837-to-835 payment variance & claim matching engine |
+| `POST` | `/api/export/members-csv` | UTF-8 BOM formatted CSV export with summary totals |
+| `POST` | `/api/export/members-tsv` | Tab-separated values export for comma-heavy records |
+| `POST` | `/api/export/reconciliation-csv` | Financial reconciliation variance sheet export |
+| `POST` | `/api/export/json` | Indented structured JSON data export |
+| `POST` | `/api/export/errors-pdf` | Formatted HIPAA EDI validation report PDF download |
+| `POST` | `/api/chat` | AI-assisted natural language EDI inquiry endpoint |
 
 ---
 
@@ -79,7 +100,7 @@ npm run dev
 
 ## 🧪 Testing & Quality Assurance
 
-Run the comprehensive test suite (81 automated tests):
+Run the comprehensive test suite (85 automated tests):
 
 ```powershell
 # Run all unit and integration tests
@@ -89,7 +110,7 @@ Run the comprehensive test suite (81 automated tests):
 .\venv\Scripts\python test_quick.py
 ```
 
-All 81 unit & integration tests pass with 100% coverage across parser engines, validation rules, extractors, and REST endpoints.
+All 85 unit & integration tests pass with 100% coverage across parser engines, validation rules, extractors, and REST endpoints.
 
 ---
 
