@@ -2,7 +2,7 @@ import pytest
 from app.services.chat import ask_chat_assistant, _rule_based_fallback
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_chat_rule_based_fallback():
     ctx = {
         "transaction_type": "837P",

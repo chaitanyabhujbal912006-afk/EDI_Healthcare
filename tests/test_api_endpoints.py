@@ -202,3 +202,63 @@ def test_export_reconciliation_csv() -> None:
     assert "text/csv" in response.headers["content-type"]
     assert b"CLM999" in response.content
     assert b"500.0" in response.content
+
+
+def test_api_version() -> None:
+    response = client.get("/api/version")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["application"] == "EdiPro Healthcare EDI Gateway"
+    assert data["api_version"] == "1.0.0"
+    assert data["library"] == "validedi"
+    assert "supported_transactions" in data
+    assert "837P" in data["supported_transactions"]
+    assert "837I" in data["supported_transactions"]
+
+
+def test_health_detailed() -> None:
+    response = client.get("/api/health/detailed")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
+    assert "uptime_seconds" in data
+    assert data["total_built_in_rules"] > 0
+    assert "llm_providers" in data
+    assert "837I" in data["supported_transactions"]
+
+
+def test_export_tsv() -> None:
+    payload = {"rows": [{"claim_id": "CLM101", "service": "99213", "paid": "120.00"}]}
+    response = client.post("/api/export/members-tsv", json=payload)
+    assert response.status_code == 200
+    assert "text/tab-separated-values" in response.headers["content-type"]
+    assert b"CLM101\t99213\t120.00" in response.content
+
+
+def test_summary_837i() -> None:
+    sample_837i = (
+        "ISA*00*          *00*          *ZZ*SUBMITTER1     *ZZ*RECEIVER1      *260824*1030*U*00501*000000001*0*P*>~\n"
+        "GS*HC*SUBMITTER1*RECEIVER1*20260824*1030*1*X*005010X223A2~\n"
+        "ST*837*0001*005010X223A2~\n"
+        "BHT*0019*00*12345*20260824*1030*CH~\n"
+        "NM1*41*2*HOSPITAL INC*****46*1234567890~\n"
+        "CLM*INST-001*5400.00***11:A:1*Y*A*Y*Y~\n"
+        "LX*1~\n"
+        "SV2*0110*HC:99214*1500.00*UN*1~\n"
+        "LX*2~\n"
+        "SV2*0250*HC:99215*3900.00*UN*1~\n"
+        "SE*10*0001~\n"
+        "GE*1*1~\n"
+        "IEA*1*000000001~"
+    )
+    response = client.post("/api/summary/837i", json={"content": sample_837i})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["transaction_type"] == "837I"
+    assert data["claim_count"] == 1
+    assert data["total_billed"] == 5400.00
+    assert len(data["claims"]) == 1
+    assert len(data["claims"][0]["revenue_lines"]) == 2
+    assert data["claims"][0]["revenue_lines"][0]["revenue_code"] == "0110"
+    assert data["claims"][0]["revenue_lines"][0]["charge_amount"] == 1500.00
+
