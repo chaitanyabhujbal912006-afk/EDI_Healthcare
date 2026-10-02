@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 const apiTarget = process.env.VITE_API_TARGET || 'http://localhost:8000';
 
 export default defineConfig({
+  base: './',
   server: {
     host: true,
     port: 5173,
@@ -18,6 +19,7 @@ export default defineConfig({
     port: 5173
   },
   build: {
+    assetsInlineLimit: 0,
     rollupOptions: {
       input: {
         main: 'index.html',

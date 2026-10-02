@@ -1,0 +1,15 @@
+/* documentation.css — Documentation Stylesheet */
+.docs-layout{display:grid;grid-template-columns:220px 1fr;gap:24px;}
+@media(max-width:800px){.docs-layout{grid-template-columns:1fr;}}
+.docs-toc{position:sticky;top:80px;height:fit-content;}
+.toc-item{display:block;font-size:13px;font-weight:500;color:var(--text-secondary);padding:7px 12px;border-radius:9px;text-decoration:none;transition:all .2s;margin-bottom:2px;}
+.toc-item:hover{background:var(--accent-dim);color:var(--text-primary);}
+.toc-item.active{background:var(--accent-dim);color:var(--accent);font-weight:700;}
+.doc-section{margin-bottom:32px;scroll-margin-top:80px;}
+.doc-section h2{font-size:20px;font-weight:800;color:var(--text-primary);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--divider);}
+.doc-section p{font-size:14px;color:var(--text-secondary);line-height:1.8;margin-bottom:12px;}
+.doc-section ul{padding-left:20px;margin-bottom:12px;}
+.doc-section li{font-size:14px;color:var(--text-secondary);line-height:2;}
+code{font-family:ui-monospace,'SF Mono',monospace;font-size:12px;background:var(--accent-dim);color:var(--accent);padding:2px 7px;border-radius:6px;}
+.code-block{background:var(--bg);border:1px solid var(--divider);border-radius:12px;padding:16px 20px;font-family:ui-monospace,'SF Mono',monospace;font-size:12px;color:var(--text-secondary);line-height:1.8;overflow-x:auto;margin:12px 0;}
+html.dark .code-block{background:#0a0a0a;}

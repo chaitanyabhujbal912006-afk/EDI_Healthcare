@@ -1,0 +1,62 @@
+/* notifications.css — EdiPro Notification Center Stylesheet */
+@keyframes fade-in { from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;} }
+@keyframes slide-out { to{opacity:0;transform:translateX(20px);height:0;padding:0;margin:0;overflow:hidden;} }
+
+/* Notification item */
+.notif-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 16px 20px; border-radius: var(--radius-md);
+  transition: all 0.2s var(--ease-smooth); cursor: pointer;
+  position: relative; border-bottom: 1px solid var(--divider);
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--accent-dim); }
+.notif-item.unread { background: var(--surface-2); }
+.notif-item.unread::before {
+  content: '';
+  position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  animation: notif-pulse 2.2s ease-in-out infinite;
+}
+@keyframes notif-pulse { 0%,100%{opacity:1;}50%{opacity:0.4;} }
+
+.notif-icon {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.notif-icon .ms { font-size: 20px; font-variation-settings: 'FILL' 1; }
+.notif-content { flex: 1; min-width: 0; }
+.notif-title { font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.notif-item.read .notif-title { font-weight: 500; color: var(--text-secondary); }
+.notif-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
+.notif-time { font-size: 11px; color: var(--text-tertiary); white-space: nowrap; padding-top: 3px; }
+
+/* Dismiss button */
+.notif-dismiss {
+  position: absolute; top: 12px; right: 12px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: none; border: none; cursor: pointer;
+  color: var(--text-tertiary); display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s, background 0.2s;
+}
+.notif-item:hover .notif-dismiss { opacity: 1; }
+.notif-dismiss:hover { background: var(--danger-dim); color: var(--danger); }
+.notif-dismiss .ms { font-size: 16px; }
+
+/* Group label */
+.notif-group-label {
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-tertiary);
+  padding: 14px 20px 8px; display: flex; align-items: center; gap: 10px;
+}
+.notif-group-label::after { content: ''; flex: 1; height: 1px; background: var(--divider); }
+
+/* Unread count chip */
+.unread-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 800; padding: 2px 8px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 6px rgba(220,38,38,0.3);
+}

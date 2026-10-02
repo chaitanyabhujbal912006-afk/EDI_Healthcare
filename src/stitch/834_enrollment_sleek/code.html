@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>EdiPro — 834 Enrollment</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link rel="stylesheet" href="../theme.css"/>
+<script type="module" src="../shared.js"></script>
+<script type="module" src="./enrollment.js"></script>
 </head>
 <body>
 <header class="topnav">
   <div class="topnav-left">
-    <button class="sidebar-toggle" id="sidebar-toggle"><span class="ms">menu</span></button>
-    <div class="brand"><div class="brand-icon"><span class="ms">hub</span></div><div><span class="brand-name">EdiPro</span><span class="brand-tag"> · EDI Gateway</span></div></div>
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar"><span class="ms">menu</span></button>
+    <a class="brand" href="../dashboard_sleek/code.html"><div class="brand-icon"><span class="ms">hub</span></div><div><span class="brand-name">EdiPro</span><span class="brand-tag"> · EDI Gateway</span></div></a>
   </div>
   <div class="topnav-right">
-    <button class="nav-icon-btn"><span class="ms">search</span></button>
-    <button class="nav-icon-btn"><span class="ms">notifications</span></button>
-    <button class="theme-toggle-btn" id="theme-toggle"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
-    <div class="avatar"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach" alt="avatar"/></div>
+    <button class="nav-icon-btn" aria-label="Search"><span class="ms">search</span></button>
+    <button class="nav-icon-btn" aria-label="Notifications"><span class="ms">notifications</span><span class="notif-dot"></span></button>
+    <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
+    <div class="avatar" title="User Profile"><span class="avatar-initials">AD</span></div>
   </div>
 </header>
 <div class="overlay" id="overlay"></div>
@@ -26,124 +26,38 @@
     <p class="nav-section-label">Main</p>
     <a class="nav-item" href="../dashboard_sleek/code.html"><span class="ms">dashboard</span> Dashboard</a>
     <a class="nav-item" href="../master_parser_sleek/code.html"><span class="ms">analytics</span> Master Parser</a>
-    <div style="height:14px"></div>
+    <div class="spacer-14"></div>
     <p class="nav-section-label">Transactions</p>
     <a class="nav-item" href="../835_remittance_sleek/code.html"><span class="ms">payments</span> 835 Remittance</a>
     <a class="nav-item active" href="./code.html"><span class="ms">group_add</span> 834 Enrollment</a>
     <a class="nav-item" href="../837_claims_view/code.html"><span class="ms">description</span> 837 Claims</a>
-    <div style="height:14px"></div>
+    <div class="spacer-14"></div>
     <p class="nav-section-label">System</p>
-    <a class="nav-item" href="../notifications/code.html"><span class="ms">notifications</span> Notifications<span class="nav-badge">3</span></a>
+    <a class="nav-item" href="../notifications/code.html"><span class="ms">notifications</span> Notifications<span class="nav-badge">0</span></a>
     <a class="nav-item" href="../settings/code.html"><span class="ms">settings</span> Settings</a>
     <a class="nav-item" href="../documentation/code.html"><span class="ms">menu_book</span> Documentation</a>
     <a class="nav-item" href="../help_center/code.html"><span class="ms">help</span> Help Center</a>
   </div>
   <div class="sidebar-bottom">
-    <button class="new-sub-btn" onclick="window.location.href='../dashboard_sleek/code.html'"><span class="ms">add_circle</span> New Submission</button>
+    <button class="new-sub-btn" type="button"><span class="ms">add_circle</span> New Submission</button>
   </div>
 </aside>
 <main class="main" id="main">
   <div class="page-header animate-in"><div><h1>834 Enrollment</h1><p>Member insurance enrollment, changes, and termination transactions.</p></div></div>
-  <div class="stats-strip animate-in" style="animation-delay:.08s">
-    <div class="stat-card"><div class="stat-card-icon icon-blue"><span class="ms">group_add</span></div><div class="stat-card-text"><div class="label">New Enrollments</div><div class="value">--</div></div></div>
-    <div class="stat-card"><div class="stat-card-icon icon-yellow"><span class="ms">edit_note</span></div><div class="stat-card-text"><div class="label">Changes</div><div class="value">--</div></div></div>
-    <div class="stat-card"><div class="stat-card-icon icon-red"><span class="ms">person_remove</span></div><div class="stat-card-text"><div class="label">Terminations</div><div class="value">--</div></div></div>
-    <div class="stat-card"><div class="stat-card-icon icon-green"><span class="ms">check_circle</span></div><div class="stat-card-text"><div class="label">Processed</div><div class="value" id="enroll-count">--</div></div></div>
+  <div class="stats-strip animate-in delay-1">
+    <div class="stat-card"><div class="stat-card-icon icon-blue"><span class="ms">group_add</span></div><div class="stat-card-text"><div class="label">834 Files</div><div class="value" id="enroll-count">0</div></div></div>
+    <div class="stat-card"><div class="stat-card-icon icon-green"><span class="ms">check_circle</span></div><div class="stat-card-text"><div class="label">Compliance</div><div class="value">HIPAA 5010</div></div></div>
   </div>
-  <div class="card animate-in" style="animation-delay:.15s">
-    <div class="card-header"><div class="card-title"><span class="ms" style="font-variation-settings:'FILL' 1;color:var(--accent);font-size:18px">group</span> Enrollment Register</div><span class="badge badge-blue">834</span></div>
+  <div class="card animate-in delay-3">
+    <div class="card-header"><div class="card-title"><span class="ms ms text-accent ms-18">group</span> Enrollment Register</div><span class="badge badge-blue">834</span></div>
     <div id="enrollment-content">
       <div class="empty-state">
         <span class="ms">group_add</span>
         <h3>No 834 enrollment data yet</h3>
-        <p>Upload 834 files from the <a href="../dashboard_sleek/code.html" style="color:var(--accent)">Dashboard</a> to view enrollment data here.</p>
+        <p>Upload 834 files from the <a href="../dashboard_sleek/code.html" class="text-accent">Dashboard</a> to view enrollment data here.</p>
       </div>
     </div>
   </div>
 </main>
-<script type="module" src="../shared.js"></script>
-<script>
-  async function apiFetch(url, options = {}) {
-    if (window.apiFetch) return window.apiFetch(url, options);
-    options = { ...options };
-    const headers = new Headers(options.headers || {});
-    const token = (window.EdiPro && window.EdiPro.getAccessToken)
-      ? window.EdiPro.getAccessToken()
-      : sessionStorage.getItem('edipro_access_token');
-    const apiKey = sessionStorage.getItem('edipro_api_key');
-    if (token && !headers.has('Authorization')) {
-      headers.set('Authorization', `Bearer ${token}`);
-    } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
-      headers.set('X-API-Key', apiKey);
-    }
-    options.headers = headers;
-    return fetch(url, options);
-  }
-
-  async function loadEnrollmentData() {
-    const all = readSubmissions();
-    let items = all.filter(i => i.type && i.type.toUpperCase().includes('834'));
-
-    // Fetch sample 834 data from backend API if empty
-    if (items.length === 0 && window.EdiPro && window.EdiPro.getSampleEdiContent) {
-      try {
-        const sampleEdi = window.EdiPro.getSampleEdiContent('834');
-        const res = await apiFetch('/api/parse', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: sampleEdi })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          items = [{
-            filename: 'sample_834.edi',
-            type: '834',
-            errorCount: (data.validation_result && data.validation_result.errors) ? data.validation_result.errors.length : 0,
-            timeLabel: new Date().toLocaleTimeString()
-          }];
-        }
-      } catch (err) {
-        console.warn('API fetch fallback for 834:', err);
-      }
-    }
-
-    document.getElementById('enroll-count').textContent = items.length || '0';
-
-    const container = document.getElementById('enrollment-content');
-    if (!container) return;
-
-    if (items.length === 0) {
-      const hint = all.length > 0
-        ? `Tip: ${all.length} file(s) in storage but none are 834. Found: <strong>${[...new Set(all.map(i=>i.type))].join(', ')}</strong>.`
-        : 'Upload 834 files from the <a href="../dashboard_sleek/code.html" style="color:var(--accent)">Dashboard</a>.';
-      container.innerHTML = `<div class="empty-state">
-        <span class="ms">group_add</span>
-        <h3>No 834 enrollment data yet</h3>
-        <p>${hint}</p>
-      </div>`;
-    } else {
-      container.innerHTML = `<div class="table-wrap"><table>
-        <thead><tr>
-          <th>File Name</th><th>Type</th><th>Errors</th><th>Status</th><th>Uploaded</th>
-        </tr></thead>
-        <tbody id="enroll-tbody"></tbody>
-      </table></div>`;
-      const tbody = document.getElementById('enroll-tbody');
-      items.slice().reverse().forEach(item => {
-        const tr = document.createElement('tr');
-        const ok = item.errorCount === 0;
-        tr.innerHTML = `
-          <td style="font-weight:600">${item.filename}</td>
-          <td><span class="badge badge-blue">${item.type}</span></td>
-          <td class="td-mono">${item.errorCount}</td>
-          <td><span class="badge ${ok ? 'badge-green' : 'badge-red'}">${ok ? '✓ Valid' : item.errorCount + ' Errors'}</span></td>
-          <td class="td-mono">${item.timeLabel || 'Just now'}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-  }
-
-  loadEnrollmentData();
-</script>
 </body>
 </html>

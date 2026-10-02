@@ -3,35 +3,20 @@
 <head>
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>EdiPro — Documentation</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link rel="stylesheet" href="../theme.css"/>
-<style>
-  .docs-layout{display:grid;grid-template-columns:220px 1fr;gap:24px;}
-  @media(max-width:800px){.docs-layout{grid-template-columns:1fr;}}
-  .docs-toc{position:sticky;top:80px;height:fit-content;}
-  .toc-item{display:block;font-size:13px;font-weight:500;color:var(--text-secondary);padding:7px 12px;border-radius:9px;text-decoration:none;transition:all .2s;margin-bottom:2px;}
-  .toc-item:hover{background:var(--accent-dim);color:var(--text-primary);}
-  .toc-item.active{background:var(--accent-dim);color:var(--accent);font-weight:700;}
-  .doc-section{margin-bottom:32px;scroll-margin-top:80px;}
-  .doc-section h2{font-size:20px;font-weight:800;color:var(--text-primary);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--divider);}
-  .doc-section p{font-size:14px;color:var(--text-secondary);line-height:1.8;margin-bottom:12px;}
-  .doc-section ul{padding-left:20px;margin-bottom:12px;}
-  .doc-section li{font-size:14px;color:var(--text-secondary);line-height:2;}
-  code{font-family:ui-monospace,'SF Mono',monospace;font-size:12px;background:var(--accent-dim);color:var(--accent);padding:2px 7px;border-radius:6px;}
-  .code-block{background:var(--bg);border:1px solid var(--divider);border-radius:12px;padding:16px 20px;font-family:ui-monospace,'SF Mono',monospace;font-size:12px;color:var(--text-secondary);line-height:1.8;overflow-x:auto;margin:12px 0;}
-  html.dark .code-block{background:#0a0a0a;}
-</style>
+<link rel="stylesheet" href="./documentation.css"/>
+<script type="module" src="../shared.js"></script>
+<script type="module" src="./documentation.js"></script>
 </head>
 <body>
 <header class="topnav">
   <div class="topnav-left">
-    <button class="sidebar-toggle" id="sidebar-toggle"><span class="ms">menu</span></button>
-    <div class="brand"><div class="brand-icon"><span class="ms">hub</span></div><div><span class="brand-name">EdiPro</span><span class="brand-tag"> · EDI Gateway</span></div></div>
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar"><span class="ms">menu</span></button>
+    <a class="brand" href="../dashboard_sleek/code.html"><div class="brand-icon"><span class="ms">hub</span></div><div><span class="brand-name">EdiPro</span><span class="brand-tag"> · EDI Gateway</span></div></a>
   </div>
   <div class="topnav-right">
-    <button class="theme-toggle-btn" id="theme-toggle"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
-    <div class="avatar"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach" alt="avatar"/></div>
+    <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
+    <div class="avatar" title="User Profile"><span class="avatar-initials">AD</span></div>
   </div>
 </header>
 <div class="overlay" id="overlay"></div>
@@ -40,112 +25,85 @@
     <p class="nav-section-label">Main</p>
     <a class="nav-item" href="../dashboard_sleek/code.html"><span class="ms">dashboard</span> Dashboard</a>
     <a class="nav-item" href="../master_parser_sleek/code.html"><span class="ms">analytics</span> Master Parser</a>
-    <div style="height:14px"></div>
+    <div class="spacer-14"></div>
     <p class="nav-section-label">Transactions</p>
     <a class="nav-item" href="../835_remittance_sleek/code.html"><span class="ms">payments</span> 835 Remittance</a>
     <a class="nav-item" href="../834_enrollment_sleek/code.html"><span class="ms">group_add</span> 834 Enrollment</a>
     <a class="nav-item" href="../837_claims_view/code.html"><span class="ms">description</span> 837 Claims</a>
-    <div style="height:14px"></div>
+    <div class="spacer-14"></div>
     <p class="nav-section-label">System</p>
-    <a class="nav-item" href="../notifications/code.html"><span class="ms">notifications</span> Notifications<span class="nav-badge">3</span></a>
+    <a class="nav-item" href="../notifications/code.html"><span class="ms">notifications</span> Notifications<span class="nav-badge">0</span></a>
     <a class="nav-item" href="../settings/code.html"><span class="ms">settings</span> Settings</a>
     <a class="nav-item active" href="./code.html"><span class="ms">menu_book</span> Documentation</a>
     <a class="nav-item" href="../help_center/code.html"><span class="ms">help</span> Help Center</a>
   </div>
   <div class="sidebar-bottom">
-    <button class="new-sub-btn" onclick="window.location.href='../dashboard_sleek/code.html'"><span class="ms">add_circle</span> New Submission</button>
+    <button class="new-sub-btn" type="button"><span class="ms">add_circle</span> New Submission</button>
   </div>
 </aside>
 <main class="main" id="main">
   <div class="page-header animate-in"><div><h1>Documentation</h1><p>Full API reference and implementation guides for EdiPro.</p></div></div>
-  <div class="docs-layout animate-in" style="animation-delay:.08s">
-    <div class="docs-toc card" style="padding:12px;">
-      <p style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--text-tertiary);padding:4px 12px 10px;">Contents</p>
+  <div class="docs-layout animate-in delay-1">
+    <div class="docs-toc card p-12">
+      <p class="doc-menu-header">Contents</p>
       <a class="toc-item active" href="#overview">Overview</a>
       <a class="toc-item" href="#installation">Installation</a>
       <a class="toc-item" href="#parsing">Parsing EDI</a>
       <a class="toc-item" href="#validation">Validation</a>
-      <a class="toc-item" href="#llm">LLM Integration</a>
       <a class="toc-item" href="#api">REST API</a>
     </div>
     <div>
-      <div class="card animate-in" style="animation-delay:.12s">
+      <div class="card animate-in delay-2">
         <div class="card-body">
           <div class="doc-section" id="overview">
             <h2>Overview</h2>
-            <p>EdiPro is a modern, configuration-driven X12 EDI parser and validator for healthcare transactions. It supports the most common transaction types (837P, 837I, 835, 834) with optional LLM-powered plain-English explanations.</p>
+            <p>EdiPro is an enterprise-grade X12 EDI parser and validator for healthcare transactions. It supports 837P, 837I, 835, and 834 transactions with strict HIPAA 5010 compliance rules.</p>
             <ul>
-              <li>Configuration-driven rules via YAML files</li>
-              <li>60+ built-in validation rules with plain-English messages</li>
-              <li>LLM-agnostic — works with any AI provider</li>
-              <li>Full Pydantic v2 type safety</li>
+              <li>Configuration-driven validation engine with YAML rule sets</li>
+              <li>60+ built-in validation rules covering envelope, syntax, and business logic</li>
+              <li>In-memory processing with zero PHI persistence</li>
+              <li>OIDC bearer tokens and service account API keys</li>
               <li>HIPAA X12 5010 compliant</li>
             </ul>
           </div>
           <div class="doc-section" id="installation">
             <h2>Installation</h2>
-            <p>Install the Python package using pip:</p>
+            <p>Install the Python package using pip (Python 3.10+):</p>
             <div class="code-block">pip install -e .</div>
-            <p>Or install from the project root. Requirements: Python 3.8+, pydantic ≥ 2.0, pyyaml ≥ 6.0.</p>
           </div>
           <div class="doc-section" id="parsing">
             <h2>Parsing EDI Files</h2>
-            <p>Use the <code>parse()</code> function to convert any X12 EDI file into structured Python objects:</p>
-            <div class="code-block">from validedi import parse
+            <p>Use the <code>parse_edi_content()</code> function to parse raw X12 content into structured representations:</p>
+            <div class="code-block">from app.parser.x12_parser import parse_edi_content
 
-result = parse('claim.edi')
-print(result.envelope.transaction_type)  # "837"
-print(result.envelope.sender_id)
-print(len(result.loops))  # Hierarchical loop count</div>
-            <p>You can also pass an EDI string directly instead of a file path. The parser auto-detects transaction type from the GS/ST segments.</p>
+result = parse_edi_content(raw_x12_string)
+print(result.transaction_type)  # "837P"
+print(len(result.segments))     # Segment count</div>
           </div>
           <div class="doc-section" id="validation">
             <h2>Validation</h2>
-            <p>Run the <code>validate()</code> function to check 60+ rules across envelope, format, business logic, and code-set layers:</p>
-            <div class="code-block">from validedi import validate
+            <p>Run validation against HIPAA 5010 standards:</p>
+            <div class="code-block">from app.validation.rules import validate_edi_content
 
-result = validate('claim.edi')
-print(result.is_valid)      # True / False
-print(result.error_count)   # Number of errors
-for err in result.errors:
-    print(f"[{err.severity}] {err.code}: {err.message}")</div>
-          </div>
-          <div class="doc-section" id="llm">
-            <h2>LLM Integration</h2>
-            <p>Connect any LLM provider via a simple callable interface. The chatbot example uses Groq with Llama 3.3:</p>
-            <div class="code-block">from groq import Groq
-from validedi.llm import explain
-
-client = Groq(api_key="your-key")
-def llm(prompt): return client.chat.completions.create(
-    model="llama-3.3-70b-versatile",
-    messages=[{"role":"user","content":prompt}]
-).choices[0].message.content
-
-result = explain(edi_result, val_result, llm=llm)
-print(result.report)</div>
+validation = validate_edi_content(parsed_edi)
+print(validation.is_valid)      # True / False
+for issue in validation.issues:
+    print(f"[{issue.severity}] {issue.code}: {issue.message}")</div>
           </div>
           <div class="doc-section" id="api">
-            <h2>REST API</h2>
-            <p>The FastAPI backend exposes a single endpoint for file upload and validation:</p>
-            <div class="code-block">POST /api/upload
-Content-Type: multipart/form-data
-
-Response:
-{
-  "report": {
-    "filename": "claim.edi",
-    "parse_result": { "transaction_type": "837", ... },
-    "validation_result": { "is_valid": true, "issues": [] }
-  }
-}</div>
-            <p>Start the backend with: <code>uvicorn app.main:app --port 8000</code></p>
+            <h2>REST API Endpoints</h2>
+            <p>The FastAPI engine provides standard endpoints for transactions and health checks:</p>
+            <div class="code-block">GET  /api/health            # Service liveness
+GET  /api/health/detailed   # Engine limits, rule counts, security mode
+GET  /api/me                # Identity and role
+POST /api/upload            # Multipart file upload and validation
+POST /api/parse             # JSON content parsing and rule validation
+POST /api/batch             # ZIP archive batch processing</div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </main>
-<script type="module" src="../shared.js"></script>
 </body>
 </html>

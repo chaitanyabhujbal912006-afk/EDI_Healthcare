@@ -1,0 +1,13 @@
+/* claims.css — 837 Claims View Stylesheet */
+@keyframes fade-in { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:none;} }
+.filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+.search-bar { flex:1; min-width:220px; }
+.batch-bar {
+  display:flex; align-items:center; gap:10px; padding:10px 16px;
+  background:var(--accent-dim); border-radius:var(--radius-md);
+  border:1px solid var(--accent-mid); margin-bottom:12px;
+  font-size:13px; font-weight:700; color:var(--accent);
+  animation:fade-in 0.2s ease both;
+}
+.batch-bar .ms { font-size:16px; }
+.claim-row-sel { background: var(--accent-dim) !important; }

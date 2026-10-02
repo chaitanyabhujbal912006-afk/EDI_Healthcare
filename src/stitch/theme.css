@@ -1,7 +1,9 @@
 /* ============================================================
    EdiPro — ProMax Design System v5.0
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import '@fontsource/inter/index.css';
+@import '@fontsource/jetbrains-mono/index.css';
+@import 'material-symbols/rounded.css';
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -289,10 +291,17 @@ body {
   width: 34px; height: 34px; border-radius: 50%;
   overflow: hidden; border: 2px solid var(--border);
   cursor: pointer; transition: border-color 0.2s, transform 0.2s;
-  flex-shrink: 0; background: var(--accent-dim);
+  flex-shrink: 0; background: var(--accent);
+  display: inline-flex; align-items: center; justify-content: center;
 }
-.avatar:hover { border-color: var(--accent); transform: scale(1.06); }
+.avatar:hover { border-color: var(--accent-hover); transform: scale(1.06); }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
+.avatar-initials {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; font-weight: 700; color: #ffffff;
+  user-select: none;
+}
+
 
 /* Kbd shortcut hint */
 .kbd {
@@ -1144,3 +1153,124 @@ button:active, .btn:active, .new-sub-btn:active {
   background: var(--accent-dim) !important;
 }
 
+/* ── STRICT CSP UTILITY CLASSES (Zero Inline Styles) ────────── */
+.spacer-4 { height: 4px; }
+.spacer-8 { height: 8px; }
+.spacer-10 { height: 10px; }
+.spacer-14 { height: 14px; }
+.spacer-16 { height: 16px; }
+.spacer-20 { height: 20px; }
+.spacer-24 { height: 24px; }
+
+.is-hidden { display: none !important; }
+.d-flex { display: flex; }
+.flex-1 { flex: 1; }
+.flex-col { display: flex; flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.flex-wrap { flex-wrap: wrap; }
+
+.gap-4 { gap: 4px; }
+.gap-6 { gap: 6px; }
+.gap-8 { gap: 8px; }
+.gap-10 { gap: 10px; }
+.gap-12 { gap: 12px; }
+.gap-14 { gap: 14px; }
+.gap-16 { gap: 16px; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-4 { margin-bottom: 4px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-14 { margin-bottom: 14px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.mb-24 { margin-bottom: 24px; }
+.mb-28 { margin-bottom: 28px; }
+
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-14 { margin-top: 14px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+.mt-24 { margin-top: 24px; }
+
+.p-0 { padding: 0 !important; }
+.p-8 { padding: 8px; }
+.p-12 { padding: 12px; }
+.p-16 { padding: 16px; }
+.py-16 { padding-top: 16px; padding-bottom: 16px; }
+.py-40 { padding-top: 40px; padding-bottom: 40px; }
+
+.w-0 { width: 0%; }
+.w-full { width: 100%; }
+.max-w-400 { max-width: 400px; }
+.max-w-500 { max-width: 500px; }
+.max-w-600 { max-width: 600px; }
+
+.text-accent { color: var(--accent) !important; }
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-purple { color: var(--purple) !important; }
+.text-orange { color: var(--orange) !important; }
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-tertiary { color: var(--text-tertiary) !important; }
+
+.font-11 { font-size: 11px; }
+.font-12 { font-size: 12px; }
+.font-13 { font-size: 13px; }
+.font-14 { font-size: 14px; }
+.font-16 { font-size: 16px; }
+.font-18 { font-size: 18px; }
+.font-20 { font-size: 20px; }
+.font-24 { font-size: 24px; }
+.font-bold { font-weight: 700; }
+
+.ms-12 { font-size: 12px !important; }
+.ms-13 { font-size: 13px !important; }
+.ms-14 { font-size: 14px !important; }
+.ms-16 { font-size: 16px !important; }
+.ms-18 { font-size: 18px !important; }
+.ms-20 { font-size: 20px !important; }
+.ms-22 { font-size: 22px !important; }
+.ms-24 { font-size: 24px !important; }
+.ms-40 { font-size: 40px !important; }
+.ms-48 { font-size: 48px !important; }
+.ms-filled { font-variation-settings: 'FILL' 1 !important; }
+
+.delay-1 { animation-delay: 0.08s; }
+.delay-2 { animation-delay: 0.12s; }
+.delay-3 { animation-delay: 0.16s; }
+.delay-4 { animation-delay: 0.20s; }
+
+.pt-16 { padding-top: 16px; }
+.my-4-12 { margin: 4px 0 12px; }
+.text-code-green { color: #4ade80 !important; }
+.text-code-yellow { color: #fbbf24 !important; }
+.text-code-blue { color: #60a5fa !important; }
+.badge-code-yellow { background: rgba(251,191,36,0.15) !important; }
+.badge-code-blue { background: rgba(96,165,250,0.15) !important; }
+.badge-code-green { background: rgba(74,222,128,0.15) !important; }
+.avatar-circle-60 { width: 60px; height: 60px; border-radius: 50%; }
+.bg-warning { background: var(--warning) !important; }
+.bg-danger { background: var(--danger) !important; }
+.bg-success { background: var(--success) !important; }
+.font-28 { font-size: 28px; }
+.ms-floating { animation: float 2s ease-in-out infinite; }
+.d-block { display: block; }
+.rounded-bottom-card { border-radius: 0 0 var(--card-radius) var(--card-radius); }
+.max-h-420 { max-height: 420px; }
+.doc-menu-header { font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--text-tertiary); padding: 4px 12px 10px; }
+.hero-pill-item { display: flex; align-items: center; gap: 8px; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-full); padding: 8px 16px; }
+.hero-pill-danger { display: flex; align-items: center; gap: 8px; background: var(--danger-dim); border: 1px solid var(--danger-mid); border-radius: var(--radius-full); padding: 8px 16px; }
+.login-alert-box { background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3); color: var(--danger); padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 18px; }
+.ai-response-box { margin-top: 14px; padding: 12px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border); font-size: 13px; line-height: 1.6; }
+
+
+.bg-accent { background: var(--accent) !important; }
+.donut-ring-stroke { transition: stroke-dasharray 0.7s ease; }

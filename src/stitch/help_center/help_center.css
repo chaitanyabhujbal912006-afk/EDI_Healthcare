@@ -1,0 +1,17 @@
+/* help_center.css — Help Center Stylesheet */
+.faq-item{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;transition:border-color .2s;}
+.faq-item:hover{border-color:var(--accent);}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;font-size:14px;font-weight:700;color:var(--text-primary);}
+.faq-q .ms{color:var(--text-tertiary);transition:transform .3s;}
+.faq-item.open .faq-q .ms{transform:rotate(180deg);color:var(--accent);}
+.faq-item.open .faq-q{color:var(--accent);}
+.faq-a{display:none;padding:0 20px 16px;font-size:13px;color:var(--text-secondary);line-height:1.7;}
+.faq-item.open .faq-a{display:block;}
+.help-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+@media(max-width:700px){.help-grid{grid-template-columns:1fr;}}
+.help-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--card-radius);transition:all .2s;cursor:pointer;text-decoration:none;}
+.help-card:hover{border-color:var(--accent);background:var(--accent-dim);transform:translateY(-2px);}
+.help-card-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;}
+.help-card-icon .ms{font-size:22px;font-variation-settings:'FILL' 1;}
+.help-card h3{font-size:14px;font-weight:700;color:var(--text-primary);}
+.help-card p{font-size:12px;color:var(--text-secondary);line-height:1.5;}

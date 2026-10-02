@@ -3,34 +3,20 @@
 <head>
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>EdiPro — User Profile</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link rel="stylesheet" href="../theme.css"/>
-<style>
-  .profile-header{display:flex;align-items:center;gap:24px;padding:28px;border-bottom:1px solid var(--divider);}
-  .profile-avatar{width:80px;height:80px;border-radius:50%;overflow:hidden;border:3px solid var(--border);box-shadow:var(--shadow-md);flex-shrink:0;}
-  .profile-avatar img{width:100%;height:100%;object-fit:cover;}
-  .profile-meta h2{font-size:22px;font-weight:800;color:var(--text-primary);}
-  .profile-meta p{font-size:14px;color:var(--text-secondary);margin-top:4px;}
-  .profile-badges{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
-  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-  @media(max-width:600px){.info-grid{grid-template-columns:1fr;}}
-  .info-field label{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-tertiary);display:block;margin-bottom:6px;}
-  .info-field .field-val{font-size:14px;font-weight:600;color:var(--text-primary);background:var(--accent-dim);border:1px solid var(--border);border-radius:10px;padding:10px 14px;}
-  .activity-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--divider);}
-  .activity-item:last-child{border-bottom:none;}
-  .activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-</style>
+<link rel="stylesheet" href="./user_profile.css"/>
+<script type="module" src="../shared.js"></script>
+<script type="module" src="./user_profile.js"></script>
 </head>
 <body>
 <header class="topnav">
   <div class="topnav-left">
-    <button class="sidebar-toggle" id="sidebar-toggle"><span class="ms">menu</span></button>
-    <div class="brand"><div class="brand-icon"><span class="ms">hub</span></div><div><span class="brand-name">EdiPro</span><span class="brand-tag"> · EDI Gateway</span></div></div>
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar"><span class="ms">menu</span></button>
+    <a class="brand" href="../dashboard_sleek/code.html"><div class="brand-icon"><span class="ms">hub</span></div><div><span class="brand-name">EdiPro</span><span class="brand-tag"> · EDI Gateway</span></div></a>
   </div>
   <div class="topnav-right">
-    <button class="theme-toggle-btn" id="theme-toggle"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
-    <div class="avatar"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach" alt="avatar"/></div>
+    <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
+    <div class="avatar" title="User Profile"><span class="avatar-initials">AD</span></div>
   </div>
 </header>
 <div class="overlay" id="overlay"></div>
@@ -39,110 +25,55 @@
     <p class="nav-section-label">Main</p>
     <a class="nav-item" href="../dashboard_sleek/code.html"><span class="ms">dashboard</span> Dashboard</a>
     <a class="nav-item" href="../master_parser_sleek/code.html"><span class="ms">analytics</span> Master Parser</a>
-    <div style="height:14px"></div>
+    <div class="spacer-14"></div>
     <p class="nav-section-label">Transactions</p>
     <a class="nav-item" href="../835_remittance_sleek/code.html"><span class="ms">payments</span> 835 Remittance</a>
     <a class="nav-item" href="../834_enrollment_sleek/code.html"><span class="ms">group_add</span> 834 Enrollment</a>
     <a class="nav-item" href="../837_claims_view/code.html"><span class="ms">description</span> 837 Claims</a>
-    <div style="height:14px"></div>
+    <div class="spacer-14"></div>
     <p class="nav-section-label">System</p>
-    <a class="nav-item" href="../notifications/code.html"><span class="ms">notifications</span> Notifications<span class="nav-badge">3</span></a>
+    <a class="nav-item" href="../notifications/code.html"><span class="ms">notifications</span> Notifications<span class="nav-badge">0</span></a>
     <a class="nav-item" href="../settings/code.html"><span class="ms">settings</span> Settings</a>
     <a class="nav-item" href="../documentation/code.html"><span class="ms">menu_book</span> Documentation</a>
     <a class="nav-item" href="../help_center/code.html"><span class="ms">help</span> Help Center</a>
   </div>
   <div class="sidebar-bottom">
-    <button class="new-sub-btn" onclick="window.location.href='../dashboard_sleek/code.html'"><span class="ms">add_circle</span> New Submission</button>
+    <button class="new-sub-btn" type="button"><span class="ms">add_circle</span> New Submission</button>
   </div>
 </aside>
 <main class="main" id="main">
-  <div class="page-header animate-in"><div><h1>User Profile</h1><p>Manage your account and access preferences.</p></div><div class="header-actions"><button class="btn btn-primary"><span class="ms">edit</span> Edit Profile</button></div></div>
-  <div class="card animate-in" style="animation-delay:.08s;margin-bottom:20px;">
+  <div class="page-header animate-in">
+    <div>
+      <h1>Active User Profile</h1>
+      <p>Identity, authenticated role, and session authorization credentials.</p>
+    </div>
+  </div>
+  <div class="card animate-in delay-1 mb-20">
     <div class="profile-header">
-      <div class="profile-avatar"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach" alt="User"/></div>
+      <div class="profile-avatar"><span class="avatar-initials">AD</span></div>
       <div class="profile-meta">
-        <h2 id="profile-name">Healthcare Admin</h2>
-        <p id="profile-email-header">admin@organization.com · Member since 2024</p>
+        <h2 id="profile-name">Admin</h2>
         <div class="profile-badges">
-          <span class="badge badge-blue">EDI Analyst</span>
-          <span class="badge badge-green">HIPAA Certified</span>
-          <span class="badge badge-purple">AI Beta Tester</span>
+          <span class="badge badge-blue" id="badge-role">OPERATOR</span>
+          <span class="badge badge-green">HIPAA 5010</span>
         </div>
       </div>
     </div>
     <div class="card-body">
       <div class="info-grid">
-        <div class="info-field"><label>Subject / Identity</label><div class="field-val" id="profile-subject">Healthcare Admin</div></div>
-        <div class="info-field"><label>Email / User ID</label><div class="field-val" id="profile-email">admin@organization.com</div></div>
-        <div class="info-field"><label>Organization</label><div class="field-val">Regional Health Network</div></div>
-        <div class="info-field"><label>Role</label><div class="field-val" id="profile-role">EDI Analyst · Administrator</div></div>
-        <div class="info-field"><label>NPI</label><div class="field-val td-mono">1234567890</div></div>
-        <div class="info-field"><label>Last Login</label><div class="field-val">Today at 5:47 PM IST</div></div>
+        <div class="info-field"><label>Subject / User Principal</label><div class="field-val" id="profile-subject">Admin</div></div>
+        <div class="info-field"><label>Authorized Role</label><div class="field-val" id="profile-role">ADMIN</div></div>
+        <div class="info-field"><label>Authentication Scheme</label><div class="field-val" id="profile-auth-type">API Key / Token</div></div>
+        <div class="info-field"><label>PHI Handling</label><div class="field-val">In-Memory / Zero Persistence</div></div>
       </div>
     </div>
   </div>
-  <div class="card animate-in" style="animation-delay:.15s">
-    <div class="card-header"><div class="card-title"><span class="ms" style="font-variation-settings:'FILL' 1;color:var(--accent);font-size:18px">history</span> Recent Activity</div></div>
-    <div class="card-body">
-      <div class="activity-item"><div class="activity-dot" style="background:var(--success)"></div><div style="flex:1"><span style="font-size:14px;font-weight:600;color:var(--text-primary)">Uploaded 835 Remittance — remit_q1_batch.edi</span><div style="font-size:12px;color:var(--text-tertiary);margin-top:2px">18 minutes ago</div></div><span class="badge badge-green">Valid</span></div>
-      <div class="activity-item"><div class="activity-dot" style="background:var(--danger)"></div><div style="flex:1"><span style="font-size:14px;font-weight:600;color:var(--text-primary)">Validation Error — claim_2024_001.edi</span><div style="font-size:12px;color:var(--text-tertiary);margin-top:2px">2 hours ago</div></div><span class="badge badge-red">3 Errors</span></div>
-      <div class="activity-item"><div class="activity-dot" style="background:var(--accent)"></div><div style="flex:1"><span style="font-size:14px;font-weight:600;color:var(--text-primary)">Logged in from Chrome · Windows</span><div style="font-size:12px;color:var(--text-tertiary);margin-top:2px">Today · 5:47 PM</div></div><span class="badge badge-blue">Login</span></div>
+  <div class="card animate-in delay-3">
+    <div class="card-header"><div class="card-title"><span class="ms ms text-accent ms-18">history</span> Session Activity</div></div>
+    <div class="card-body" id="profile-activity">
+      <!-- Populated from session storage -->
     </div>
   </div>
 </main>
-<script type="module" src="../shared.js"></script>
-<script>
-  async function apiFetch(url, options = {}) {
-    if (window.apiFetch) return window.apiFetch(url, options);
-    options = { ...options };
-    const headers = new Headers(options.headers || {});
-    const token = (window.EdiPro && window.EdiPro.getAccessToken)
-      ? window.EdiPro.getAccessToken()
-      : sessionStorage.getItem('edipro_access_token');
-    const apiKey = sessionStorage.getItem('edipro_api_key');
-    if (token && !headers.has('Authorization')) {
-      headers.set('Authorization', `Bearer ${token}`);
-    } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
-      headers.set('X-API-Key', apiKey);
-    }
-    options.headers = headers;
-    return fetch(url, options);
-  }
-
-  async function loadUserProfile() {
-    try {
-      const res = await apiFetch('/api/me');
-      if (res.ok) {
-        const data = await res.json();
-        const subject = data.subject || 'anonymous';
-        const role = data.role || 'viewer';
-        const authType = data.auth_type || 'token';
-
-        const nameEl = document.getElementById('profile-name');
-        if (nameEl) nameEl.textContent = subject;
-
-        const emailHdrEl = document.getElementById('profile-email-header');
-        if (emailHdrEl) emailHdrEl.textContent = `${subject} · Role: ${role.toUpperCase()}`;
-
-        const subjEl = document.getElementById('profile-subject');
-        if (subjEl) subjEl.textContent = subject;
-
-        const emailEl = document.getElementById('profile-email');
-        if (emailEl) emailEl.textContent = subject;
-
-        const roleEl = document.getElementById('profile-role');
-        if (roleEl) roleEl.textContent = `${role.toUpperCase()} (${authType})`;
-      }
-    } catch (err) {
-      console.warn('Failed to fetch /api/me:', err);
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadUserProfile);
-  } else {
-    loadUserProfile();
-  }
-</script>
 </body>
 </html>

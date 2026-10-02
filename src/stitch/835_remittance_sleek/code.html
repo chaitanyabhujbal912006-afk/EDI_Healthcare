@@ -3,67 +3,25 @@
 <head>
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>EdiPro — 835 Remittance</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link rel="stylesheet" href="../theme.css"/>
+<link rel="stylesheet" href="./remittance.css"/>
 <script type="module" src="../shared.js"></script>
-<style>
-.rm-table-row.expanded td { background: var(--accent-dim); }
-.rm-detail {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 14px 16px; margin: 4px 0 8px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; color: var(--text-secondary);
-  line-height: 1.8; display: none;
-}
-.rm-detail.show { display: block; animation: fade-in 0.25s ease both; }
-@keyframes fade-in { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:none;} }
-.filter-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
-.search-bar { flex: 1; min-width: 200px; }
-
-/* Payment breakdown mini chart */
-.breakdown-chart {
-  display: flex; flex-direction: column; gap: 10px;
-  padding: 16px 20px;
-}
-.breakdown-row {
-  display: flex; align-items: center; gap: 12px;
-}
-.breakdown-label {
-  font-size: 11.5px; font-weight: 700; color: var(--text-secondary);
-  width: 130px; flex-shrink: 0; text-align: right;
-  letter-spacing: 0.03em;
-}
-.breakdown-bar-wrap {
-  flex: 1; background: var(--surface-2); border-radius: var(--radius-full);
-  height: 10px; overflow: hidden; border: 1px solid var(--border);
-}
-.breakdown-bar {
-  height: 100%; border-radius: var(--radius-full);
-  width: 0%; transition: width 1s var(--ease-smooth);
-}
-.breakdown-amount {
-  font-size: 12px; font-weight: 800; color: var(--text-primary);
-  width: 90px; text-align: right; font-family: 'JetBrains Mono', monospace;
-}
-</style>
+<script type="module" src="./remittance.js"></script>
 </head>
 <body>
 <header class="topnav">
   <div class="topnav-left">
-    <button class="sidebar-toggle" id="sidebar-toggle"><span class="ms">menu</span></button>
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar"><span class="ms">menu</span></button>
     <a class="brand" href="../dashboard_sleek/code.html">
       <div class="brand-icon"><span class="ms ms-filled">hub</span></div>
       <div><span class="brand-name">EdiPro</span><span class="brand-tag">EDI Gateway</span></div>
     </a>
   </div>
   <div class="topnav-right">
-    <button class="nav-icon-btn"><span class="ms">search</span></button>
-    <button class="nav-icon-btn" onclick="window.location.href='../notifications/code.html'"><span class="ms">notifications</span><span class="notif-dot"></span></button>
-    <button class="theme-toggle-btn" id="theme-toggle"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
-    <div class="avatar"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach" alt="avatar"/></div>
+    <button class="nav-icon-btn" aria-label="Search"><span class="ms">search</span></button>
+    <button class="nav-icon-btn" aria-label="Notifications"><span class="ms">notifications</span><span class="notif-dot"></span></button>
+    <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
+    <div class="avatar" title="User Profile"><span class="avatar-initials">AD</span></div>
   </div>
 </header>
 <div class="overlay" id="overlay"></div>
@@ -72,20 +30,20 @@
     <p class="nav-section-label">Main</p>
     <a class="nav-item" href="../dashboard_sleek/code.html" data-label="Dashboard"><span class="ms">dashboard</span><span class="nav-item-label">Dashboard</span></a>
     <a class="nav-item" href="../master_parser_sleek/code.html" data-label="Master Parser"><span class="ms">analytics</span><span class="nav-item-label">Master Parser</span></a>
-    <div style="height:14px"></div>
+    <div class="spacer-14"></div>
     <p class="nav-section-label">Transactions</p>
     <a class="nav-item active" href="./code.html" data-label="835 Remittance"><span class="ms">payments</span><span class="nav-item-label">835 Remittance</span></a>
     <a class="nav-item" href="../834_enrollment_sleek/code.html" data-label="834 Enrollment"><span class="ms">group_add</span><span class="nav-item-label">834 Enrollment</span></a>
     <a class="nav-item" href="../837_claims_view/code.html" data-label="837 Claims"><span class="ms">description</span><span class="nav-item-label">837 Claims</span></a>
-    <div style="height:14px"></div>
+    <div class="spacer-14"></div>
     <p class="nav-section-label">System</p>
-    <a class="nav-item" href="../notifications/code.html" data-label="Notifications"><span class="ms">notifications</span><span class="nav-item-label">Notifications</span><span class="nav-badge">3</span></a>
+    <a class="nav-item" href="../notifications/code.html" data-label="Notifications"><span class="ms">notifications</span><span class="nav-item-label">Notifications</span><span class="nav-badge">0</span></a>
     <a class="nav-item" href="../settings/code.html" data-label="Settings"><span class="ms">settings</span><span class="nav-item-label">Settings</span></a>
     <a class="nav-item" href="../documentation/code.html" data-label="Documentation"><span class="ms">menu_book</span><span class="nav-item-label">Documentation</span></a>
     <a class="nav-item" href="../help_center/code.html" data-label="Help Center"><span class="ms">help</span><span class="nav-item-label">Help Center</span></a>
   </div>
   <div class="sidebar-bottom">
-    <button class="new-sub-btn" onclick="window.location.href='../dashboard_sleek/code.html'"><span class="ms">add_circle</span><span>New Submission</span></button>
+    <button class="new-sub-btn" type="button"><span class="ms">add_circle</span><span>New Submission</span></button>
   </div>
 </aside>
 <main class="main" id="main">
@@ -99,10 +57,6 @@
       <h1>835 Remittance Advice</h1>
       <p>Payer payment explanations, claim adjustments, and reconciliation data.</p>
     </div>
-    <div class="header-actions">
-      <button class="btn btn-ghost btn-sm"><span class="ms">download</span> Export CSV</button>
-      <button class="btn btn-primary btn-sm"><span class="ms">upload_file</span> Import 835</button>
-    </div>
   </div>
 
   <!-- Stats -->
@@ -110,64 +64,64 @@
     <div class="stat-card s-green">
       <div class="stat-card-top">
         <div class="stat-card-icon icon-green"><span class="ms">payments</span></div>
-        <span class="stat-delta delta-up"><span class="ms" style="font-size:12px;">trending_up</span> +12%</span>
+        <span class="stat-delta delta-up"><span class="ms font-12">trending_up</span> Paid</span>
       </div>
       <div class="stat-card-label">Total Paid</div>
-      <div class="stat-card-value" id="rm-total">—</div>
-      <div class="stat-card-sub">Current period</div>
+      <div class="stat-card-value" id="rm-total">$0.00</div>
+      <div class="stat-card-sub">Session remittance</div>
     </div>
     <div class="stat-card s-blue">
       <div class="stat-card-top">
         <div class="stat-card-icon icon-blue"><span class="ms">receipt_long</span></div>
       </div>
-      <div class="stat-card-label">Remittance Files</div>
-      <div class="stat-card-value" id="rm-count">—</div>
-      <div class="stat-card-sub">Uploaded this session</div>
+      <div class="stat-card-label">Total Billed</div>
+      <div class="stat-card-value" id="rm-billed">$0.00</div>
+      <div class="stat-card-sub">Claim charge amount</div>
     </div>
     <div class="stat-card s-orange">
       <div class="stat-card-top">
-        <div class="stat-card-icon icon-yellow"><span class="ms">pending</span></div>
+        <div class="stat-card-icon icon-yellow"><span class="ms">folder</span></div>
       </div>
-      <div class="stat-card-label">Pending Review</div>
-      <div class="stat-card-value">—</div>
-      <div class="stat-card-sub">Awaiting reconciliation</div>
+      <div class="stat-card-label">Remittance Records</div>
+      <div class="stat-card-value" id="rm-count">0</div>
+      <div class="stat-card-sub">Transactions loaded</div>
     </div>
     <div class="stat-card s-red">
       <div class="stat-card-top">
         <div class="stat-card-icon icon-red"><span class="ms">money_off</span></div>
-        <span class="stat-delta delta-down"><span class="ms" style="font-size:12px;">trending_down</span> -3%</span>
+        <span class="stat-delta delta-down"><span class="ms font-12">tune</span> CAS</span>
       </div>
       <div class="stat-card-label">Adjustments</div>
-      <div class="stat-card-value">—</div>
+      <div class="stat-card-value" id="rm-adj">$0.00</div>
       <div class="stat-card-sub">Payer adjustments</div>
     </div>
   </div>
 
   <!-- Payment Breakdown Mini Chart -->
-  <div class="card card-gloss animate-in animate-in-1" style="margin-bottom:20px;" id="breakdown-card">
+  <div class="card card-gloss animate-in animate-in-1 mb-20" id="breakdown-card">
     <div class="card-header">
-      <div class="card-title"><span class="ms" style="color:var(--success);">bar_chart</span> Payment Breakdown</div>
+      <div class="card-title"><span class="ms text-success">bar_chart</span> Payment Breakdown</div>
       <span class="badge badge-gray" id="breakdown-badge">Session</span>
     </div>
     <div class="breakdown-chart" id="breakdown-chart">
       <div class="breakdown-row">
         <div class="breakdown-label">Paid Amount</div>
         <div class="breakdown-bar-wrap">
-          <div class="breakdown-bar" id="bar-paid" style="background:var(--success);"></div>
+          <div class="breakdown-bar" id="bar-paid" class="bg-success"></div>
         </div>
         <div class="breakdown-amount" id="amt-paid">$0.00</div>
       </div>
       <div class="breakdown-row">
         <div class="breakdown-label">Adjustments</div>
         <div class="breakdown-bar-wrap">
-          <div class="breakdown-bar" id="bar-adj" style="background:var(--warning);"></div>
+          <div class="breakdown-bar" id="bar-adj" class="bg-warning"></div>
         </div>
         <div class="breakdown-amount" id="amt-adj">$0.00</div>
       </div>
       <div class="breakdown-row">
         <div class="breakdown-label">Patient Resp.</div>
         <div class="breakdown-bar-wrap">
-          <div class="breakdown-bar" id="bar-pr" style="background:var(--danger);"></div>
+          <div class="breakdown-bar" id="bar-pr" class="bg-danger"></div>
         </div>
         <div class="breakdown-amount" id="amt-pr">$0.00</div>
       </div>
@@ -177,23 +131,22 @@
   <!-- Table Card -->
   <div class="card card-gloss animate-in animate-in-2">
     <div class="card-header">
-      <div class="card-title"><span class="ms" style="color:var(--success);">payments</span> Remittance Register</div>
-      <div style="display:flex;gap:8px;align-items:center;">
+      <div class="card-title"><span class="ms text-success">payments</span> Remittance Register</div>
+      <div class="d-flex gap-8 items-center">
         <span class="badge badge-green">835</span>
-        <button class="btn btn-ghost btn-sm"><span class="ms">filter_list</span> Filter</button>
       </div>
     </div>
 
-    <div class="card-body" style="padding-top:16px;">
+    <div class="card-body pt-16">
       <div class="filter-bar">
         <div class="search-bar input-group">
           <span class="ms">search</span>
-          <input class="input" type="text" placeholder="Search payer, claim ID…" id="rm-search"/>
+          <input class="input" type="text" placeholder="Search claim ID, filename…" id="rm-search" aria-label="Search remittance claims"/>
         </div>
         <div class="seg-control">
-          <button class="seg-btn active" onclick="filterRM('all',this)">All</button>
-          <button class="seg-btn" onclick="filterRM('paid',this)">Paid</button>
-          <button class="seg-btn" onclick="filterRM('adjusted',this)">Adjusted</button>
+          <button class="seg-btn active" data-filter="all" type="button">All</button>
+          <button class="seg-btn" data-filter="paid" type="button">Paid</button>
+          <button class="seg-btn" data-filter="adjusted" type="button">Adjusted</button>
         </div>
       </div>
 
@@ -201,7 +154,7 @@
         <div class="empty-state">
           <div class="empty-state-icon"><span class="ms">receipt_long</span></div>
           <h3>No 835 remittance data yet</h3>
-          <p>Upload 835 files from the <a href="../dashboard_sleek/code.html" style="color:var(--accent)">Dashboard</a> to see payment data here.</p>
+          <p>Upload 835 files from the <a href="../dashboard_sleek/code.html" class="text-accent">Dashboard</a> to see payment data here.</p>
           <a class="btn btn-primary" href="../dashboard_sleek/code.html"><span class="ms">upload_file</span> Go to Dashboard</a>
         </div>
       </div>
@@ -209,9 +162,9 @@
   </div>
 
   <!-- Payment Timeline -->
-  <div class="card card-gloss animate-in animate-in-3" style="margin-top:20px;">
+  <div class="card card-gloss animate-in animate-in-3 mt-20">
     <div class="card-header">
-      <div class="card-title"><span class="ms" style="color:var(--accent);">timeline</span> Payment Timeline</div>
+      <div class="card-title"><span class="ms text-accent">timeline</span> System Pipeline</div>
       <span class="badge badge-gray">Session</span>
     </div>
     <div class="card-body">
@@ -220,168 +173,21 @@
           <div class="timeline-dot icon-blue"><span class="ms">login</span></div>
           <div class="timeline-body">
             <div class="timeline-title">System ready for 835 processing</div>
-            <div class="timeline-sub">All remittance schemas loaded · 835-4010, 835-5010</div>
+            <div class="timeline-sub">HIPAA 5010 schemas active · 835 Electronic Remittance Advice</div>
           </div>
-          <div class="timeline-time">Now</div>
+          <div class="timeline-time">Ready</div>
         </div>
         <div class="timeline-item">
           <div class="timeline-dot icon-green"><span class="ms">check_circle</span></div>
           <div class="timeline-body">
             <div class="timeline-title">ERA validation rules active</div>
-            <div class="timeline-sub">CAS, CLP, PLB segment validators online</div>
+            <div class="timeline-sub">CAS, CLP, BPR, and PLB segment validators online</div>
           </div>
-          <div class="timeline-time">Just now</div>
+          <div class="timeline-time">Ready</div>
         </div>
       </div>
     </div>
   </div>
 </main>
-<script>
-  const html = document.documentElement;
-  const themeBtn = document.getElementById('theme-toggle');
-  function applyTheme(t) {
-    html.classList.toggle('dark', t === 'dark');
-    document.getElementById('theme-icon').textContent  = t === 'dark' ? 'dark_mode' : 'light_mode';
-    document.getElementById('theme-label').textContent = t === 'dark' ? 'Dark' : 'Light';
-    localStorage.setItem('theme', t);
-  }
-  applyTheme(localStorage.getItem('theme') || 'light');
-  themeBtn.addEventListener('click', () => applyTheme(html.classList.contains('dark') ? 'light' : 'dark'));
-
-  const sidebar = document.getElementById('sidebar');
-  const mainEl  = document.getElementById('main');
-  const overlay = document.getElementById('overlay');
-  let open = window.innerWidth >= 900;
-  function setSidebar(v) { open=v; sidebar.classList.toggle('collapsed',!v); mainEl.classList.toggle('expanded',!v); overlay.classList.toggle('visible',v&&window.innerWidth<900); }
-  setSidebar(open);
-  document.getElementById('sidebar-toggle').addEventListener('click', () => setSidebar(!open));
-  overlay.addEventListener('click', () => setSidebar(false));
-  window.addEventListener('resize', () => { if(window.innerWidth>=900) setSidebar(true); });
-
-  // Unified apiFetch helper
-  async function apiFetch(url, options = {}) {
-    if (window.apiFetch) return window.apiFetch(url, options);
-    options = { ...options };
-    const headers = new Headers(options.headers || {});
-    const token = (window.EdiPro && window.EdiPro.getAccessToken)
-      ? window.EdiPro.getAccessToken()
-      : sessionStorage.getItem('edipro_access_token');
-    const apiKey = sessionStorage.getItem('edipro_api_key');
-    if (token && !headers.has('Authorization')) {
-      headers.set('Authorization', `Bearer ${token}`);
-    } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
-      headers.set('X-API-Key', apiKey);
-    }
-    options.headers = headers;
-    return fetch(url, options);
-  }
-
-  // Load data from storage & API backend
-  async function loadRemittanceData() {
-    const items = JSON.parse(localStorage.getItem('ediSubmissions') || '[]');
-    let rm = items.filter(i => i.type === '835');
-
-    // If no local storage items, auto-fetch sample 835 via backend API
-    if (rm.length === 0 && window.EdiPro && window.EdiPro.getSampleEdiContent) {
-      try {
-        const sampleEdi = window.EdiPro.getSampleEdiContent('835');
-        const res = await apiFetch('/api/parse', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: sampleEdi })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const parseRes = data.parse_result || {};
-          const segments = parseRes.segments || [];
-          const clpSegs = segments.filter(s => s.id === 'CLP');
-          
-          rm = clpSegs.map((clp, idx) => ({
-            id: clp.elements[0] || `CLM-${idx+1}`,
-            type: '835',
-            filename: 'sample_835.edi',
-            timestamp: new Date().toLocaleDateString(),
-            status: clp.elements[1] === '1' ? 'Paid' : 'Processed',
-            amount: parseFloat(clp.elements[3] || '0') || 1100.00,
-            billed: parseFloat(clp.elements[2] || '0') || 1250.00,
-            patient: 'JOHN SMITH'
-          }));
-        }
-      } catch (err) {
-        console.warn('API fetch fallback for 835:', err);
-      }
-    }
-
-    document.getElementById('rm-count').textContent = rm.length || '0';
-    const totalAmount = rm.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-    const totalBilled = rm.reduce((sum, item) => sum + (parseFloat(item.billed) || (parseFloat(item.amount) * 1.15) || 0), 0);
-    const totalAdj = Math.max(0, (totalBilled - totalAmount) * 0.75);
-    const totalPr  = Math.max(0, totalBilled - totalAmount - totalAdj);
-    const grandTotal = Math.max(totalBilled, totalAmount + totalAdj + totalPr, 1);
-
-    document.getElementById('rm-total').textContent = totalAmount > 0 ? '$' + totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2}) : '$0.00';
-    
-    // Update breakdown chart
-    const amtPaidEl = document.getElementById('amt-paid');
-    const amtAdjEl  = document.getElementById('amt-adj');
-    const amtPrEl   = document.getElementById('amt-pr');
-    const barPaidEl = document.getElementById('bar-paid');
-    const barAdjEl  = document.getElementById('bar-adj');
-    const barPrEl   = document.getElementById('bar-pr');
-    if (amtPaidEl) amtPaidEl.textContent = '$' + totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    if (amtAdjEl)  amtAdjEl.textContent  = '$' + totalAdj.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    if (amtPrEl)   amtPrEl.textContent   = '$' + totalPr.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    if (barPaidEl) barPaidEl.style.width = Math.min(100, Math.round((totalAmount / grandTotal) * 100)) + '%';
-    if (barAdjEl)  barAdjEl.style.width  = Math.min(100, Math.round((totalAdj / grandTotal) * 100)) + '%';
-    if (barPrEl)   barPrEl.style.width   = Math.min(100, Math.round((totalPr / grandTotal) * 100)) + '%';
-
-    const container = document.getElementById('rm-content');
-    if (!container) return;
-
-    if (rm.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-state-icon"><span class="ms">receipt_long</span></div>
-          <h3>No 835 remittance data yet</h3>
-          <p>Upload 835 files from the <a href="../dashboard_sleek/code.html" style="color:var(--accent)">Dashboard</a> to see payment data here.</p>
-          <a class="btn btn-primary" href="../dashboard_sleek/code.html"><span class="ms">upload_file</span> Go to Dashboard</a>
-        </div>`;
-      return;
-    }
-
-    let rowsHtml = rm.map(item => `
-      <tr class="rm-table-row">
-        <td><span class="badge badge-green">835</span> <strong>${item.id || 'CLM-835'}</strong></td>
-        <td>${item.patient || 'Patient'}</td>
-        <td>$${(item.billed || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-        <td><strong style="color:var(--success)">$${(item.amount || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}</strong></td>
-        <td><span class="badge badge-blue">${item.status || 'Paid'}</span></td>
-        <td>${item.timestamp || 'Today'}</td>
-      </tr>
-    `).join('');
-
-    container.innerHTML = `
-      <table class="table" style="width:100%;">
-        <thead>
-          <tr>
-            <th>Claim ID</th>
-            <th>Patient</th>
-            <th>Billed Amount</th>
-            <th>Paid Amount</th>
-            <th>Status</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>${rowsHtml}</tbody>
-      </table>`;
-  }
-
-  loadRemittanceData();
-
-  function filterRM(type, btn) {
-    document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-</script>
 </body>
 </html>

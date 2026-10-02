@@ -3,37 +3,18 @@
 <head>
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>EdiPro — Help Center</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link rel="stylesheet" href="../theme.css"/>
-<style>
-  .faq-item{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;transition:border-color .2s;}
-  .faq-item:hover{border-color:var(--accent);}
-  .faq-q{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;cursor:pointer;font-size:14px;font-weight:700;color:var(--text-primary);}
-  .faq-q .ms{color:var(--text-tertiary);transition:transform .3s;}
-  .faq-item.open .faq-q .ms{transform:rotate(180deg);color:var(--accent);}
-  .faq-item.open .faq-q{color:var(--accent);}
-  .faq-a{display:none;padding:0 20px 16px;font-size:13px;color:var(--text-secondary);line-height:1.7;}
-  .faq-item.open .faq-a{display:block;}
-  .help-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
-  @media(max-width:700px){.help-grid{grid-template-columns:1fr;}}
-  .help-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--card-radius);transition:all .2s;cursor:pointer;text-decoration:none;}
-  .help-card:hover{border-color:var(--accent);background:var(--accent-dim);transform:translateY(-2px);}
-  .help-card-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;}
-  .help-card-icon .ms{font-size:22px;font-variation-settings:'FILL' 1;}
-  .help-card h3{font-size:14px;font-weight:700;color:var(--text-primary);}
-  .help-card p{font-size:12px;color:var(--text-secondary);line-height:1.5;}
-</style>
+<link rel="stylesheet" href="./help_center.css"/>
 </head>
 <body>
 <header class="topnav">
   <div class="topnav-left">
-    <button class="sidebar-toggle" id="sidebar-toggle"><span class="ms">menu</span></button>
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle navigation"><span class="ms">menu</span></button>
     <div class="brand"><div class="brand-icon"><span class="ms">hub</span></div><div><span class="brand-name">EdiPro</span><span class="brand-tag"> · EDI Gateway</span></div></div>
   </div>
   <div class="topnav-right">
-    <button class="theme-toggle-btn" id="theme-toggle"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
-    <div class="avatar"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach" alt="avatar"/></div>
+    <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme"><span class="ms" id="theme-icon">light_mode</span><span id="theme-label">Light</span></button>
+    <div class="avatar avatar-initials" data-user-initials="true">--</div>
   </div>
 </header>
 <div class="overlay" id="overlay"></div>
@@ -42,119 +23,71 @@
     <p class="nav-section-label">Main</p>
     <a class="nav-item" href="../dashboard_sleek/code.html"><span class="ms">dashboard</span> Dashboard</a>
     <a class="nav-item" href="../master_parser_sleek/code.html"><span class="ms">analytics</span> Master Parser</a>
-    <div style="height:14px"></div>
+    <div class="spacer-14"></div>
     <p class="nav-section-label">Transactions</p>
     <a class="nav-item" href="../835_remittance_sleek/code.html"><span class="ms">payments</span> 835 Remittance</a>
     <a class="nav-item" href="../834_enrollment_sleek/code.html"><span class="ms">group_add</span> 834 Enrollment</a>
     <a class="nav-item" href="../837_claims_view/code.html"><span class="ms">description</span> 837 Claims</a>
-    <div style="height:14px"></div>
+    <div class="spacer-14"></div>
     <p class="nav-section-label">System</p>
-    <a class="nav-item" href="../notifications/code.html"><span class="ms">notifications</span> Notifications<span class="nav-badge">3</span></a>
+    <a class="nav-item" href="../notifications/code.html"><span class="ms">notifications</span> Notifications<span class="nav-badge" id="nav-notifications-badge" class="is-hidden">0</span></a>
     <a class="nav-item" href="../settings/code.html"><span class="ms">settings</span> Settings</a>
     <a class="nav-item" href="../documentation/code.html"><span class="ms">menu_book</span> Documentation</a>
     <a class="nav-item active" href="./code.html"><span class="ms">help</span> Help Center</a>
   </div>
   <div class="sidebar-bottom">
-    <button class="new-sub-btn" onclick="window.location.href='../dashboard_sleek/code.html'"><span class="ms">add_circle</span> New Submission</button>
+    <button class="new-sub-btn" type="button"><span class="ms">add_circle</span> New Submission</button>
   </div>
 </aside>
 <main class="main" id="main">
-  <div class="page-header animate-in"><div><h1>Help Center</h1><p>Everything you need to get the most from EdiPro.</p></div></div>
-  <div class="help-grid animate-in" style="animation-delay:.08s">
+  <div class="page-header animate-in"><div><h1>Help Center</h1><p>Guidance and specifications for healthcare EDI operations.</p></div></div>
+  <div class="help-grid animate-in delay-1">
     <a class="help-card" href="../documentation/code.html"><div class="help-card-icon icon-blue"><span class="ms">menu_book</span></div><h3>Documentation</h3><p>Complete API reference, configuration guides and transaction type specs.</p></a>
-    <a class="help-card" href="#faq"><div class="help-card-icon icon-purple"><span class="ms">quiz</span></div><h3>FAQ</h3><p>Quick answers to the most commonly asked questions about EDI processing.</p></a>
-    <a class="help-card" href="#"><div class="help-card-icon icon-green"><span class="ms">support_agent</span></div><h3>Contact Support</h3><p>Reach our team via email or live chat for technical assistance.</p></a>
+    <a class="help-card" href="#faq"><div class="help-card-icon icon-purple"><span class="ms">quiz</span></div><h3>FAQ</h3><p>Quick answers to commonly asked questions about EDI processing.</p></a>
+    <a class="help-card" href="../settings/code.html"><div class="help-card-icon icon-green"><span class="ms">tune</span></div><h3>Engine Settings</h3><p>Inspect active validation rules, system limits, and health status.</p></a>
   </div>
-  <div class="card animate-in" style="animation-delay:.12s; margin-bottom: 24px;">
+  <div class="card animate-in delay-2 mb-24">
     <div class="card-header">
-      <div class="card-title"><span class="ms" style="color:var(--accent);font-size:18px">smart_toy</span> Ask EdiPro AI Assistant</div>
-      <span class="badge badge-purple">Live API</span>
+      <div class="card-title"><span class="ms ms text-accent ms-18">smart_toy</span> Ask EdiPro Assistant</div>
+      <span class="badge badge-purple" id="ai-status-badge">Engine Connected</span>
     </div>
     <div class="card-body">
-      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Ask any question about EDI specifications, error resolution, or transaction rules:</p>
-      <div style="display:flex;gap:10px;">
-        <input class="input" type="text" id="ai-chat-input" placeholder="e.g. How do I fix a Luhn NPI validation error?" style="flex:1;" />
-        <button class="btn btn-primary" id="ai-chat-send" onclick="sendAiQuestion()"><span class="ms">send</span> Ask AI</button>
+      <label for="ai-chat-input" class="font-13 text-secondary d-block mb-12">Query EDI specifications, error resolution procedures, or transaction rules:</label>
+      <div class="d-flex gap-10">
+        <input class="input" type="text" id="ai-chat-input" placeholder="e.g. How do I fix a Luhn NPI validation error?" class="flex-1" />
+        <button class="btn btn-primary" id="ai-chat-send" type="button"><span class="ms">send</span> Ask Assistant</button>
       </div>
-      <div id="ai-chat-response" style="margin-top:14px;padding:12px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);display:none;font-size:13px;line-height:1.6;"></div>
+      <div id="ai-chat-response" class="ai-response-box is-hidden"></div>
     </div>
   </div>
 
-  <div class="card animate-in" style="animation-delay:.15s" id="faq">
-    <div class="card-header"><div class="card-title"><span class="ms" style="font-variation-settings:'FILL' 1;color:var(--accent);font-size:18px">quiz</span> Frequently Asked Questions</div></div>
+  <div class="card animate-in delay-3" id="faq">
+    <div class="card-header"><div class="card-title"><span class="ms ms ms-filled text-accent ms-18">quiz</span> Frequently Asked Questions</div></div>
     <div class="card-body">
       <div class="faq-item open">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What EDI transaction types does EdiPro support?<span class="ms">expand_more</span></div>
-        <div class="faq-a">EdiPro supports 837P (Professional Claims), 837I (Institutional Claims), 835 (Remittance Advice), and 834 (Benefit Enrollment). Support for 270/271 eligibility and 276/277 claim status is planned for a future release.</div>
+        <button class="faq-q" type="button">What EDI transaction types does EdiPro support?<span class="ms">expand_more</span></button>
+        <div class="faq-a">EdiPro supports 837P (Professional Claims), 837I (Institutional Claims), 835 (Remittance Advice), and 834 (Benefit Enrollment) under HIPAA X12 5010 standards.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">How do I upload an EDI file?<span class="ms">expand_more</span></div>
-        <div class="faq-a">Go to the Dashboard and drag and drop your .edi, .txt, .dat, or .x12 file into the upload zone, or click "Select Files" to browse. Files up to 256 MB are supported. The system will automatically detect the transaction type and run validation.</div>
+        <button class="faq-q" type="button">How do I upload an EDI file?<span class="ms">expand_more</span></button>
+        <div class="faq-a">Navigate to the Dashboard and drag and drop your .edi, .txt, or .x12 file into the upload zone, or click "Select Files" to browse. The parser detects the transaction type, envelopes, and executes 5010 validation rules.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">How does AI-powered parsing work?<span class="ms">expand_more</span></div>
-        <div class="faq-a">EdiPro uses a Groq LLM (Llama 3.3 70B) to provide plain-English explanations of EDI validation errors, segment meanings, and actionable fix suggestions. The AI is provider-agnostic and can be swapped in Settings.</div>
+        <button class="faq-q" type="button">How does rule-based validation work?<span class="ms">expand_more</span></button>
+        <div class="faq-a">EdiPro enforces syntactical, structural, and semantic rules configured in the backend engine, including segment counts (SE01), mandatory element presence, balance reconciliation, and Luhn checksums on NPI identifiers.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Is this HIPAA compliant?<span class="ms">expand_more</span></div>
-        <div class="faq-a">Yes. EdiPro is built with HIPAA x12 5010 standards. All data is processed locally or within your secure infrastructure. We do not store PHI on third-party servers without your explicit consent and BAA signing.</div>
+        <button class="faq-q" type="button">Is sensitive patient data protected?<span class="ms">expand_more</span></button>
+        <div class="faq-a">Yes. In compliance with strict HIPAA security controls, the platform operates zero-PHI retention in logs, enforces client-side session isolation, and protects all endpoints with authenticated role-based access.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What does a validation error mean?<span class="ms">expand_more</span></div>
-        <div class="faq-a">Validation errors indicate that a segment or element does not conform to X12 5010 rules. Each error includes an error code (like CLM01_REQUIRED), a human-readable message, and a fix suggestion. Warnings are non-critical issues that may need attention.</div>
+        <button class="faq-q" type="button">What does a validation error mean?<span class="ms">expand_more</span></button>
+        <div class="faq-a">Validation errors indicate that a segment, element, or composite fails 5010 X12 rules. Each error reports the exact segment position, error code (such as SE_COUNT_MISMATCH, NPI_INVALID, or CLM_SUM_MISMATCH), and contextual guidance.</div>
       </div>
     </div>
   </div>
 </main>
 <script type="module" src="../shared.js"></script>
-<script>
-  // Unified apiFetch helper
-  async function apiFetch(url, options = {}) {
-    if (window.apiFetch) return window.apiFetch(url, options);
-    options = { ...options };
-    const headers = new Headers(options.headers || {});
-    const token = (window.EdiPro && window.EdiPro.getAccessToken)
-      ? window.EdiPro.getAccessToken()
-      : sessionStorage.getItem('edipro_access_token');
-    const apiKey = sessionStorage.getItem('edipro_api_key');
-    if (token && !headers.has('Authorization')) {
-      headers.set('Authorization', `Bearer ${token}`);
-    } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
-      headers.set('X-API-Key', apiKey);
-    }
-    options.headers = headers;
-    return fetch(url, options);
-  }
-
-  async function sendAiQuestion() {
-    const input = document.getElementById('ai-chat-input');
-    const respDiv = document.getElementById('ai-chat-response');
-    const btn = document.getElementById('ai-chat-send');
-    if (!input || !input.value.trim()) return;
-
-    const question = input.value.trim();
-    respDiv.style.display = 'block';
-    respDiv.innerHTML = '<span style="color:var(--text-secondary)">Asking EdiPro AI Assistant...</span>';
-    btn.disabled = true;
-
-    try {
-      const res = await apiFetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: question, context: 'Healthcare EDI 5010 specs' })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        respDiv.innerHTML = `<strong>🤖 AI Response:</strong><br/>${data.answer || 'No answer returned.'}`;
-      } else {
-        respDiv.innerHTML = `<strong>💡 Tip:</strong> For Luhn NPI validation, ensure the 10-digit National Provider Identifier satisfies the Luhn check digit algorithm. (FastAPI /api/chat live response)`;
-      }
-    } catch (err) {
-      respDiv.innerHTML = `<strong>💡 Tip:</strong> To resolve validation errors, inspect the element position and check against the 5010 X12 schema specifications.`;
-    } finally {
-      btn.disabled = false;
-    }
-  }
-</script>
+<script type="module" src="./help_center.js"></script>
 </body>
 </html>

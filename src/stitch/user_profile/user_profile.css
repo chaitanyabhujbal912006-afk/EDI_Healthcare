@@ -1,0 +1,14 @@
+/* user_profile.css — User Profile Stylesheet */
+.profile-header{display:flex;align-items:center;gap:24px;padding:28px;border-bottom:1px solid var(--divider);}
+.profile-avatar{width:80px;height:80px;border-radius:50%;overflow:hidden;border:3px solid var(--border);box-shadow:var(--shadow-md);flex-shrink:0;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;}
+.profile-avatar .avatar-initials{font-size:28px;font-weight:800;color:#ffffff;}
+.profile-meta h2{font-size:22px;font-weight:800;color:var(--text-primary);}
+.profile-meta p{font-size:14px;color:var(--text-secondary);margin-top:4px;}
+.profile-badges{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:600px){.info-grid{grid-template-columns:1fr;}}
+.info-field label{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-tertiary);display:block;margin-bottom:6px;}
+.info-field .field-val{font-size:14px;font-weight:600;color:var(--text-primary);background:var(--accent-dim);border:1px solid var(--border);border-radius:10px;padding:10px 14px;}
+.activity-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--divider);}
+.activity-item:last-child{border-bottom:none;}
+.activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}

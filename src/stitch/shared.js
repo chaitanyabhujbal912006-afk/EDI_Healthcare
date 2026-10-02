@@ -1,17 +1,115 @@
-/* shared.js — EdiPro shared page init: theme, sidebar, command palette, toast system */
+/* shared.js — EdiPro shared page init: theme, sidebar, command palette, toast system, route guard, auth & store */
 
-function showToast(title, message = '', type = 'info', duration = 3500) {
+// HTML escaping helper
+export function escapeHtml(str) {
+  if (typeof str !== 'string') return str == null ? '' : String(str);
+  return str.replace(/[&<>"']/g, function(m) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[m];
+  });
+}
+export const esc = escapeHtml;
+
+// Session-only EDI storage
+const EDI_STORE_KEY = 'ediSubmissions';
+
+export const ediStore = {
+  getSubmissions() {
+    try {
+      const p = JSON.parse(sessionStorage.getItem(EDI_STORE_KEY) || '[]');
+      return Array.isArray(p) ? p : [];
+    } catch {
+      return [];
+    }
+  },
+  saveSubmission(sub) {
+    const list = this.getSubmissions();
+    list.unshift(sub);
+    sessionStorage.setItem(EDI_STORE_KEY, JSON.stringify(list.slice(0, 100)));
+    updateNotificationsBadge();
+    return list;
+  },
+  setSubmissions(items) {
+    sessionStorage.setItem(EDI_STORE_KEY, JSON.stringify(Array.isArray(items) ? items : []));
+    updateNotificationsBadge();
+  },
+  clear() {
+    sessionStorage.removeItem(EDI_STORE_KEY);
+    updateNotificationsBadge();
+  }
+};
+
+// Derive real notifications strictly from session validation results
+export function getSessionNotifications() {
+  const submissions = ediStore.getSubmissions();
+  const notifications = [];
+
+  submissions.forEach((item, idx) => {
+    const errCount = item.errorCount || 0;
+    const fn = escapeHtml(item.filename || 'EDI Document');
+    const tx = escapeHtml(item.type || 'EDI');
+
+    if (errCount > 0) {
+      notifications.push({
+        id: `notif-err-${idx}`,
+        title: `${tx} Validation Issues (${errCount})`,
+        desc: `File "${fn}" completed validation with ${errCount} rule error(s).`,
+        time: item.timeLabel || 'Recent',
+        severity: 'danger',
+        icon: 'error',
+        read: false
+      });
+    } else {
+      notifications.push({
+        id: `notif-ok-${idx}`,
+        title: `${tx} Validated Successfully`,
+        desc: `File "${fn}" passed all HIPAA 5010 compliance rules cleanly.`,
+        time: item.timeLabel || 'Recent',
+        severity: 'success',
+        icon: 'check_circle',
+        read: false
+      });
+    }
+  });
+
+  return notifications;
+}
+
+export function updateNotificationsBadge() {
+  const notifs = getSessionNotifications();
+  const unreadCount = notifs.filter(n => !n.read).length;
+  const badges = document.querySelectorAll('.nav-badge');
+  badges.forEach(b => {
+    b.textContent = unreadCount;
+    b.style.display = unreadCount > 0 ? 'inline-flex' : 'none';
+  });
+  const notifDots = document.querySelectorAll('.notif-dot');
+  notifDots.forEach(d => {
+    d.style.display = unreadCount > 0 ? 'block' : 'none';
+  });
+}
+
+// Toast notification system with ARIA live region
+export function showToast(title, message = '', type = 'info', duration = 4000) {
   let container = document.getElementById('toast-container');
   if (!container) {
     container = document.createElement('div');
     container.id = 'toast-container';
     container.className = 'toast-container';
+    container.setAttribute('aria-live', 'polite');
+    container.setAttribute('aria-atomic', 'true');
+    container.setAttribute('role', 'status');
     document.body.appendChild(container);
   }
 
   const toast = document.createElement('div');
   toast.className = `toast-item toast-${type}`;
-  
+
   const iconMap = {
     success: 'check_circle',
     error: 'error',
@@ -22,10 +120,10 @@ function showToast(title, message = '', type = 'info', duration = 3500) {
   toast.innerHTML = `
     <span class="ms toast-icon">${iconMap[type] || 'info'}</span>
     <div class="toast-content">
-      <div class="toast-title">${title}</div>
-      ${message ? `<div class="toast-message">${message}</div>` : ''}
+      <div class="toast-title">${escapeHtml(title)}</div>
+      ${message ? `<div class="toast-message">${escapeHtml(message)}</div>` : ''}
     </div>
-    <button class="toast-close" aria-label="Close">&times;</button>
+    <button class="toast-close" type="button" aria-label="Close notification">&times;</button>
   `;
 
   const closeBtn = toast.querySelector('.toast-close');
@@ -44,40 +142,207 @@ function showToast(title, message = '', type = 'info', duration = 3500) {
   }, duration);
 }
 
+// Auth token management
+let _inMemoryAccessToken = null;
+
+export function setAccessToken(token) {
+  _inMemoryAccessToken = token;
+  if (token) {
+    sessionStorage.setItem('edipro_access_token', token);
+  } else {
+    sessionStorage.removeItem('edipro_access_token');
+  }
+}
+
+export function getAccessToken() {
+  if (!_inMemoryAccessToken && typeof sessionStorage !== 'undefined') {
+    _inMemoryAccessToken = sessionStorage.getItem('edipro_access_token');
+  }
+  return _inMemoryAccessToken;
+}
+
+// Unified API fetch helper with explicit error UX and request IDs
+export async function apiFetch(input, init = {}) {
+  init = { ...init };
+  const headers = new Headers(init.headers || {});
+  const token = getAccessToken();
+  const apiKey = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('edipro_api_key') : null;
+
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
+    headers.set('X-API-Key', apiKey);
+  }
+
+  init.headers = headers;
+
+  let res;
+  try {
+    res = await fetch(input, init);
+  } catch (err) {
+    showToast('Network Error', err.message || 'Unable to communicate with API server.', 'error');
+    throw err;
+  }
+
+  const reqId = res.headers.get('X-Request-ID') || 'N/A';
+
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`;
+    try {
+      const clone = res.clone();
+      const data = await clone.json();
+      if (data && data.detail) {
+        detail = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
+      }
+    } catch {
+      try {
+        const text = await res.clone().text();
+        if (text) detail = text.slice(0, 150);
+      } catch {}
+    }
+
+    const errorMsg = `${detail} (Request ID: ${reqId})`;
+
+    if (res.status === 401) {
+      showToast('401 Unauthorized', errorMsg, 'error');
+      const path = window.location.pathname;
+      const isLogin = path.endsWith('index.html') || path.endsWith('/') || path.includes('login_sleek_redesign');
+      if (!isLogin) {
+        sessionStorage.removeItem('edipro_access_token');
+        sessionStorage.removeItem('edipro_api_key');
+        _inMemoryAccessToken = null;
+        const target = path.includes('/stitch/')
+          ? path.replace(/\/stitch\/.*$/, '/stitch/index.html')
+          : '../index.html';
+        setTimeout(() => { window.location.href = target; }, 800);
+      }
+    } else if (res.status === 413) {
+      showToast('413 Payload Too Large', errorMsg, 'error');
+    } else if (res.status === 415) {
+      showToast('415 Unsupported Media Type', errorMsg, 'error');
+    } else if (res.status === 429) {
+      showToast('429 Rate Limit Exceeded', errorMsg, 'error');
+    } else {
+      showToast(`Error ${res.status}`, errorMsg, 'error');
+    }
+  }
+
+  return res;
+}
+
+// Route Guard
+async function checkAuthRouteGuard() {
+  const path = window.location.pathname;
+  const isLogin = path.endsWith('index.html') || path.endsWith('/') || path.includes('login_sleek_redesign');
+  if (isLogin) return;
+
+  let authEnabled = sessionStorage.getItem('edipro_auth_enabled');
+  if (authEnabled === null) {
+    try {
+      const res = await fetch('/api/auth/config');
+      if (res.ok) {
+        const conf = await res.json();
+        authEnabled = conf.oidc_configured ? 'true' : 'false';
+      } else {
+        authEnabled = 'false';
+      }
+    } catch {
+      authEnabled = 'false';
+    }
+    sessionStorage.setItem('edipro_auth_enabled', authEnabled);
+  }
+
+  if (authEnabled === 'true') {
+    const token = getAccessToken();
+    const apiKey = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('edipro_api_key') : null;
+    if (!token && !apiKey) {
+      const target = path.includes('/stitch/')
+        ? path.replace(/\/stitch\/.*$/, '/stitch/index.html')
+        : '../index.html';
+      window.location.href = target;
+    }
+  }
+}
+
+// User Initials and Identity Hydration
+async function hydrateUserIdentity() {
+  let user = null;
+  const cached = sessionStorage.getItem('edipro_user_me');
+  if (cached) {
+    try { user = JSON.parse(cached); } catch {}
+  }
+
+  if (!user) {
+    try {
+      const res = await apiFetch('/api/me');
+      if (res.ok) {
+        user = await res.json();
+        sessionStorage.setItem('edipro_user_me', JSON.stringify(user));
+      }
+    } catch {
+      // Optional fallback
+    }
+  }
+
+  const subject = (user && user.subject) ? user.subject : 'Admin';
+  const role = (user && user.role) ? user.role : 'Administrator';
+  const initials = subject.slice(0, 2).toUpperCase();
+
+  // Set avatar initials
+  document.querySelectorAll('.avatar-initials').forEach(el => {
+    el.textContent = initials;
+  });
+
+  // Set user profile info if present
+  const suName = document.querySelector('.su-name');
+  if (suName) suName.textContent = subject;
+  const suRole = document.querySelector('.su-role');
+  if (suRole) suRole.textContent = role.toUpperCase();
+  const suAvatar = document.querySelector('.su-avatar');
+  if (suAvatar) suAvatar.textContent = initials;
+}
+
+// Command Palette (Accessible, no inline onclick)
 function initCommandPalette() {
   if (document.getElementById('cmd-palette-backdrop')) return;
 
   const backdrop = document.createElement('div');
   backdrop.id = 'cmd-palette-backdrop';
   backdrop.className = 'cmd-palette-backdrop';
-  
-  backdrop.innerHTML = `
-    <div class="cmd-palette-modal" onclick="event.stopPropagation()">
-      <div class="cmd-palette-header">
-        <span class="ms">search</span>
-        <input type="text" id="cmd-palette-input" placeholder="Type a command or search pages (e.g., 837, Claims, Settings)..." autocomplete="off" />
-        <span class="kbd">ESC</span>
-      </div>
-      <div class="cmd-palette-results" id="cmd-palette-results">
-        <div class="cmd-group-label">Quick Navigation</div>
-        <div class="cmd-item" data-url="../dashboard_sleek/code.html"><span class="ms">dashboard</span><span>Dashboard Overview</span><span class="kbd">Go</span></div>
-        <div class="cmd-item" data-url="../master_parser_sleek/code.html"><span class="ms">analytics</span><span>Master EDI Parser</span><span class="kbd">Go</span></div>
-        <div class="cmd-item" data-url="../837_claims_view/code.html"><span class="ms">description</span><span>837 Professional Claims</span><span class="kbd">Go</span></div>
-        <div class="cmd-item" data-url="../835_remittance_sleek/code.html"><span class="ms">payments</span><span>835 Payment Remittance</span><span class="kbd">Go</span></div>
-        <div class="cmd-item" data-url="../834_enrollment_sleek/code.html"><span class="ms">group_add</span><span>834 Member Enrollment</span><span class="kbd">Go</span></div>
-        <div class="cmd-item" data-url="../notifications/code.html"><span class="ms">notifications</span><span>Notification Center</span><span class="kbd">Go</span></div>
-        <div class="cmd-item" data-url="../settings/code.html"><span class="ms">settings</span><span>System Settings & Rules</span><span class="kbd">Go</span></div>
-        <div class="cmd-item" data-url="../user_profile/code.html"><span class="ms">person</span><span>User Profile & API Keys</span><span class="kbd">Go</span></div>
-        <div class="cmd-item" data-url="../documentation/code.html"><span class="ms">menu_book</span><span>API & Schema Documentation</span><span class="kbd">Go</span></div>
-        <div class="cmd-item" data-url="../help_center/code.html"><span class="ms">help</span><span>Support & Help Center</span><span class="kbd">Go</span></div>
-      </div>
+  backdrop.setAttribute('role', 'dialog');
+  backdrop.setAttribute('aria-modal', 'true');
+  backdrop.setAttribute('aria-label', 'Command Palette');
+
+  const modal = document.createElement('div');
+  modal.className = 'cmd-palette-modal';
+
+  modal.innerHTML = `
+    <div class="cmd-palette-header">
+      <span class="ms">search</span>
+      <input type="text" id="cmd-palette-input" placeholder="Type a command or search pages (e.g., 837, Claims, Settings)..." autocomplete="off" aria-label="Command search input" />
+      <span class="kbd">ESC</span>
+    </div>
+    <div class="cmd-palette-results" id="cmd-palette-results" role="listbox">
+      <div class="cmd-group-label">Quick Navigation</div>
+      <div class="cmd-item" role="option" tabindex="0" data-url="../dashboard_sleek/code.html"><span class="ms">dashboard</span><span>Dashboard Overview</span><span class="kbd">Go</span></div>
+      <div class="cmd-item" role="option" tabindex="0" data-url="../master_parser_sleek/code.html"><span class="ms">analytics</span><span>Master EDI Parser</span><span class="kbd">Go</span></div>
+      <div class="cmd-item" role="option" tabindex="0" data-url="../837_claims_view/code.html"><span class="ms">description</span><span>837 Professional Claims</span><span class="kbd">Go</span></div>
+      <div class="cmd-item" role="option" tabindex="0" data-url="../835_remittance_sleek/code.html"><span class="ms">payments</span><span>835 Payment Remittance</span><span class="kbd">Go</span></div>
+      <div class="cmd-item" role="option" tabindex="0" data-url="../834_enrollment_sleek/code.html"><span class="ms">group_add</span><span>834 Member Enrollment</span><span class="kbd">Go</span></div>
+      <div class="cmd-item" role="option" tabindex="0" data-url="../notifications/code.html"><span class="ms">notifications</span><span>Notification Center</span><span class="kbd">Go</span></div>
+      <div class="cmd-item" role="option" tabindex="0" data-url="../settings/code.html"><span class="ms">settings</span><span>System Settings & Rules</span><span class="kbd">Go</span></div>
+      <div class="cmd-item" role="option" tabindex="0" data-url="../user_profile/code.html"><span class="ms">person</span><span>User Profile & Access</span><span class="kbd">Go</span></div>
+      <div class="cmd-item" role="option" tabindex="0" data-url="../documentation/code.html"><span class="ms">menu_book</span><span>API & Schema Documentation</span><span class="kbd">Go</span></div>
+      <div class="cmd-item" role="option" tabindex="0" data-url="../help_center/code.html"><span class="ms">help</span><span>Support & Help Center</span><span class="kbd">Go</span></div>
     </div>
   `;
 
+  modal.addEventListener('click', (e) => e.stopPropagation());
+  backdrop.appendChild(modal);
   document.body.appendChild(backdrop);
 
-  const input = backdrop.querySelector('#cmd-palette-input');
-  const results = backdrop.querySelector('#cmd-palette-results');
+  const input = modal.querySelector('#cmd-palette-input');
+  const results = modal.querySelector('#cmd-palette-results');
 
   backdrop.addEventListener('click', closeCommandPalette);
 
@@ -97,9 +362,40 @@ function initCommandPalette() {
       window.location.href = item.dataset.url;
     }
   });
+
+  input.addEventListener('keydown', (e) => {
+    const items = Array.from(results.querySelectorAll('.cmd-item')).filter(i => i.style.display !== 'none');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      items[0].focus();
+    } else if (e.key === 'Enter' && items.length > 0) {
+      e.preventDefault();
+      closeCommandPalette();
+      window.location.href = items[0].dataset.url;
+    }
+  });
+
+  results.addEventListener('keydown', (e) => {
+    const current = document.activeElement;
+    const items = Array.from(results.querySelectorAll('.cmd-item')).filter(i => i.style.display !== 'none');
+    const idx = items.indexOf(current);
+    if (e.key === 'ArrowDown' && idx < items.length - 1) {
+      e.preventDefault();
+      items[idx + 1].focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (idx > 0) items[idx - 1].focus();
+      else input.focus();
+    } else if (e.key === 'Enter' && current && current.dataset.url) {
+      e.preventDefault();
+      closeCommandPalette();
+      window.location.href = current.dataset.url;
+    }
+  });
 }
 
-function openCommandPalette() {
+export function openCommandPalette() {
   initCommandPalette();
   const backdrop = document.getElementById('cmd-palette-backdrop');
   if (backdrop) {
@@ -114,7 +410,7 @@ function openCommandPalette() {
   }
 }
 
-function closeCommandPalette() {
+export function closeCommandPalette() {
   const backdrop = document.getElementById('cmd-palette-backdrop');
   if (backdrop) {
     backdrop.classList.remove('visible');
@@ -134,83 +430,9 @@ function highlightActiveNav() {
   });
 }
 
-function getSampleEdiContent(type = '837P') {
-  if (type === '837P') {
-    return `ISA*00*          *00*          *ZZ*SUBMITTER1     *ZZ*RECEIVER1      *260824*1030*^*00501*000000001*0*P*:~
-GS*HC*SUBMITTER1*RECEIVER1*20260824*1030*1*X*005010X222A1~
-ST*837*0001*005010X222A1~
-BHT*0019*00*3920392*20260824*1030*CH~
-NM1*41*2*AETHER HEALTH SERVICES*****46*993029101~
-PER*IC*EDI DEPT*TE*8005550199~
-NM1*40*2*BLUE CROSS BLUE SHIELD*****46*BCBS10293~
-HL*1**20*1~
-NM1*85*2*METRO HEALTHCARE CLINIC*****XX*1928374650~
-N3*100 MEDICAL CENTER BLVD*SUITE 400~
-N4*AUSTIN*TX*78701~
-REF*EI*948302910~
-HL*2*1*22*0~
-SBR*P*18*******CI~
-NM1*IL*1*SMITH*JOHN*M***MI*W99201920~
-N3*452 OAK PARK AVE~
-N4*AUSTIN*TX*78704~
-DMG*D8*19850412*M~
-NM1*PR*2*BLUE CROSS BLUE SHIELD*****PI*BCBS10293~
-CLM*CLM-99401*1250.00***11:B:1*Y*A*Y*Y~
-HI*BK:F329*BF:E119~
-LX*1~
-SV1*HC:99214*250.00*UN*1***1~
-DTP*472*D8*20260820~
-LX*2~
-SV1*HC:80053*1000.00*UN*1***1~
-DTP*472*D8*20260820~
-SE*25*0001~
-GE*1*1~
-IEA*1*000000001~`;
-  } else if (type === '835') {
-    return `ISA*00*          *00*          *ZZ*PAYER1         *ZZ*PROVIDER1      *260824*1145*^*00501*000000002*0*P*:~
-GS*HP*PAYER1*PROVIDER1*20260824*1145*2*X*005010X221A1~
-ST*835*0002~
-BPR*I*1450.00*C*ACH*CTX*01*011000015*DA*998019283*1992019203**20260824~
-TRN*1*9920192849*1992019203~
-REF*EV*4920192~
-DTM*405*20260824~
-N1*PR*BLUE SHIELD HEALTHCARE~
-N1*PE*METRO HEALTHCARE CLINIC*XX*1928374650~
-LX*1~
-CLP*CLM-99401*1*1250.00*1100.00*150.00*MC*99401827361*11~
-NM1*QC*1*SMITH*JOHN*M***MI*W99201920~
-SVC*HC:99214*250.00*220.00~
-CAS*CO*45*30.00~
-DTM*472*20260820~
-SVC*HC:80053*1000.00*880.00~
-CAS*CO*45*120.00~
-DTM*472*20260820~
-SE*18*0002~
-GE*1*2~
-IEA*1*000000002~`;
-  } else if (type === '834') {
-    return `ISA*00*          *00*          *ZZ*SPONSOR1       *ZZ*INSURER1       *260824*1200*^*00501*000000003*0*P*:~
-GS*BE*SPONSOR1*INSURER1*20260824*1200*3*X*005010X220A1~
-ST*834*0003~
-BGN*00*MEM-2026-08*20260824*1200~
-N1*P5*TECH CORP ENTERPRISES*FI*123456789~
-INS*Y*18*001*28*A***FT~
-REF*0F*W99201920~
-NM1*IL*1*DOE*JANE*A***34*999-00-1234~
-PER*IP*JANE DOE*HP*5550192837~
-N3*742 EVERGREEN TERRACE~
-N4*SPRINGFIELD*IL*62701~
-DMG*D8*19900815*F~
-HD*030**POS*PLAN-GOLD-2026~
-DTP*348*D8*20260101~
-SE*13*0003~
-GE*1*3~
-IEA*1*000000003~`;
-  }
-  return '';
-}
+export function initPage() {
+  checkAuthRouteGuard();
 
-function initPage() {
   /* ---- Theme ---- */
   const html = document.documentElement;
   const themeBtn = document.getElementById('theme-toggle');
@@ -244,6 +466,29 @@ function initPage() {
   if (overlay) overlay.addEventListener('click', () => setSidebar(false));
   window.addEventListener('resize', () => { if (window.innerWidth >= 900) setSidebar(true); });
 
+  /* ---- Topnav Navigation Buttons ---- */
+  const notifBtns = document.querySelectorAll('.topnav-right button[onclick*="notifications"]');
+  notifBtns.forEach(btn => {
+    btn.removeAttribute('onclick');
+    btn.addEventListener('click', () => {
+      const p = window.location.pathname;
+      window.location.href = p.includes('dashboard_sleek') || p.includes('835') || p.includes('837') || p.includes('834') || p.includes('settings') || p.includes('master')
+        ? '../notifications/code.html'
+        : 'notifications/code.html';
+    });
+  });
+
+  const avatarDivs = document.querySelectorAll('.topnav-right .avatar');
+  avatarDivs.forEach(div => {
+    div.removeAttribute('onclick');
+    div.addEventListener('click', () => {
+      const p = window.location.pathname;
+      window.location.href = p.includes('dashboard_sleek') || p.includes('835') || p.includes('837') || p.includes('834') || p.includes('settings') || p.includes('master')
+        ? '../user_profile/code.html'
+        : 'user_profile/code.html';
+    });
+  });
+
   /* ---- Keyboard Shortcuts ---- */
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -255,106 +500,20 @@ function initPage() {
     }
   });
 
-  /* ---- Highlight Navigation ---- */
-  highlightActiveNav();
-
-  /* ---- Backend API Health Indicator ---- */
-  checkBackendHealth();
-
-  /* ---- Attach Command Palette Triggers ---- */
-  const searchInputs = document.querySelectorAll('.search-trigger, .nav-search');
-  searchInputs.forEach(input => {
-    input.addEventListener('click', (e) => {
-      e.preventDefault();
-      openCommandPalette();
-    });
-  });
-}
-
-let healthCheckInterval = null;
-
-async function checkBackendHealth(isManual = false) {
-  const topnavRight = document.querySelector('.topnav-right');
-  if (!topnavRight) return;
-
-  let badge = document.getElementById('api-health-badge');
-  if (!badge) {
-    badge = document.createElement('button');
-    badge.id = 'api-health-badge';
-    badge.className = 'api-health-badge';
-    badge.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;background:var(--surface-2, #f1f5f9);border:1px solid var(--border, #e2e8f0);color:var(--text-secondary, #64748b);margin-right:8px;cursor:pointer;transition:all 0.2s ease;';
-    badge.addEventListener('click', () => {
-      checkBackendHealth(true);
-    });
-    topnavRight.insertBefore(badge, topnavRight.firstChild);
-  }
-
-  if (isManual) {
-    badge.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:#3b82f6;display:inline-block;animation:pulse 1s infinite;"></span> Checking...`;
-  }
-
-  try {
-    const res = await fetch('/api/health', { signal: AbortSignal.timeout(3000) });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.status === 'ok') {
-        badge.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;display:inline-block;"></span> API Online`;
-        badge.title = "FastAPI Backend Connected (Click to re-test)";
-        badge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
-        if (isManual && window.showToast) {
-          showToast('Backend Online', 'Connected to FastAPI EDI Gateway.', 'success', 2500);
-        }
-        return true;
-      }
+  /* ---- Search Trigger ---- */
+  const searchBtns = document.querySelectorAll('.nav-icon-btn, .search-trigger');
+  searchBtns.forEach(btn => {
+    if (btn.querySelector('.ms') && btn.querySelector('.ms').textContent.trim() === 'search') {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openCommandPalette();
+      });
     }
-  } catch (err) {
-    // API offline or static fallback
-  }
-
-  badge.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Offline Mode`;
-  badge.title = "FastAPI Backend Offline — Click to retry connection";
-  badge.style.borderColor = 'rgba(245, 158, 11, 0.3)';
-  if (isManual && window.showToast) {
-    showToast('Backend Offline', 'Could not reach /api/health. Ensure uvicorn server is running.', 'warning', 3000);
-  }
-  return false;
-}
-
-// Start periodic polling once
-if (!healthCheckInterval && typeof window !== 'undefined') {
-  healthCheckInterval = setInterval(() => checkBackendHealth(false), 20000);
-}
-
-function escapeHtml(str) {
-  if (typeof str !== 'string') return str == null ? '' : String(str);
-  return str.replace(/[&<>"']/g, function(m) {
-    return {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[m];
   });
-}
 
-// Auth token management (in-memory with session storage backup, never localStorage)
-let _inMemoryAccessToken = null;
-
-export function setAccessToken(token) {
-  _inMemoryAccessToken = token;
-  if (token) {
-    sessionStorage.setItem('edipro_access_token', token);
-  } else {
-    sessionStorage.removeItem('edipro_access_token');
-  }
-}
-
-export function getAccessToken() {
-  if (!_inMemoryAccessToken && typeof sessionStorage !== 'undefined') {
-    _inMemoryAccessToken = sessionStorage.getItem('edipro_access_token');
-  }
-  return _inMemoryAccessToken;
+  highlightActiveNav();
+  updateNotificationsBadge();
+  hydrateUserIdentity();
 }
 
 // Idle timeout (default 15 minutes of no input)
@@ -366,7 +525,6 @@ export function resetIdleTimeout() {
     clearTimeout(_idleTimeoutHandle);
   }
   _idleTimeoutHandle = setTimeout(() => {
-    // 15 minutes of no input: clear session and return to index.html
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.clear();
     }
@@ -390,51 +548,6 @@ if (typeof window !== 'undefined') {
   resetIdleTimeout();
 }
 
-// Unified apiFetch helper
-export async function apiFetch(input, init = {}) {
-  init = { ...init };
-  const headers = new Headers(init.headers || {});
-  const token = getAccessToken();
-  const apiKey = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('edipro_api_key') : null;
-
-  if (token && !headers.has('Authorization')) {
-    headers.set('Authorization', `Bearer ${token}`);
-  } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
-    headers.set('X-API-Key', apiKey);
-  }
-
-  init.headers = headers;
-  const res = await fetch(input, init);
-
-  if (res.status === 401) {
-    const path = window.location.pathname;
-    const isLogin = path.endsWith('index.html') || path.endsWith('/');
-    if (!isLogin) {
-      if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.clear();
-      }
-      _inMemoryAccessToken = null;
-      const target = path.includes('/stitch/')
-        ? path.replace(/\/stitch\/.*$/, '/stitch/index.html')
-        : '/stitch/index.html';
-      window.location.href = target;
-    }
-  }
-
-  return res;
-}
-
-function readSubmissions() {
-  try { const p = JSON.parse(localStorage.getItem('ediSubmissions') || '[]'); return Array.isArray(p) ? p : []; }
-  catch { return []; }
-}
-
-function saveSubmission(sub) {
-  const current = readSubmissions();
-  current.unshift(sub);
-  localStorage.setItem('ediSubmissions', JSON.stringify(current.slice(0, 50)));
-}
-
 // Auto init on DOM load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initPage);
@@ -442,27 +555,17 @@ if (document.readyState === 'loading') {
   initPage();
 }
 
-// Export functions to global scope
-window.EdiPro = {
-  showToast,
-  openCommandPalette,
-  closeCommandPalette,
-  getSampleEdiContent,
-  readSubmissions,
-  saveSubmission,
-  checkBackendHealth,
-  escapeHtml,
-  apiFetch,
-  setAccessToken,
-  getAccessToken,
-  resetIdleTimeout,
-};
-window.showToast = showToast;
-window.openCommandPalette = openCommandPalette;
-window.getSampleEdiContent = getSampleEdiContent;
-window.escapeHtml = escapeHtml;
-window.apiFetch = apiFetch;
-window.setAccessToken = setAccessToken;
-window.getAccessToken = getAccessToken;
-
-
+// Expose globals for backward compatibility and classic scripts
+if (typeof window !== 'undefined') {
+  window.esc = escapeHtml;
+  window.escapeHtml = escapeHtml;
+  window.ediStore = ediStore;
+  window.apiFetch = apiFetch;
+  window.showToast = showToast;
+  window.openCommandPalette = openCommandPalette;
+  window.closeCommandPalette = closeCommandPalette;
+  window.setAccessToken = setAccessToken;
+  window.getAccessToken = getAccessToken;
+  window.getSessionNotifications = getSessionNotifications;
+  window.updateNotificationsBadge = updateNotificationsBadge;
+}

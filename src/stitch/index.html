@@ -5,411 +5,16 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>EdiPro — Sign In · Healthcare EDI Gateway</title>
 <meta name="description" content="Sign in to EdiPro, the enterprise-grade HIPAA-compliant Healthcare EDI Gateway."/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link rel="stylesheet" href="./theme.css"/>
+<link rel="stylesheet" href="./login.css"/>
 <script type="module" src="./shared.js"></script>
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --accent: #2563eb;
-  --accent-dim: rgba(37,99,235,0.10);
-  --accent-glow: rgba(37,99,235,0.28);
-  --purple: #7c3aed;
-  --success: #16a34a;
-  --danger: #dc2626;
-  --text-primary: #0f1117;
-  --text-secondary: #5a5f73;
-  --text-tertiary: #9298aa;
-  --surface: rgba(255,255,255,0.88);
-  --border: rgba(0,0,0,0.09);
-  --input-bg: rgba(248,249,252,0.9);
-  --input-border: rgba(0,0,0,0.10);
-  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
-  --ease-smooth: cubic-bezier(0.4,0,0.2,1);
-}
-html.dark {
-  --accent: #3b82f6;
-  --accent-dim: rgba(59,130,246,0.12);
-  --accent-glow: rgba(59,130,246,0.30);
-  --text-primary: #eef0f8;
-  --text-secondary: #8890a8;
-  --text-tertiary: #505870;
-  --surface: rgba(16,20,36,0.92);
-  --border: rgba(255,255,255,0.08);
-  --input-bg: rgba(255,255,255,0.05);
-  --input-border: rgba(255,255,255,0.09);
-}
-
-html, body { height: 100%; }
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  display: flex;
-  min-height: 100svh;
-  overflow: hidden;
-  transition: background 0.4s, color 0.4s;
-}
-
-/* ── LEFT PANEL ───────────────────────────────────── */
-.left-panel {
-  flex: 0 0 58%;
-  position: relative; overflow: hidden;
-  display: flex; flex-direction: column;
-  justify-content: space-between;
-  padding: 44px 52px;
-}
-/* Animated mesh gradient */
-.left-panel::before {
-  content: '';
-  position: absolute; inset: 0; z-index: 0;
-  background:
-    radial-gradient(ellipse at 15% 30%, #1e40af 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 20%, #4f46e5 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, #0f172a 0%, transparent 60%),
-    radial-gradient(ellipse at 90% 90%, #312e81 0%, transparent 50%);
-  background-color: #0c1220;
-  animation: mesh-shift 16s ease-in-out infinite alternate;
-}
-@keyframes mesh-shift {
-  0%   { filter: hue-rotate(0deg) brightness(1); }
-  50%  { filter: hue-rotate(18deg) brightness(1.05); }
-  100% { filter: hue-rotate(-10deg) brightness(0.95); }
-}
-/* Noise overlay */
-.left-panel::after {
-  content: '';
-  position: absolute; inset: 0; z-index: 1;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-}
-
-.lp-content { position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; gap: 0; }
-.lp-footer  { position: relative; z-index: 2; }
-
-/* Brand on left */
-.lp-brand {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 52px;
-}
-.lp-brand-icon {
-  width: 44px; height: 44px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.08));
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 13px;
-  display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-.lp-brand-icon .ms { font-size: 22px; color: #fff; font-variation-settings: 'FILL' 1; }
-.lp-brand-name { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
-.lp-brand-sub  { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
-
-/* Hero text */
-.lp-hero { margin-top: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-.lp-tagline {
-  font-size: 44px; font-weight: 900; line-height: 1.08;
-  letter-spacing: -1.6px; color: #fff; margin-bottom: 20px;
-  animation: fade-in-up 0.8s var(--ease-smooth) 0.1s both;
-}
-.lp-tagline span {
-  background: linear-gradient(90deg, #93c5fd, #c4b5fd);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.lp-desc {
-  font-size: 16px; color: rgba(255,255,255,0.62); line-height: 1.7;
-  max-width: 400px;
-  animation: fade-in-up 0.8s var(--ease-smooth) 0.2s both;
-}
-
-/* Feature pills */
-.lp-features {
-  display: flex; flex-wrap: wrap; gap: 10px; margin-top: 36px;
-  animation: fade-in-up 0.8s var(--ease-smooth) 0.3s both;
-}
-.lp-feat-pill {
-  display: flex; align-items: center; gap: 7px;
-  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 999px; padding: 7px 14px;
-  font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.82);
-  backdrop-filter: blur(10px);
-  transition: background 0.2s, border-color 0.2s;
-}
-.lp-feat-pill:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.22); }
-.lp-feat-pill .ms { font-size: 15px; font-variation-settings: 'FILL' 1; }
-.pill-green .ms { color: #4ade80; }
-.pill-blue  .ms { color: #60a5fa; }
-.pill-purple .ms { color: #c4b5fd; }
-.pill-yellow .ms { color: #fcd34d; }
-
-/* Floating EDI cards */
-.lp-cards {
-  display: flex; flex-direction: column; gap: 12px; margin-top: 44px;
-  animation: fade-in-up 0.8s var(--ease-smooth) 0.4s both;
-}
-.edi-card {
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 14px; padding: 14px 18px;
-  backdrop-filter: blur(12px);
-  display: flex; align-items: center; justify-content: space-between;
-  transition: all 0.3s;
-}
-.edi-card:hover { background: rgba(255,255,255,0.10); transform: translateX(4px); }
-.edi-card-left { display: flex; align-items: center; gap: 12px; }
-.edi-card-icon {
-  width: 36px; height: 36px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-}
-.edi-card-icon .ms { font-size: 18px; font-variation-settings: 'FILL' 1; }
-.edi-card-type { font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.55); letter-spacing: 0.06em; }
-.edi-card-name { font-size: 14px; font-weight: 700; color: #fff; margin-top: 1px; }
-.edi-status {
-  font-size: 11px; font-weight: 700; padding: 4px 10px;
-  border-radius: 999px; display: flex; align-items: center; gap: 5px;
-}
-.edi-status-ok     { background: rgba(74,222,128,0.15); color: #4ade80; }
-.edi-status-warn   { background: rgba(251,191,36,0.15); color: #fbbf24; }
-.edi-status-process{ background: rgba(96,165,250,0.15); color: #60a5fa; }
-.edi-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse-dot 1.8s ease-in-out infinite; }
-@keyframes pulse-dot { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-
-/* Stats row */
-.lp-stats {
-  display: flex; gap: 28px;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  padding-top: 24px; margin-top: 0;
-}
-.lp-stat { }
-.lp-stat-val { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
-.lp-stat-lbl { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; font-weight: 600; }
-
-@keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: none; }
-}
-
-/* ── RIGHT PANEL ──────────────────────────────────── */
-.right-panel {
-  flex: 0 0 42%;
-  display: flex; align-items: center; justify-content: center;
-  padding: 32px 40px;
-  background: #f0f2f7;
-  position: relative; overflow-y: auto;
-  transition: background 0.4s;
-}
-html.dark .right-panel { background: #080a10; }
-
-/* Theme toggle (top-right) */
-.theme-toggle {
-  position: fixed; top: 18px; right: 22px; z-index: 100;
-  display: flex; align-items: center; gap: 7px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px; padding: 6px 14px 6px 10px;
-  cursor: pointer; backdrop-filter: blur(20px);
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  font-size: 12.5px; font-weight: 700; font-family: inherit;
-  color: var(--text-secondary); user-select: none;
-  transition: all 0.25s;
-}
-.theme-toggle:hover { color: var(--accent); border-color: var(--accent-dim); }
-.theme-toggle .ms { font-size: 17px; transition: transform 0.5s var(--ease-spring); }
-.theme-toggle:hover .ms { transform: rotate(22deg); }
-
-/* Form card */
-.form-card {
-  width: 100%; max-width: 400px;
-  animation: scale-in 0.55s var(--ease-spring) both;
-}
-@keyframes scale-in {
-  from { opacity: 0; transform: scale(0.94) translateY(16px); }
-  to   { opacity: 1; transform: scale(1) none; }
-}
-
-.form-header { text-align: left; margin-bottom: 32px; }
-.form-eyebrow {
-  font-size: 10.5px; font-weight: 800; letter-spacing: 0.18em;
-  text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
-  display: flex; align-items: center; gap: 6px;
-}
-.form-eyebrow::before {
-  content: ''; width: 20px; height: 2px;
-  background: var(--accent); border-radius: 2px;
-}
-.form-title {
-  font-size: 30px; font-weight: 900; letter-spacing: -0.8px;
-  color: var(--text-primary); line-height: 1.15;
-}
-.form-subtitle {
-  font-size: 14px; color: var(--text-secondary); margin-top: 8px; line-height: 1.6;
-}
-
-/* Form groups */
-.form-group { margin-bottom: 18px; }
-.form-label {
-  display: block; font-size: 11.5px; font-weight: 800;
-  letter-spacing: 0.07em; text-transform: uppercase;
-  color: var(--text-secondary); margin-bottom: 8px;
-}
-.label-row { display: flex; align-items: center; justify-content: space-between; }
-.forgot-link {
-  font-size: 12.5px; font-weight: 700; color: var(--accent);
-  text-decoration: none; opacity: 0.85; transition: opacity 0.2s;
-}
-.forgot-link:hover { opacity: 1; }
-
-.input-wrap { position: relative; }
-.input-wrap .ms {
-  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
-  font-size: 18px; color: var(--text-tertiary); pointer-events: none;
-  transition: color 0.2s;
-}
-.input-wrap:focus-within .ms { color: var(--accent); }
-
-.input-wrap input {
-  width: 100%;
-  background: var(--input-bg);
-  border: 1.5px solid var(--input-border);
-  border-radius: 12px;
-  padding: 13px 14px 13px 44px;
-  font-size: 14.5px; font-family: 'Inter', sans-serif;
-  color: var(--text-primary);
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-  outline: none;
-}
-.input-wrap input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-dim);
-  background: #fff;
-}
-html.dark .input-wrap input:focus { background: rgba(255,255,255,0.07); }
-.input-wrap input::placeholder { color: var(--text-tertiary); }
-
-/* Error state */
-.input-wrap.error input { border-color: var(--danger) !important; box-shadow: 0 0 0 4px rgba(220,38,38,0.10) !important; }
-.field-error { font-size: 11.5px; color: var(--danger); margin-top: 6px; display: none; font-weight: 600; }
-.input-wrap.error ~ .field-error { display: block; }
-
-/* Toggle password */
-.pw-toggle {
-  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; cursor: pointer;
-  color: var(--text-tertiary); display: flex; align-items: center;
-  transition: color 0.2s; padding: 4px;
-}
-.pw-toggle:hover { color: var(--accent); }
-.pw-toggle .ms { font-size: 18px; }
-
-/* Remember / checkbox row */
-.check-row { display: flex; align-items: center; gap: 10px; }
-.check-row input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
-.check-row label { font-size: 13px; color: var(--text-secondary); cursor: pointer; }
-
-/* Buttons */
-.btn-signin {
-  width: 100%; padding: 14px;
-  background: linear-gradient(135deg, var(--accent) 0%, #4f46e5 100%);
-  color: #fff; font-family: 'Inter', sans-serif;
-  font-size: 15px; font-weight: 800;
-  border: none; border-radius: 13px;
-  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-  transition: all 0.25s; box-shadow: 0 4px 18px var(--accent-glow);
-  letter-spacing: 0.01em; position: relative; overflow: hidden;
-}
-.btn-signin::after {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.12) 100%);
-  pointer-events: none;
-}
-.btn-signin:hover { filter: brightness(1.08); box-shadow: 0 8px 28px var(--accent-glow); transform: translateY(-1px); }
-.btn-signin:active { transform: scale(0.97); }
-.btn-signin .ms { font-size: 18px; }
-.btn-signin.loading .ms { display: none; }
-.btn-signin.loading::before {
-  content: '';
-  width: 18px; height: 18px; border-radius: 50%;
-  border: 2.5px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
-  animation: spin 0.7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Divider */
-.or-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
-.or-divider::before, .or-divider::after {
-  content:''; flex:1; height:1px;
-  background: linear-gradient(90deg, transparent, var(--border), transparent);
-}
-.or-divider span {
-  font-size: 11px; font-weight: 700; letter-spacing: 0.10em;
-  text-transform: uppercase; color: var(--text-tertiary);
-}
-
-.btn-sso {
-  width: 100%; padding: 12px;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 13px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px; font-weight: 700;
-  color: var(--text-primary);
-  transition: all 0.2s;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-}
-.btn-sso:hover { border-color: #4285F4; box-shadow: 0 4px 16px rgba(66,133,244,0.15); transform: translateY(-1px); }
-.btn-sso:active { transform: scale(0.98); }
-
-/* Footer */
-.form-footer { text-align: center; margin-top: 24px; }
-.form-footer p { font-size: 13px; color: var(--text-secondary); }
-.form-footer a { color: var(--accent); font-weight: 700; text-decoration: none; }
-.form-footer a:hover { text-decoration: underline; }
-.form-footer .links { display: flex; gap: 20px; justify-content: center; margin-top: 16px; }
-.form-footer .links a {
-  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-  text-transform: uppercase; color: var(--text-tertiary); text-decoration: none;
-  transition: color 0.2s;
-}
-.form-footer .links a:hover { color: var(--accent); }
-
-/* HIPAA badge */
-.hipaa-badge {
-  display: flex; align-items: center; gap: 7px; justify-content: center;
-  margin-top: 20px; font-size: 11px; font-weight: 600; color: var(--text-tertiary);
-}
-.hipaa-badge .ms { font-size: 14px; color: var(--success); font-variation-settings: 'FILL' 1; }
-
-/* Version */
-.ver { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
-  font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
-  text-transform: uppercase; color: var(--text-tertiary); opacity: 0.5; white-space: nowrap; }
-
-/* ── RESPONSIVE ──────────────────────────────────── */
-@media(max-width:900px) {
-  body { flex-direction: column; overflow: auto; }
-  .left-panel { flex: 0 0 auto; padding: 36px 28px; min-height: 360px; }
-  .lp-cards { display: none; }
-  .lp-tagline { font-size: 32px; }
-  .right-panel { flex: 1; padding: 32px 24px; }
-}
-@media(max-width:480px) {
-  .left-panel { padding: 28px 20px; }
-  .lp-tagline { font-size: 26px; }
-  .lp-features { display: none; }
-  .right-panel { padding: 28px 16px; }
-  .form-title { font-size: 24px; }
-}
-</style>
+<script type="module" src="./login.js"></script>
 </head>
 <body>
 
 <!-- Theme Toggle -->
 <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
-  <span class="ms" id="theme-icon" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;">light_mode</span>
+  <span class="ms" id="theme-icon">light_mode</span>
   <span id="theme-label">Light</span>
 </button>
 
@@ -419,7 +24,7 @@ html.dark .input-wrap input:focus { background: rgba(255,255,255,0.07); }
     <!-- Brand -->
     <div class="lp-brand">
       <div class="lp-brand-icon">
-        <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;">hub</span>
+        <span class="ms">hub</span>
       </div>
       <div>
         <div class="lp-brand-name">EdiPro</div>
@@ -432,67 +37,75 @@ html.dark .input-wrap input:focus { background: rgba(255,255,255,0.07); }
       <div class="lp-tagline">
         Enterprise EDI<br/><span>Intelligence</span><br/>Platform
       </div>
-      <div class="lp-desc">
+      <p class="lp-desc">
         Parse, validate, and analyze X12 EDI transactions in real time. Built for clinical and financial operations teams.
-      </div>
+      </p>
 
       <!-- Feature pills -->
       <div class="lp-features">
         <div class="lp-feat-pill pill-green">
-          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;">verified_user</span>
-          HIPAA Compliant
+          <span class="ms">verified_user</span>
+          HIPAA 5010 Compliant
         </div>
         <div class="lp-feat-pill pill-blue">
-          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;">bolt</span>
-          60+ Validation Rules
+          <span class="ms">bolt</span>
+          Sub-second Validation
         </div>
         <div class="lp-feat-pill pill-purple">
-          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;">smart_toy</span>
-          AI-Powered Insights
+          <span class="ms">smart_toy</span>
+          AI Insights
         </div>
         <div class="lp-feat-pill pill-yellow">
-          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;">lock</span>
-          End-to-End Encrypted
+          <span class="ms">lock</span>
+          Zero PHI Stored
         </div>
       </div>
 
-      <!-- Live EDI activity cards -->
+      <!-- EDI Transaction Cards -->
       <div class="lp-cards">
         <div class="edi-card">
           <div class="edi-card-left">
-            <div class="edi-card-icon" style="background:rgba(74,222,128,0.15);">
-              <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;color:#4ade80;">payments</span>
+            <div class="edi-card-icon badge-code-green">
+              <span class="ms text-code-green">payments</span>
             </div>
             <div>
-              <div class="edi-card-type">835 · Remittance</div>
-              <div class="edi-card-name">Blue Cross Payment — $142,880</div>
+              <div class="edi-card-type">835 REMITTANCE</div>
+              <div class="edi-card-name">Electronic Remittance Advice</div>
             </div>
           </div>
-          <div class="edi-status edi-status-ok"><span class="edi-dot"></span> Validated</div>
+          <div class="edi-status edi-status-ok">
+            <div class="edi-dot"></div> Active
+          </div>
         </div>
+
         <div class="edi-card">
           <div class="edi-card-left">
-            <div class="edi-card-icon" style="background:rgba(96,165,250,0.15);">
-              <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;color:#60a5fa;">description</span>
+            <div class="edi-card-icon badge-code-blue">
+              <span class="ms text-code-blue">description</span>
             </div>
             <div>
-              <div class="edi-card-type">837P · Professional Claim</div>
-              <div class="edi-card-name">Aetna Claim Batch — 48 records</div>
+              <div class="edi-card-type">837 CLAIMS</div>
+              <div class="edi-card-name">Professional &amp; Institutional</div>
             </div>
           </div>
-          <div class="edi-status edi-status-process"><span class="edi-dot"></span> Processing</div>
+          <div class="edi-status edi-status-process">
+            <div class="edi-dot"></div> Active
+          </div>
         </div>
+
         <div class="edi-card">
           <div class="edi-card-left">
-            <div class="edi-card-icon" style="background:rgba(251,191,36,0.15);">
-              <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;color:#fbbf24;">group_add</span>
+            <div class="edi-card-icon badge-code-yellow">
+              <span class="ms text-code-yellow">group_add</span>
             </div>
             <div>
-              <div class="edi-card-type">834 · Enrollment</div>
-              <div class="edi-card-name">United Healthcare — 2 warnings</div>
+              <div class="edi-card-type">834 ENROLLMENT</div>
+              <div class="edi-card-name">Benefit Enrollment &amp; Maintenance</div>
             </div>
           </div>
-          <div class="edi-status edi-status-warn"><span class="edi-dot"></span> Review</div>
+          <div class="edi-status edi-status-warn">
+            <div class="edi-dot"></div> Active
+          </div>
         </div>
       </div>
     </div>
@@ -502,16 +115,16 @@ html.dark .input-wrap input:focus { background: rgba(255,255,255,0.07); }
   <div class="lp-footer">
     <div class="lp-stats">
       <div class="lp-stat">
-        <div class="lp-stat-val">$2.4B+</div>
-        <div class="lp-stat-lbl">Claims Processed</div>
+        <div class="lp-stat-val">4</div>
+        <div class="lp-stat-lbl">Supported Transactions</div>
       </div>
       <div class="lp-stat">
-        <div class="lp-stat-val">60+</div>
+        <div class="lp-stat-val" id="rule-count-stat">60+</div>
         <div class="lp-stat-lbl">Validation Rules</div>
       </div>
       <div class="lp-stat">
-        <div class="lp-stat-val">99.97%</div>
-        <div class="lp-stat-lbl">Uptime SLA</div>
+        <div class="lp-stat-val">5010</div>
+        <div class="lp-stat-lbl">HIPAA Standard</div>
       </div>
     </div>
   </div>
@@ -523,328 +136,93 @@ html.dark .input-wrap input:focus { background: rgba(255,255,255,0.07); }
     <div class="form-header">
       <div class="form-eyebrow">Secure Portal</div>
       <div class="form-title">Sign in to EdiPro</div>
-      <div class="form-subtitle">Access your healthcare EDI dashboard and processing tools.</div>
+      <p class="form-subtitle">Access your HIPAA-compliant EDI processing gateway.</p>
     </div>
 
+    <!-- Error message banner -->
+    <div id="login-global-error" class="login-alert-box is-hidden"></div>
+
     <form id="login-form" novalidate>
-      <!-- Email -->
+      <!-- Username / Email -->
       <div class="form-group">
-        <label class="form-label" for="email">Professional Email</label>
+        <label class="form-label" for="email">User Identifier / Subject</label>
         <div class="input-wrap" id="email-wrap">
-          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;">mail</span>
-          <input type="email" id="email" placeholder="name@organization.com" autocomplete="email"/>
+          <span class="ms">mail</span>
+          <input
+            type="text"
+            id="email"
+            placeholder="admin or user@domain.com"
+            autocomplete="username"
+            value="admin"
+          />
         </div>
-        <div class="field-error" id="email-error">Please enter a valid email address.</div>
       </div>
 
       <!-- Password / API Key -->
       <div class="form-group">
         <div class="label-row">
-          <label class="form-label" for="password">Password / API Key</label>
-          <a href="#" class="forgot-link">Help / Docs</a>
+          <label class="form-label" for="password">API Key or Password</label>
         </div>
         <div class="input-wrap" id="pw-wrap">
-          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;">key</span>
-          <input type="password" id="password" placeholder="Enter API Key or Password" autocomplete="current-password"/>
+          <span class="ms">key</span>
+          <input
+            type="password"
+            id="password"
+            placeholder="Enter API key or service token"
+            autocomplete="current-password"
+            required
+          />
           <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Toggle password visibility">
-            <span class="ms" id="pw-icon" style="font-family:'Material Symbols Rounded';font-style:normal;">visibility</span>
+            <span class="ms" id="pw-icon">visibility</span>
           </button>
         </div>
-        <div class="field-error" id="pw-error">Valid API Key or password is required.</div>
+        <div class="field-error" id="pw-error">API key or password is required.</div>
       </div>
 
-      <!-- Remember -->
-      <div class="form-group">
-        <div class="check-row">
-          <input type="checkbox" id="remember"/>
-          <label for="remember">Keep me signed in on this device</label>
-        </div>
+      <!-- Remember / Terms row -->
+      <div class="form-group check-row mt-14 mb-24">
+        <input type="checkbox" id="remember" checked />
+        <label for="remember">Keep session active on this workstation</label>
       </div>
 
-      <!-- Error banner -->
-      <div id="login-global-error" style="display:none;color:#ef4444;font-size:13px;margin-bottom:12px;padding:8px 12px;background:rgba(239,68,68,0.1);border-radius:8px;border:1px solid rgba(239,68,68,0.2);"></div>
+      <!-- Submit button -->
+      <button type="submit" class="btn-signin" id="signin-btn">
+        <span>Sign In with API Key</span>
+        <span class="ms">arrow_forward</span>
+      </button>
 
-      <!-- Submit -->
-      <div style="margin-top:20px;">
-        <button type="submit" class="btn-signin" id="signin-btn">
-          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;">arrow_forward</span>
-          Sign In with API Key
-        </button>
-
-        <div class="or-divider" id="oidc-divider"><span>or enterprise identity</span></div>
-
-        <button type="button" class="btn-sso" id="sso-btn">
-          <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          <span id="sso-label">Sign in with SSO / OIDC (PKCE)</span>
-        </button>
+      <!-- SSO Option -->
+      <div class="or-divider">
+        <span>or single sign-on</span>
       </div>
+
+      <button type="button" class="btn-sso" id="sso-btn">
+        <svg width="18" height="18" viewBox="0 0 18 18">
+          <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.616z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+          <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/>
+          <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
+        </svg>
+        <span>Sign in with OIDC / SSO</span>
+      </button>
     </form>
 
+    <!-- HIPAA Compliance Badge -->
+    <div class="hipaa-badge">
+      <span class="ms">verified_user</span>
+      HIPAA Compliant · TLS 1.3 Encrypted
+    </div>
+
     <div class="form-footer">
-      <p>New to the portal? <a href="#">Request access →</a></p>
-      <div class="hipaa-badge">
-        <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;font-variation-settings:'FILL' 1;">verified_user</span>
-        HIPAA Compliant · TLS 1.3 Encrypted · SOC 2 Type II
-      </div>
       <div class="links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Use</a>
-        <a href="#">Support</a>
+        <a href="../documentation/code.html">Documentation</a>
+        <a href="../help_center/code.html">Support</a>
       </div>
     </div>
   </div>
 </div>
 
-<div class="ver">EdiPro v4.2.0 · HIPAA Gateway</div>
+<div class="ver">EdiPro v1.0.0 · HIPAA 5010 Gateway</div>
 
-<script type="module">
-  import { setAccessToken, getAccessToken } from './shared.js';
-
-  /* ── Theme ── */
-  const html  = document.documentElement;
-  const toggle = document.getElementById('theme-toggle');
-  const tIcon  = document.getElementById('theme-icon');
-  const tLabel = document.getElementById('theme-label');
-  const saved  = localStorage.getItem('theme') || 'light';
-  applyTheme(saved);
-  if (toggle) {
-    toggle.addEventListener('click', () => {
-      const next = html.classList.contains('dark') ? 'light' : 'dark';
-      applyTheme(next); localStorage.setItem('theme', next);
-    });
-  }
-  function applyTheme(t) {
-    html.classList.toggle('dark', t === 'dark');
-    if (tIcon) tIcon.textContent  = t === 'dark' ? 'dark_mode' : 'light_mode';
-    if (tLabel) tLabel.textContent = t === 'dark' ? 'Dark' : 'Light';
-  }
-
-  /* ── Password toggle ── */
-  const pwInput  = document.getElementById('password');
-  const pwToggle = document.getElementById('pw-toggle');
-  const pwIcon   = document.getElementById('pw-icon');
-  if (pwToggle) {
-    pwToggle.addEventListener('click', () => {
-      const hidden = pwInput.type === 'password';
-      pwInput.type = hidden ? 'text' : 'password';
-      pwIcon.textContent = hidden ? 'visibility_off' : 'visibility';
-    });
-  }
-
-  /* ── PKCE Utilities ── */
-  function generateRandomString(length = 64) {
-    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-    const randomValues = new Uint8Array(length);
-    window.crypto.getRandomValues(randomValues);
-    return Array.from(randomValues).map(val => charset[val % charset.length]).join('');
-  }
-
-  async function sha256(plain) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(plain);
-    return window.crypto.subtle.digest('SHA-256', data);
-  }
-
-  function base64urlencode(buffer) {
-    const bytes = new Uint8Array(buffer);
-    let str = '';
-    for (let i = 0; i < bytes.length; i++) {
-      str += String.fromCharCode(bytes[i]);
-    }
-    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
-
-  let oidcConfig = null;
-
-  async function loadAuthConfig() {
-    try {
-      const res = await fetch('/api/auth/config');
-      if (res.ok) {
-        oidcConfig = await res.json();
-      }
-    } catch (err) {
-      console.warn('Unable to load auth config from backend:', err);
-    }
-  }
-
-  async function startPkceFlow() {
-    if (!oidcConfig || !oidcConfig.oidc_configured || !oidcConfig.authorize_url) {
-      showError('OIDC authentication is not configured on the backend.');
-      return;
-    }
-    const verifier = generateRandomString(64);
-    const hashed = await sha256(verifier);
-    const challenge = base64urlencode(hashed);
-    const state = generateRandomString(32);
-
-    // Save temporary verifier and state in sessionStorage (cleared upon token exchange)
-    sessionStorage.setItem('pkce_code_verifier', verifier);
-    sessionStorage.setItem('pkce_state', state);
-
-    const redirectUri = window.location.origin + window.location.pathname;
-    const authUrl = new URL(oidcConfig.authorize_url, window.location.origin);
-    authUrl.searchParams.set('response_type', 'code');
-    authUrl.searchParams.set('client_id', oidcConfig.client_id || 'edipro-public-client');
-    authUrl.searchParams.set('redirect_uri', redirectUri);
-    authUrl.searchParams.set('scope', 'openid profile email roles');
-    authUrl.searchParams.set('state', state);
-    authUrl.searchParams.set('code_challenge', challenge);
-    authUrl.searchParams.set('code_challenge_method', 'S256');
-
-    window.location.href = authUrl.toString();
-  }
-
-  async function handlePkceCallback() {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    const state = params.get('state');
-    if (!code) return false;
-
-    const savedState = sessionStorage.getItem('pkce_state');
-    const verifier = sessionStorage.getItem('pkce_code_verifier');
-    sessionStorage.removeItem('pkce_state');
-    sessionStorage.removeItem('pkce_code_verifier');
-
-    window.history.replaceState({}, document.title, window.location.pathname);
-
-    if (savedState && state !== savedState) {
-      showError('PKCE state validation failed.');
-      return false;
-    }
-
-    if (!oidcConfig || !oidcConfig.token_url) {
-      showError('OIDC token endpoint not available.');
-      return false;
-    }
-
-    try {
-      const redirectUri = window.location.origin + window.location.pathname;
-      const body = new URLSearchParams({
-        grant_type: 'authorization_code',
-        client_id: oidcConfig.client_id || 'edipro-public-client',
-        code: code,
-        redirect_uri: redirectUri,
-        code_verifier: verifier || '',
-      });
-
-      const res = await fetch(oidcConfig.token_url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString()
-      });
-
-      if (!res.ok) {
-        showError('Token exchange failed with status ' + res.status);
-        return false;
-      }
-
-      const data = await res.json();
-      const accessToken = data.access_token || data.id_token;
-      if (accessToken) {
-        // Store access token in memory
-        setAccessToken(accessToken);
-        window.location.href = 'dashboard_sleek/code.html';
-        return true;
-      }
-    } catch (err) {
-      showError('Error during token exchange: ' + err.message);
-    }
-    return false;
-  }
-
-  function showError(msg) {
-    const el = document.getElementById('login-global-error');
-    if (el) {
-      el.textContent = msg;
-      el.style.display = 'block';
-    }
-  }
-
-  // Init auth config and PKCE callback check
-  async function initAuth() {
-    await loadAuthConfig();
-    if (window.location.search.includes('code=')) {
-      const signinBtn = document.getElementById('signin-btn');
-      if (signinBtn) {
-        signinBtn.disabled = true;
-        signinBtn.textContent = 'Exchanging token…';
-      }
-      await handlePkceCallback();
-    }
-  }
-  initAuth();
-
-  const ssoBtn = document.getElementById('sso-btn');
-  if (ssoBtn) {
-    ssoBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      startPkceFlow();
-    });
-  }
-
-  /* ── Form submission (API-Key verification against /api/health/detailed) ── */
-  const form = document.getElementById('login-form');
-  const signinBtn = document.getElementById('signin-btn');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const globalErr = document.getElementById('login-global-error');
-    if (globalErr) globalErr.style.display = 'none';
-
-    const pwVal = document.getElementById('password').value.trim();
-    const pwWrap = document.getElementById('pw-wrap');
-    const pwErr  = document.getElementById('pw-error');
-    if (!pwVal) {
-      pwWrap.classList.add('error');
-      pwErr.style.display = 'block';
-      return;
-    } else {
-      pwWrap.classList.remove('error');
-      pwErr.style.display = 'none';
-    }
-
-    signinBtn.classList.add('loading');
-    signinBtn.textContent = 'Verifying API key…';
-    signinBtn.disabled = true;
-
-    try {
-      // Verify API key against /api/health/detailed
-      const res = await fetch('/api/health/detailed', {
-        headers: { 'X-API-Key': pwVal }
-      });
-
-      // 200 (admin) or 403 (valid operator/viewer key with insufficient admin role)
-      if (res.status === 200 || res.status === 403) {
-        sessionStorage.setItem('edipro_api_key', pwVal);
-        signinBtn.textContent = 'Success! Redirecting…';
-        setTimeout(() => { window.location.href = 'dashboard_sleek/code.html'; }, 400);
-        return;
-      }
-
-      showError('Authentication failed. Invalid API key (HTTP ' + res.status + ').');
-    } catch (err) {
-      // In offline / local mock mode where /api is not responding, allow dev fallback
-      sessionStorage.setItem('edipro_api_key', pwVal);
-      window.location.href = 'dashboard_sleek/code.html';
-      return;
-    } finally {
-      signinBtn.classList.remove('loading');
-      signinBtn.textContent = 'Sign In with API Key';
-      signinBtn.disabled = false;
-    }
-  });
-
-  /* ── Clear error on input ── */
-  document.getElementById('password').addEventListener('input', () => {
-    document.getElementById('pw-wrap').classList.remove('error');
-    document.getElementById('pw-error').style.display = 'none';
-    const globalErr = document.getElementById('login-global-error');
-    if (globalErr) globalErr.style.display = 'none';
-  });
-</script>
 </body>
 </html>

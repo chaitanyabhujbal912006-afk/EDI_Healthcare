@@ -73,6 +73,10 @@ async def add_security_headers(request: Request, call_next: Any) -> Response:
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+        "font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    )
     return response
 
 
@@ -152,15 +156,21 @@ async def audit_log_middleware(request: Request, call_next: Any) -> Response:
 
 
 STITCH_DIR = Path(__file__).resolve().parents[2] / "stitch"
-if STITCH_DIR.exists():
+DIST_DIR = STITCH_DIR / "dist"
+if DIST_DIR.exists():
+    app.mount("/stitch", StaticFiles(directory=DIST_DIR, html=True), name="stitch")
+    if (DIST_DIR / "assets").exists():
+        app.mount("/assets", StaticFiles(directory=DIST_DIR / "assets"), name="assets")
+elif STITCH_DIR.exists():
     app.mount("/stitch", StaticFiles(directory=STITCH_DIR, html=True), name="stitch")
 
 
 @app.get("/")
 def frontend_home() -> RedirectResponse:
-    if STITCH_DIR.exists():
-        return RedirectResponse(url="/stitch/dashboard_sleek/code.html", status_code=307)
+    if DIST_DIR.exists() or STITCH_DIR.exists():
+        return RedirectResponse(url="/stitch/index.html", status_code=307)
     return RedirectResponse(url="/api/health", status_code=307)
+
 
 
 @app.get("/api/health")
@@ -196,6 +206,14 @@ def auth_config(http_request: Request) -> dict[str, Any]:
 @app.get("/api/health/detailed")
 def health_detailed(_identity: AuthIdentity = Depends(require_role("admin"))) -> dict[str, Any]:
     uptime_seconds = (datetime.now(timezone.utc) - _SERVER_START_TIME).total_seconds()
+    settings = AuthSettings.from_env()
+    import os
+
+    has_external_llm = bool(
+        os.getenv("GROQ_API_KEY")
+        or os.getenv("HUGGINGFACE_API_KEY")
+        or os.getenv("HF_TOKEN")
+    )
     return {
         "status": "ok",
         "uptime_seconds": round(uptime_seconds, 1),
@@ -204,6 +222,13 @@ def health_detailed(_identity: AuthIdentity = Depends(require_role("admin"))) ->
         "platform": platform.system(),
         "supported_transactions": ["837P", "837I", "835", "834"],
         "total_built_in_rules": get_total_rules_count(),
+        "rule_count": get_total_rules_count(),
+        "auth_enabled": settings.is_configured,
+        "external_llm_enabled": has_external_llm,
+        "limits": {
+            "max_upload_mb": MAX_UPLOAD_SIZE // (1024 * 1024),
+            "max_batch_mb": MAX_BATCH_SIZE // (1024 * 1024),
+        },
         "engine_version": "1.0.0",
         "llm_providers": ["Groq/Llama-3.3", "HuggingFace", "Rule-based Fallback"],
     }
