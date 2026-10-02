@@ -1,16 +1,18 @@
-from __future__ import annotations
-
+import hashlib
 import io
+import json
+import logging
 import platform
 import sys
+import time
+import uuid
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-_SERVER_START_TIME: datetime = datetime.now(timezone.utc)
-
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+import jwt
+from fastapi import Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -42,6 +44,8 @@ from app.services.summaries import (
     build_family_grouping,
 )
 
+_SERVER_START_TIME: datetime = datetime.now(timezone.utc)
+
 app = FastAPI(title="EdiPro Healthcare EDI Parser API", version="1.0.0")
 
 app.add_middleware(
@@ -52,13 +56,97 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+audit_logger = logging.getLogger("edipro.audit")
+if not audit_logger.handlers:
+    _handler = logging.StreamHandler(sys.stdout)
+    _handler.setFormatter(logging.Formatter("%(message)s"))
+    audit_logger.addHandler(_handler)
+    audit_logger.setLevel(logging.INFO)
+    audit_logger.propagate = False
+
+
 @app.middleware("http")
-async def add_security_headers(request, call_next):
+async def add_security_headers(request: Request, call_next: Any) -> Response:
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+
+@app.middleware("http")
+async def audit_log_middleware(request: Request, call_next: Any) -> Response:
+    # Skip non-api requests and /api/health
+    if not request.url.path.startswith("/api/") or request.url.path == "/api/health":
+        return await call_next(request)
+
+    start_time = time.perf_counter()
+    request_id = request.headers.get("x-request-id") or uuid.uuid4().hex
+    bytes_in = int(request.headers.get("content-length") or 0)
+
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
+        record = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "request_id": request_id,
+            "subject": "anonymous",
+            "role": "none",
+            "method": request.method,
+            "path": request.url.path,
+            "status": 500,
+            "duration_ms": duration_ms,
+            "bytes_in": bytes_in,
+            "file_count": 0,
+            "transaction_type": None,
+            "outcome": "denied",
+        }
+        audit_logger.info(json.dumps(record))
+        raise exc
+
+    duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
+
+    identity: AuthIdentity | None = getattr(request.state, "auth_identity", None)
+    if identity:
+        subject = identity.subject
+        role = identity.role
+    else:
+        auth_hdr = request.headers.get("authorization", "")
+        key_hdr = request.headers.get("x-api-key", "")
+        if key_hdr:
+            subject = hashlib.sha256(key_hdr.strip().encode("utf-8")).hexdigest()[:8]
+        elif auth_hdr.lower().startswith("bearer "):
+            try:
+                unverified = jwt.decode(auth_hdr[7:].strip(), options={"verify_signature": False})
+                subject = str(unverified.get("sub", "anonymous"))
+            except Exception:
+                subject = "anonymous"
+        else:
+            subject = "anonymous"
+        role = "none"
+
+    file_count = getattr(request.state, "file_count", 0)
+    tx_type = getattr(request.state, "transaction_type", None)
+    outcome = "denied" if response.status_code in (401, 403, 503) else "allowed"
+
+    record = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "request_id": request_id,
+        "subject": subject,
+        "role": role,
+        "method": request.method,
+        "path": request.url.path,
+        "status": response.status_code,
+        "duration_ms": duration_ms,
+        "bytes_in": bytes_in,
+        "file_count": file_count,
+        "transaction_type": tx_type,
+        "outcome": outcome,
+    }
+    audit_logger.info(json.dumps(record))
+    response.headers["X-Request-ID"] = request_id
     return response
 
 
@@ -153,9 +241,12 @@ def get_me(identity: AuthIdentity = Depends(require_role("viewer"))) -> dict[str
 @app.post("/api/parse")
 def parse_raw(
     request: ParseRequest,
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("viewer")),
 ) -> dict[str, Any]:
     parsed = parse_edi_content(request.content)
+    http_request.state.transaction_type = parsed.transaction_type
+    http_request.state.file_count = 1
     validation = validate_edi_content(parsed)
     return {
         "parse_result": parsed.model_dump(),
@@ -166,6 +257,7 @@ def parse_raw(
 @app.post("/api/summary/837i")
 def summarize_837i(
     request: ParseRequest,
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("viewer")),
 ) -> dict[str, Any]:
     """Return a structured 837I institutional claim summary from raw EDI content.
@@ -174,6 +266,8 @@ def summarize_837i(
     statement_dates, and a list of SV2 revenue line items.
     """
     parsed = parse_edi_content(request.content)
+    http_request.state.transaction_type = parsed.transaction_type
+    http_request.state.file_count = 1
     if parsed.transaction_type not in {"837I", "UNKNOWN"}:
         raise HTTPException(
             status_code=422,
@@ -194,6 +288,7 @@ MAX_BATCH_SIZE = 100 * 1024 * 1024  # 100 MB
 
 @app.post("/api/upload", response_model=UploadResponse)
 async def upload_file(
+    http_request: Request,
     file: UploadFile = File(...),
     _identity: AuthIdentity = Depends(require_role("operator")),
 ) -> UploadResponse:
@@ -203,6 +298,8 @@ async def upload_file(
 
     content = file_bytes.decode("utf-8", errors="ignore")
     parsed = parse_edi_content(content)
+    http_request.state.transaction_type = parsed.transaction_type
+    http_request.state.file_count = 1
     validation = validate_edi_content(parsed)
 
     safe_filename = Path(file.filename or "uploaded.edi").name
@@ -225,6 +322,7 @@ async def upload_file(
 
 @app.post("/api/batch", response_model=BatchResult)
 async def batch_upload(
+    http_request: Request,
     file: UploadFile = File(...),
     _identity: AuthIdentity = Depends(require_role("operator")),
 ) -> BatchResult:
@@ -253,6 +351,9 @@ async def batch_upload(
     failed = sum(1 for r in reports if not r.validation_result.valid)
     passed = len(reports) - failed
 
+    http_request.state.transaction_type = "BATCH"
+    http_request.state.file_count = len(reports)
+
     return BatchResult(total_files=len(reports), passed=passed, failed=failed, reports=reports)
 
 
@@ -268,8 +369,11 @@ async def chat(
 @app.post("/api/reconcile/835-837")
 def reconcile_835_837(
     request: ReconcileRequest,
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("operator")),
 ) -> dict[str, Any]:
+    http_request.state.transaction_type = "835/837"
+    http_request.state.file_count = 2
     p837 = parse_edi_content(request.edi_837)
     p835 = parse_edi_content(request.edi_835)
 
@@ -305,8 +409,11 @@ def reconcile_835_837(
 @app.post("/api/delta/834")
 def delta_834(
     request: DeltaRequest,
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("operator")),
 ) -> dict[str, Any]:
+    http_request.state.transaction_type = "834"
+    http_request.state.file_count = 2
     old_summary = build_834_summary(parse_edi_content(request.old_834).segments)
     new_summary = build_834_summary(parse_edi_content(request.new_834).segments)
 
@@ -327,8 +434,11 @@ def delta_834(
 @app.post("/api/eligibility/834-837")
 def eligibility_check(
     request: EligibilityRequest,
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("operator")),
 ) -> dict[str, Any]:
+    http_request.state.transaction_type = "834/837"
+    http_request.state.file_count = 2
     members = build_834_summary(parse_edi_content(request.edi_834).segments)
     member_ids = {m.get("member_id") for m in members if m.get("member_id")}
 
@@ -349,8 +459,10 @@ def eligibility_check(
 @app.post("/api/export/json")
 def export_json(
     payload: dict[str, Any],
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("viewer")),
 ) -> StreamingResponse:
+    http_request.state.file_count = 1
     return StreamingResponse(
         io.BytesIO(json_bytes(payload)),
         media_type="application/json",
@@ -361,8 +473,10 @@ def export_json(
 @app.post("/api/export/errors-pdf")
 def export_errors_pdf(
     payload: dict[str, Any],
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("viewer")),
 ) -> StreamingResponse:
+    http_request.state.file_count = 1
     issues = payload.get("issues", [])
     return StreamingResponse(
         io.BytesIO(error_report_pdf_bytes(issues)),
@@ -374,8 +488,10 @@ def export_errors_pdf(
 @app.post("/api/export/members-csv")
 def export_members_csv(
     payload: dict[str, Any],
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("viewer")),
 ) -> StreamingResponse:
+    http_request.state.file_count = 1
     rows = payload.get("rows", [])
     return StreamingResponse(
         io.BytesIO(csv_bytes(rows)),
@@ -387,9 +503,11 @@ def export_members_csv(
 @app.post("/api/export/members-tsv")
 def export_members_tsv(
     payload: dict[str, Any],
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("viewer")),
 ) -> StreamingResponse:
     """Tab-separated export — avoids comma issues in provider/member names."""
+    http_request.state.file_count = 1
     rows = payload.get("rows", [])
     return StreamingResponse(
         io.BytesIO(tsv_bytes(rows)),
@@ -401,8 +519,10 @@ def export_members_tsv(
 @app.post("/api/export/reconciliation-csv")
 def export_reconciliation_csv(
     payload: dict[str, Any],
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("viewer")),
 ) -> StreamingResponse:
+    http_request.state.file_count = 1
     rows = payload.get("rows", [])
     return StreamingResponse(
         io.BytesIO(csv_bytes(rows)),
@@ -414,8 +534,10 @@ def export_reconciliation_csv(
 @app.post("/api/export/corrected-edi")
 def export_corrected_edi(
     payload: dict[str, Any],
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("viewer")),
 ) -> StreamingResponse:
+    http_request.state.file_count = 1
     segments = payload.get("segments", [])
     try:
         text = to_segment_text([_segment_from_dict(s) for s in segments])
@@ -432,8 +554,11 @@ def export_corrected_edi(
 @app.post("/api/834/family-grouping")
 def family_grouping(
     payload: dict[str, Any],
+    http_request: Request,
     _identity: AuthIdentity = Depends(require_role("viewer")),
 ) -> dict[str, Any]:
+    http_request.state.transaction_type = "834"
+    http_request.state.file_count = 1
     rows = payload.get("rows", [])
     return {"groups": build_family_grouping(rows)}
 
