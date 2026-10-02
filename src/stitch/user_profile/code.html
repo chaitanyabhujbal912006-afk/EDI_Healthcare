@@ -61,8 +61,8 @@
     <div class="profile-header">
       <div class="profile-avatar"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgEW3dXZf1xhBDmpkybJnr21bF6HNiuHphHXF5ZMfTdghbWasho84cnLb8S8iQpaeSBw-fhCGaMQOMakuyIgNossftgFDuvXrrfI8AS1HQ8aXsiiN5jRf5UzMPR3aYhNr7MVZQn2pGVvp51bgB4LzOmkYlr8r84vKcVrNDmd6f9yQ467G7lXlyPhygUgNeyILrY9rjqiqU5HuLzz86Snbq7D27lzvqCYzPfDWO80nIxy6mb85n7yl0OJhP3SQqzcbgwDSKCUiG7ach" alt="User"/></div>
       <div class="profile-meta">
-        <h2>Healthcare Admin</h2>
-        <p>admin@organization.com · Member since 2024</p>
+        <h2 id="profile-name">Healthcare Admin</h2>
+        <p id="profile-email-header">admin@organization.com · Member since 2024</p>
         <div class="profile-badges">
           <span class="badge badge-blue">EDI Analyst</span>
           <span class="badge badge-green">HIPAA Certified</span>
@@ -72,10 +72,10 @@
     </div>
     <div class="card-body">
       <div class="info-grid">
-        <div class="info-field"><label>Full Name</label><div class="field-val">Healthcare Admin</div></div>
-        <div class="info-field"><label>Email</label><div class="field-val">admin@organization.com</div></div>
+        <div class="info-field"><label>Subject / Identity</label><div class="field-val" id="profile-subject">Healthcare Admin</div></div>
+        <div class="info-field"><label>Email / User ID</label><div class="field-val" id="profile-email">admin@organization.com</div></div>
         <div class="info-field"><label>Organization</label><div class="field-val">Regional Health Network</div></div>
-        <div class="info-field"><label>Role</label><div class="field-val">EDI Analyst · Administrator</div></div>
+        <div class="info-field"><label>Role</label><div class="field-val" id="profile-role">EDI Analyst · Administrator</div></div>
         <div class="info-field"><label>NPI</label><div class="field-val td-mono">1234567890</div></div>
         <div class="info-field"><label>Last Login</label><div class="field-val">Today at 5:47 PM IST</div></div>
       </div>
@@ -91,5 +91,58 @@
   </div>
 </main>
 <script type="module" src="../shared.js"></script>
+<script>
+  async function apiFetch(url, options = {}) {
+    if (window.apiFetch) return window.apiFetch(url, options);
+    options = { ...options };
+    const headers = new Headers(options.headers || {});
+    const token = (window.EdiPro && window.EdiPro.getAccessToken)
+      ? window.EdiPro.getAccessToken()
+      : sessionStorage.getItem('edipro_access_token');
+    const apiKey = sessionStorage.getItem('edipro_api_key');
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
+      headers.set('X-API-Key', apiKey);
+    }
+    options.headers = headers;
+    return fetch(url, options);
+  }
+
+  async function loadUserProfile() {
+    try {
+      const res = await apiFetch('/api/me');
+      if (res.ok) {
+        const data = await res.json();
+        const subject = data.subject || 'anonymous';
+        const role = data.role || 'viewer';
+        const authType = data.auth_type || 'token';
+
+        const nameEl = document.getElementById('profile-name');
+        if (nameEl) nameEl.textContent = subject;
+
+        const emailHdrEl = document.getElementById('profile-email-header');
+        if (emailHdrEl) emailHdrEl.textContent = `${subject} · Role: ${role.toUpperCase()}`;
+
+        const subjEl = document.getElementById('profile-subject');
+        if (subjEl) subjEl.textContent = subject;
+
+        const emailEl = document.getElementById('profile-email');
+        if (emailEl) emailEl.textContent = subject;
+
+        const roleEl = document.getElementById('profile-role');
+        if (roleEl) roleEl.textContent = `${role.toUpperCase()} (${authType})`;
+      }
+    } catch (err) {
+      console.warn('Failed to fetch /api/me:', err);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadUserProfile);
+  } else {
+    loadUserProfile();
+  }
+</script>
 </body>
 </html>

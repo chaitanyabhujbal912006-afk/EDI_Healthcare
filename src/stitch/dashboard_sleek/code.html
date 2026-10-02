@@ -829,6 +829,24 @@ html.dark .hero-left h1 {
     renderAudits(items);
   }
 
+  /* ── Unified apiFetch helper ── */
+  async function apiFetch(url, options = {}) {
+    if (window.apiFetch) return window.apiFetch(url, options);
+    options = { ...options };
+    const headers = new Headers(options.headers || {});
+    const token = (window.EdiPro && window.EdiPro.getAccessToken)
+      ? window.EdiPro.getAccessToken()
+      : sessionStorage.getItem('edipro_access_token');
+    const apiKey = sessionStorage.getItem('edipro_api_key');
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
+      headers.set('X-API-Key', apiKey);
+    }
+    options.headers = headers;
+    return fetch(url, options);
+  }
+
   /* ── Process files ── */
   async function processFiles(fileList) {
     const files = Array.from(fileList || []);
@@ -842,7 +860,7 @@ html.dark .hero-left h1 {
       const formData = new FormData();
       formData.append('file', file);
       try {
-        const response = await fetch('/api/upload', { method: 'POST', body: formData });
+        const response = await apiFetch('/api/upload', { method: 'POST', body: formData });
         if (!response.ok) throw new Error('Backend offline');
         const payload = await response.json();
         const report  = payload.report || {};

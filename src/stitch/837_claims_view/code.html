@@ -176,6 +176,24 @@
   overlay.addEventListener('click',()=>setSidebar(false));
   window.addEventListener('resize',()=>{if(window.innerWidth>=900)setSidebar(true);});
 
+  // Unified apiFetch helper
+  async function apiFetch(url, options = {}) {
+    if (window.apiFetch) return window.apiFetch(url, options);
+    options = { ...options };
+    const headers = new Headers(options.headers || {});
+    const token = (window.EdiPro && window.EdiPro.getAccessToken)
+      ? window.EdiPro.getAccessToken()
+      : sessionStorage.getItem('edipro_access_token');
+    const apiKey = sessionStorage.getItem('edipro_api_key');
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
+      headers.set('X-API-Key', apiKey);
+    }
+    options.headers = headers;
+    return fetch(url, options);
+  }
+
   async function loadClaimsData() {
     const items = JSON.parse(localStorage.getItem('ediSubmissions') || '[]');
     let claims = items.filter(i => i.type === '837' || (i.type && i.type.startsWith('837')));
@@ -184,7 +202,7 @@
     if (claims.length === 0 && window.EdiPro && window.EdiPro.getSampleEdiContent) {
       try {
         const sampleEdi = window.EdiPro.getSampleEdiContent('837P');
-        const res = await fetch('/api/parse', {
+        const res = await apiFetch('/api/parse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content: sampleEdi })

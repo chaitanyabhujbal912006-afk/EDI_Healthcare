@@ -338,6 +338,92 @@ function escapeHtml(str) {
   });
 }
 
+// Auth token management (in-memory with session storage backup, never localStorage)
+let _inMemoryAccessToken = null;
+
+export function setAccessToken(token) {
+  _inMemoryAccessToken = token;
+  if (token) {
+    sessionStorage.setItem('edipro_access_token', token);
+  } else {
+    sessionStorage.removeItem('edipro_access_token');
+  }
+}
+
+export function getAccessToken() {
+  if (!_inMemoryAccessToken && typeof sessionStorage !== 'undefined') {
+    _inMemoryAccessToken = sessionStorage.getItem('edipro_access_token');
+  }
+  return _inMemoryAccessToken;
+}
+
+// Idle timeout (default 15 minutes of no input)
+let _idleTimeoutHandle = null;
+const IDLE_TIMEOUT_MS = 15 * 60 * 1000;
+
+export function resetIdleTimeout() {
+  if (_idleTimeoutHandle) {
+    clearTimeout(_idleTimeoutHandle);
+  }
+  _idleTimeoutHandle = setTimeout(() => {
+    // 15 minutes of no input: clear session and return to index.html
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.clear();
+    }
+    _inMemoryAccessToken = null;
+    const path = window.location.pathname;
+    const isLogin = path.endsWith('index.html') || path.endsWith('/');
+    if (!isLogin) {
+      const target = path.includes('/stitch/')
+        ? path.replace(/\/stitch\/.*$/, '/stitch/index.html')
+        : '/stitch/index.html';
+      window.location.href = target;
+    }
+  }, IDLE_TIMEOUT_MS);
+}
+
+if (typeof window !== 'undefined') {
+  const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+  events.forEach(evt => {
+    window.addEventListener(evt, resetIdleTimeout, { passive: true });
+  });
+  resetIdleTimeout();
+}
+
+// Unified apiFetch helper
+export async function apiFetch(input, init = {}) {
+  init = { ...init };
+  const headers = new Headers(init.headers || {});
+  const token = getAccessToken();
+  const apiKey = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('edipro_api_key') : null;
+
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
+  } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
+    headers.set('X-API-Key', apiKey);
+  }
+
+  init.headers = headers;
+  const res = await fetch(input, init);
+
+  if (res.status === 401) {
+    const path = window.location.pathname;
+    const isLogin = path.endsWith('index.html') || path.endsWith('/');
+    if (!isLogin) {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.clear();
+      }
+      _inMemoryAccessToken = null;
+      const target = path.includes('/stitch/')
+        ? path.replace(/\/stitch\/.*$/, '/stitch/index.html')
+        : '/stitch/index.html';
+      window.location.href = target;
+    }
+  }
+
+  return res;
+}
+
 function readSubmissions() {
   try { const p = JSON.parse(localStorage.getItem('ediSubmissions') || '[]'); return Array.isArray(p) ? p : []; }
   catch { return []; }
@@ -365,11 +451,18 @@ window.EdiPro = {
   readSubmissions,
   saveSubmission,
   checkBackendHealth,
-  escapeHtml
+  escapeHtml,
+  apiFetch,
+  setAccessToken,
+  getAccessToken,
+  resetIdleTimeout,
 };
 window.showToast = showToast;
 window.openCommandPalette = openCommandPalette;
 window.getSampleEdiContent = getSampleEdiContent;
 window.escapeHtml = escapeHtml;
+window.apiFetch = apiFetch;
+window.setAccessToken = setAccessToken;
+window.getAccessToken = getAccessToken;
 
 

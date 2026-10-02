@@ -335,6 +335,24 @@ html.dark .log-box { background: #06080f; border-color: rgba(255,255,255,0.06); 
     psType.textContent = '—'; psStatus.textContent = 'Ready'; psTime.textContent = '—'; psErrors.textContent = '—';
   });
 
+  // Unified apiFetch helper
+  async function apiFetch(url, options = {}) {
+    if (window.apiFetch) return window.apiFetch(url, options);
+    options = { ...options };
+    const headers = new Headers(options.headers || {});
+    const token = (window.EdiPro && window.EdiPro.getAccessToken)
+      ? window.EdiPro.getAccessToken()
+      : sessionStorage.getItem('edipro_access_token');
+    const apiKey = sessionStorage.getItem('edipro_api_key');
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
+      headers.set('X-API-Key', apiKey);
+    }
+    options.headers = headers;
+    return fetch(url, options);
+  }
+
   async function handleFile(file) {
     const start = Date.now();
     progressWrap.style.display = 'block';
@@ -347,7 +365,7 @@ html.dark .log-box { background: #06080f; border-color: rgba(255,255,255,0.06); 
     progressBar.style.width = '55%';
     try {
       const fd = new FormData(); fd.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const res = await apiFetch('/api/upload', { method: 'POST', body: fd });
       if (!res.ok) throw new Error('Upload failed: ' + res.status);
       progressBar.style.width = '80%';
       const data = await res.json();

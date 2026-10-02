@@ -34,6 +34,7 @@ from app.models import (
     ReconcileRequest,
     UploadResponse,
 )
+from app.config import AuthSettings
 from app.security import AuthIdentity, require_role
 from app.services.chat import ask_huggingface
 from app.services.exports import csv_bytes, error_report_pdf_bytes, json_bytes, tsv_bytes
@@ -165,6 +166,31 @@ def frontend_home() -> RedirectResponse:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/auth/config")
+def auth_config(http_request: Request) -> dict[str, Any]:
+    http_request.state.file_count = 0
+    settings = AuthSettings.from_env()
+    oidc_ready = bool(settings.oidc_issuer and settings.oidc_jwks_url)
+    auth_url = settings.oidc_authorize_url or (
+        f"{settings.oidc_issuer.rstrip('/')}/protocol/openid-connect/auth"
+        if settings.oidc_issuer
+        else None
+    )
+    token_url = settings.oidc_token_url or (
+        f"{settings.oidc_issuer.rstrip('/')}/protocol/openid-connect/token"
+        if settings.oidc_issuer
+        else None
+    )
+    return {
+        "oidc_configured": oidc_ready,
+        "issuer": settings.oidc_issuer,
+        "audience": settings.oidc_audience,
+        "client_id": settings.oidc_client_id or "edipro-public-client",
+        "authorize_url": auth_url,
+        "token_url": token_url,
+    }
 
 
 @app.get("/api/health/detailed")

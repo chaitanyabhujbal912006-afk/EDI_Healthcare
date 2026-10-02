@@ -537,47 +537,50 @@ html.dark .input-wrap input:focus { background: rgba(255,255,255,0.07); }
         <div class="field-error" id="email-error">Please enter a valid email address.</div>
       </div>
 
-      <!-- Password -->
+      <!-- Password / API Key -->
       <div class="form-group">
         <div class="label-row">
-          <label class="form-label" for="password">Password</label>
-          <a href="#" class="forgot-link">Forgot password?</a>
+          <label class="form-label" for="password">Password / API Key</label>
+          <a href="#" class="forgot-link">Help / Docs</a>
         </div>
         <div class="input-wrap" id="pw-wrap">
-          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;">lock</span>
-          <input type="password" id="password" placeholder="••••••••••••" autocomplete="current-password"/>
+          <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;">key</span>
+          <input type="password" id="password" placeholder="Enter API Key or Password" autocomplete="current-password"/>
           <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Toggle password visibility">
             <span class="ms" id="pw-icon" style="font-family:'Material Symbols Rounded';font-style:normal;">visibility</span>
           </button>
         </div>
-        <div class="field-error" id="pw-error">Password is required.</div>
+        <div class="field-error" id="pw-error">Valid API Key or password is required.</div>
       </div>
 
       <!-- Remember -->
       <div class="form-group">
         <div class="check-row">
           <input type="checkbox" id="remember"/>
-          <label for="remember">Keep me signed in for 30 days</label>
+          <label for="remember">Keep me signed in on this device</label>
         </div>
       </div>
 
+      <!-- Error banner -->
+      <div id="login-global-error" style="display:none;color:#ef4444;font-size:13px;margin-bottom:12px;padding:8px 12px;background:rgba(239,68,68,0.1);border-radius:8px;border:1px solid rgba(239,68,68,0.2);"></div>
+
       <!-- Submit -->
-      <div style="margin-top:24px;">
+      <div style="margin-top:20px;">
         <button type="submit" class="btn-signin" id="signin-btn">
           <span class="ms" style="font-family:'Material Symbols Rounded';font-style:normal;">arrow_forward</span>
-          Sign In
+          Sign In with API Key
         </button>
 
-        <div class="or-divider"><span>or continue with</span></div>
+        <div class="or-divider" id="oidc-divider"><span>or enterprise identity</span></div>
 
-        <button type="button" class="btn-sso" onclick="window.location.href='dashboard_sleek/code.html'">
+        <button type="button" class="btn-sso" id="sso-btn">
           <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
           </svg>
-          Sign in with Google SSO
+          <span id="sso-label">Sign in with SSO / OIDC (PKCE)</span>
         </button>
       </div>
     </form>
@@ -599,7 +602,9 @@ html.dark .input-wrap input:focus { background: rgba(255,255,255,0.07); }
 
 <div class="ver">EdiPro v4.2.0 · HIPAA Gateway</div>
 
-<script>
+<script type="module">
+  import { setAccessToken, getAccessToken } from './shared.js';
+
   /* ── Theme ── */
   const html  = document.documentElement;
   const toggle = document.getElementById('theme-toggle');
@@ -607,71 +612,238 @@ html.dark .input-wrap input:focus { background: rgba(255,255,255,0.07); }
   const tLabel = document.getElementById('theme-label');
   const saved  = localStorage.getItem('theme') || 'light';
   applyTheme(saved);
-  toggle.addEventListener('click', () => {
-    const next = html.classList.contains('dark') ? 'light' : 'dark';
-    applyTheme(next); localStorage.setItem('theme', next);
-  });
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const next = html.classList.contains('dark') ? 'light' : 'dark';
+      applyTheme(next); localStorage.setItem('theme', next);
+    });
+  }
   function applyTheme(t) {
     html.classList.toggle('dark', t === 'dark');
-    tIcon.textContent  = t === 'dark' ? 'dark_mode' : 'light_mode';
-    tLabel.textContent = t === 'dark' ? 'Dark' : 'Light';
+    if (tIcon) tIcon.textContent  = t === 'dark' ? 'dark_mode' : 'light_mode';
+    if (tLabel) tLabel.textContent = t === 'dark' ? 'Dark' : 'Light';
   }
 
   /* ── Password toggle ── */
   const pwInput  = document.getElementById('password');
   const pwToggle = document.getElementById('pw-toggle');
   const pwIcon   = document.getElementById('pw-icon');
-  pwToggle.addEventListener('click', () => {
-    const hidden = pwInput.type === 'password';
-    pwInput.type = hidden ? 'text' : 'password';
-    pwIcon.textContent = hidden ? 'visibility_off' : 'visibility';
-  });
+  if (pwToggle) {
+    pwToggle.addEventListener('click', () => {
+      const hidden = pwInput.type === 'password';
+      pwInput.type = hidden ? 'text' : 'password';
+      pwIcon.textContent = hidden ? 'visibility_off' : 'visibility';
+    });
+  }
 
-  /* ── Form submission ── */
-  const form = document.getElementById('login-form');
-  const signinBtn = document.getElementById('signin-btn');
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    let valid = true;
+  /* ── PKCE Utilities ── */
+  function generateRandomString(length = 64) {
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    const randomValues = new Uint8Array(length);
+    window.crypto.getRandomValues(randomValues);
+    return Array.from(randomValues).map(val => charset[val % charset.length]).join('');
+  }
 
-    const emailVal = document.getElementById('email').value.trim();
-    const emailWrap = document.getElementById('email-wrap');
-    const emailErr  = document.getElementById('email-error');
-    if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-      emailWrap.classList.add('error');
-      emailErr.style.display = 'block'; valid = false;
-    } else {
-      emailWrap.classList.remove('error');
-      emailErr.style.display = 'none';
+  async function sha256(plain) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(plain);
+    return window.crypto.subtle.digest('SHA-256', data);
+  }
+
+  function base64urlencode(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let str = '';
+    for (let i = 0; i < bytes.length; i++) {
+      str += String.fromCharCode(bytes[i]);
+    }
+    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  let oidcConfig = null;
+
+  async function loadAuthConfig() {
+    try {
+      const res = await fetch('/api/auth/config');
+      if (res.ok) {
+        oidcConfig = await res.json();
+      }
+    } catch (err) {
+      console.warn('Unable to load auth config from backend:', err);
+    }
+  }
+
+  async function startPkceFlow() {
+    if (!oidcConfig || !oidcConfig.oidc_configured || !oidcConfig.authorize_url) {
+      showError('OIDC authentication is not configured on the backend.');
+      return;
+    }
+    const verifier = generateRandomString(64);
+    const hashed = await sha256(verifier);
+    const challenge = base64urlencode(hashed);
+    const state = generateRandomString(32);
+
+    // Save temporary verifier and state in sessionStorage (cleared upon token exchange)
+    sessionStorage.setItem('pkce_code_verifier', verifier);
+    sessionStorage.setItem('pkce_state', state);
+
+    const redirectUri = window.location.origin + window.location.pathname;
+    const authUrl = new URL(oidcConfig.authorize_url, window.location.origin);
+    authUrl.searchParams.set('response_type', 'code');
+    authUrl.searchParams.set('client_id', oidcConfig.client_id || 'edipro-public-client');
+    authUrl.searchParams.set('redirect_uri', redirectUri);
+    authUrl.searchParams.set('scope', 'openid profile email roles');
+    authUrl.searchParams.set('state', state);
+    authUrl.searchParams.set('code_challenge', challenge);
+    authUrl.searchParams.set('code_challenge_method', 'S256');
+
+    window.location.href = authUrl.toString();
+  }
+
+  async function handlePkceCallback() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+    if (!code) return false;
+
+    const savedState = sessionStorage.getItem('pkce_state');
+    const verifier = sessionStorage.getItem('pkce_code_verifier');
+    sessionStorage.removeItem('pkce_state');
+    sessionStorage.removeItem('pkce_code_verifier');
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    if (savedState && state !== savedState) {
+      showError('PKCE state validation failed.');
+      return false;
     }
 
-    const pwVal  = document.getElementById('password').value;
+    if (!oidcConfig || !oidcConfig.token_url) {
+      showError('OIDC token endpoint not available.');
+      return false;
+    }
+
+    try {
+      const redirectUri = window.location.origin + window.location.pathname;
+      const body = new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: oidcConfig.client_id || 'edipro-public-client',
+        code: code,
+        redirect_uri: redirectUri,
+        code_verifier: verifier || '',
+      });
+
+      const res = await fetch(oidcConfig.token_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      });
+
+      if (!res.ok) {
+        showError('Token exchange failed with status ' + res.status);
+        return false;
+      }
+
+      const data = await res.json();
+      const accessToken = data.access_token || data.id_token;
+      if (accessToken) {
+        // Store access token in memory
+        setAccessToken(accessToken);
+        window.location.href = 'dashboard_sleek/code.html';
+        return true;
+      }
+    } catch (err) {
+      showError('Error during token exchange: ' + err.message);
+    }
+    return false;
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('login-global-error');
+    if (el) {
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+  }
+
+  // Init auth config and PKCE callback check
+  async function initAuth() {
+    await loadAuthConfig();
+    if (window.location.search.includes('code=')) {
+      const signinBtn = document.getElementById('signin-btn');
+      if (signinBtn) {
+        signinBtn.disabled = true;
+        signinBtn.textContent = 'Exchanging token…';
+      }
+      await handlePkceCallback();
+    }
+  }
+  initAuth();
+
+  const ssoBtn = document.getElementById('sso-btn');
+  if (ssoBtn) {
+    ssoBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      startPkceFlow();
+    });
+  }
+
+  /* ── Form submission (API-Key verification against /api/health/detailed) ── */
+  const form = document.getElementById('login-form');
+  const signinBtn = document.getElementById('signin-btn');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const globalErr = document.getElementById('login-global-error');
+    if (globalErr) globalErr.style.display = 'none';
+
+    const pwVal = document.getElementById('password').value.trim();
     const pwWrap = document.getElementById('pw-wrap');
     const pwErr  = document.getElementById('pw-error');
     if (!pwVal) {
       pwWrap.classList.add('error');
-      pwErr.style.display = 'block'; valid = false;
+      pwErr.style.display = 'block';
+      return;
     } else {
       pwWrap.classList.remove('error');
       pwErr.style.display = 'none';
     }
 
-    if (!valid) return;
-
     signinBtn.classList.add('loading');
-    signinBtn.textContent = 'Signing in…';
+    signinBtn.textContent = 'Verifying API key…';
     signinBtn.disabled = true;
-    setTimeout(() => { window.location.href = 'dashboard_sleek/code.html'; }, 1400);
+
+    try {
+      // Verify API key against /api/health/detailed
+      const res = await fetch('/api/health/detailed', {
+        headers: { 'X-API-Key': pwVal }
+      });
+
+      // 200 (admin) or 403 (valid operator/viewer key with insufficient admin role)
+      if (res.status === 200 || res.status === 403) {
+        sessionStorage.setItem('edipro_api_key', pwVal);
+        signinBtn.textContent = 'Success! Redirecting…';
+        setTimeout(() => { window.location.href = 'dashboard_sleek/code.html'; }, 400);
+        return;
+      }
+
+      showError('Authentication failed. Invalid API key (HTTP ' + res.status + ').');
+    } catch (err) {
+      // In offline / local mock mode where /api is not responding, allow dev fallback
+      sessionStorage.setItem('edipro_api_key', pwVal);
+      window.location.href = 'dashboard_sleek/code.html';
+      return;
+    } finally {
+      signinBtn.classList.remove('loading');
+      signinBtn.textContent = 'Sign In with API Key';
+      signinBtn.disabled = false;
+    }
   });
 
   /* ── Clear error on input ── */
-  document.getElementById('email').addEventListener('input', () => {
-    document.getElementById('email-wrap').classList.remove('error');
-    document.getElementById('email-error').style.display = 'none';
-  });
   document.getElementById('password').addEventListener('input', () => {
     document.getElementById('pw-wrap').classList.remove('error');
     document.getElementById('pw-error').style.display = 'none';
+    const globalErr = document.getElementById('login-global-error');
+    if (globalErr) globalErr.style.display = 'none';
   });
 </script>
 </body>

@@ -13,6 +13,9 @@ class AuthSettings:
     oidc_issuer: str | None = None
     oidc_audience: str | None = None
     oidc_jwks_url: str | None = None
+    oidc_client_id: str | None = None
+    oidc_authorize_url: str | None = None
+    oidc_token_url: str | None = None
     role_claim: str = "roles"
     api_keys: dict[str, str] = field(default_factory=dict)  # key -> role
 
@@ -22,6 +25,9 @@ class AuthSettings:
         issuer = os.getenv("OIDC_ISSUER")
         audience = os.getenv("OIDC_AUDIENCE")
         jwks_url = os.getenv("OIDC_JWKS_URL")
+        client_id = os.getenv("OIDC_CLIENT_ID")
+        authorize_url = os.getenv("OIDC_AUTHORIZE_URL")
+        token_url = os.getenv("OIDC_TOKEN_URL")
         role_claim = os.getenv("ROLE_CLAIM", "roles")
 
         api_keys: dict[str, str] = {}
@@ -48,6 +54,9 @@ class AuthSettings:
             oidc_issuer=issuer.strip() if issuer else None,
             oidc_audience=audience.strip() if audience else None,
             oidc_jwks_url=jwks_url.strip() if jwks_url else None,
+            oidc_client_id=client_id.strip() if client_id else None,
+            oidc_authorize_url=authorize_url.strip() if authorize_url else None,
+            oidc_token_url=token_url.strip() if token_url else None,
             role_claim=role_claim,
             api_keys=api_keys,
         )

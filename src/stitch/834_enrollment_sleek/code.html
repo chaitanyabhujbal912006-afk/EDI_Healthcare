@@ -63,6 +63,23 @@
 </main>
 <script type="module" src="../shared.js"></script>
 <script>
+  async function apiFetch(url, options = {}) {
+    if (window.apiFetch) return window.apiFetch(url, options);
+    options = { ...options };
+    const headers = new Headers(options.headers || {});
+    const token = (window.EdiPro && window.EdiPro.getAccessToken)
+      ? window.EdiPro.getAccessToken()
+      : sessionStorage.getItem('edipro_access_token');
+    const apiKey = sessionStorage.getItem('edipro_api_key');
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    } else if (apiKey && !headers.has('X-API-Key') && !headers.has('Authorization')) {
+      headers.set('X-API-Key', apiKey);
+    }
+    options.headers = headers;
+    return fetch(url, options);
+  }
+
   async function loadEnrollmentData() {
     const all = readSubmissions();
     let items = all.filter(i => i.type && i.type.toUpperCase().includes('834'));
@@ -71,7 +88,7 @@
     if (items.length === 0 && window.EdiPro && window.EdiPro.getSampleEdiContent) {
       try {
         const sampleEdi = window.EdiPro.getSampleEdiContent('834');
-        const res = await fetch('/api/parse', {
+        const res = await apiFetch('/api/parse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content: sampleEdi })
