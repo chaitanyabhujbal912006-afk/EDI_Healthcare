@@ -10,7 +10,7 @@ from typing import Any
 
 _SERVER_START_TIME: datetime = datetime.now(timezone.utc)
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -32,6 +32,7 @@ from app.models import (
     ReconcileRequest,
     UploadResponse,
 )
+from app.security import AuthIdentity, require_role
 from app.services.chat import ask_huggingface
 from app.services.exports import csv_bytes, error_report_pdf_bytes, json_bytes, tsv_bytes
 from app.services.summaries import (
@@ -79,7 +80,7 @@ def health() -> dict[str, str]:
 
 
 @app.get("/api/health/detailed")
-def health_detailed() -> dict[str, Any]:
+def health_detailed(_identity: AuthIdentity = Depends(require_role("admin"))) -> dict[str, Any]:
     uptime_seconds = (datetime.now(timezone.utc) - _SERVER_START_TIME).total_seconds()
     return {
         "status": "ok",
@@ -95,7 +96,7 @@ def health_detailed() -> dict[str, Any]:
 
 
 @app.get("/api/version")
-def version() -> dict[str, Any]:
+def version(_identity: AuthIdentity = Depends(require_role("viewer"))) -> dict[str, Any]:
     return {
         "application": "EdiPro Healthcare EDI Gateway",
         "api_version": "1.0.0",
@@ -122,7 +123,7 @@ def version() -> dict[str, Any]:
 
 
 @app.get("/api/stats/overview")
-def get_system_stats() -> dict[str, Any]:
+def get_system_stats(_identity: AuthIdentity = Depends(require_role("admin"))) -> dict[str, Any]:
     return {
         "status": "online",
         "supported_transactions": ["837P", "837I", "835", "834"],
@@ -140,8 +141,20 @@ def get_system_stats() -> dict[str, Any]:
     }
 
 
+@app.get("/api/me")
+def get_me(identity: AuthIdentity = Depends(require_role("viewer"))) -> dict[str, Any]:
+    return {
+        "subject": identity.subject,
+        "role": identity.role,
+        "auth_type": identity.auth_type,
+    }
+
+
 @app.post("/api/parse")
-def parse_raw(request: ParseRequest) -> dict[str, Any]:
+def parse_raw(
+    request: ParseRequest,
+    _identity: AuthIdentity = Depends(require_role("viewer")),
+) -> dict[str, Any]:
     parsed = parse_edi_content(request.content)
     validation = validate_edi_content(parsed)
     return {
@@ -151,7 +164,10 @@ def parse_raw(request: ParseRequest) -> dict[str, Any]:
 
 
 @app.post("/api/summary/837i")
-def summarize_837i(request: ParseRequest) -> dict[str, Any]:
+def summarize_837i(
+    request: ParseRequest,
+    _identity: AuthIdentity = Depends(require_role("viewer")),
+) -> dict[str, Any]:
     """Return a structured 837I institutional claim summary from raw EDI content.
 
     Each entry in the response includes claim_id, total_billed, facility_type,
@@ -177,7 +193,10 @@ MAX_BATCH_SIZE = 100 * 1024 * 1024  # 100 MB
 
 
 @app.post("/api/upload", response_model=UploadResponse)
-async def upload_file(file: UploadFile = File(...)) -> UploadResponse:
+async def upload_file(
+    file: UploadFile = File(...),
+    _identity: AuthIdentity = Depends(require_role("operator")),
+) -> UploadResponse:
     file_bytes = await file.read()
     if len(file_bytes) > MAX_UPLOAD_SIZE:
         raise HTTPException(status_code=413, detail="File size exceeds maximum limit of 50 MB.")
@@ -205,7 +224,10 @@ async def upload_file(file: UploadFile = File(...)) -> UploadResponse:
 
 
 @app.post("/api/batch", response_model=BatchResult)
-async def batch_upload(file: UploadFile = File(...)) -> BatchResult:
+async def batch_upload(
+    file: UploadFile = File(...),
+    _identity: AuthIdentity = Depends(require_role("operator")),
+) -> BatchResult:
     if not (file.filename or "").lower().endswith(".zip"):
         raise HTTPException(status_code=400, detail="Please upload a ZIP file for batch processing.")
 
@@ -235,13 +257,19 @@ async def batch_upload(file: UploadFile = File(...)) -> BatchResult:
 
 
 @app.post("/api/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest) -> ChatResponse:
+async def chat(
+    request: ChatRequest,
+    _identity: AuthIdentity = Depends(require_role("operator")),
+) -> ChatResponse:
     answer = await ask_huggingface(request.question, request.context)
     return ChatResponse(answer=answer)
 
 
 @app.post("/api/reconcile/835-837")
-def reconcile_835_837(request: ReconcileRequest) -> dict[str, Any]:
+def reconcile_835_837(
+    request: ReconcileRequest,
+    _identity: AuthIdentity = Depends(require_role("operator")),
+) -> dict[str, Any]:
     p837 = parse_edi_content(request.edi_837)
     p835 = parse_edi_content(request.edi_835)
 
@@ -275,7 +303,10 @@ def reconcile_835_837(request: ReconcileRequest) -> dict[str, Any]:
 
 
 @app.post("/api/delta/834")
-def delta_834(request: DeltaRequest) -> dict[str, Any]:
+def delta_834(
+    request: DeltaRequest,
+    _identity: AuthIdentity = Depends(require_role("operator")),
+) -> dict[str, Any]:
     old_summary = build_834_summary(parse_edi_content(request.old_834).segments)
     new_summary = build_834_summary(parse_edi_content(request.new_834).segments)
 
@@ -294,7 +325,10 @@ def delta_834(request: DeltaRequest) -> dict[str, Any]:
 
 
 @app.post("/api/eligibility/834-837")
-def eligibility_check(request: EligibilityRequest) -> dict[str, Any]:
+def eligibility_check(
+    request: EligibilityRequest,
+    _identity: AuthIdentity = Depends(require_role("operator")),
+) -> dict[str, Any]:
     members = build_834_summary(parse_edi_content(request.edi_834).segments)
     member_ids = {m.get("member_id") for m in members if m.get("member_id")}
 
@@ -313,7 +347,10 @@ def eligibility_check(request: EligibilityRequest) -> dict[str, Any]:
 
 
 @app.post("/api/export/json")
-def export_json(payload: dict[str, Any]) -> StreamingResponse:
+def export_json(
+    payload: dict[str, Any],
+    _identity: AuthIdentity = Depends(require_role("viewer")),
+) -> StreamingResponse:
     return StreamingResponse(
         io.BytesIO(json_bytes(payload)),
         media_type="application/json",
@@ -322,7 +359,10 @@ def export_json(payload: dict[str, Any]) -> StreamingResponse:
 
 
 @app.post("/api/export/errors-pdf")
-def export_errors_pdf(payload: dict[str, Any]) -> StreamingResponse:
+def export_errors_pdf(
+    payload: dict[str, Any],
+    _identity: AuthIdentity = Depends(require_role("viewer")),
+) -> StreamingResponse:
     issues = payload.get("issues", [])
     return StreamingResponse(
         io.BytesIO(error_report_pdf_bytes(issues)),
@@ -332,7 +372,10 @@ def export_errors_pdf(payload: dict[str, Any]) -> StreamingResponse:
 
 
 @app.post("/api/export/members-csv")
-def export_members_csv(payload: dict[str, Any]) -> StreamingResponse:
+def export_members_csv(
+    payload: dict[str, Any],
+    _identity: AuthIdentity = Depends(require_role("viewer")),
+) -> StreamingResponse:
     rows = payload.get("rows", [])
     return StreamingResponse(
         io.BytesIO(csv_bytes(rows)),
@@ -342,7 +385,10 @@ def export_members_csv(payload: dict[str, Any]) -> StreamingResponse:
 
 
 @app.post("/api/export/members-tsv")
-def export_members_tsv(payload: dict[str, Any]) -> StreamingResponse:
+def export_members_tsv(
+    payload: dict[str, Any],
+    _identity: AuthIdentity = Depends(require_role("viewer")),
+) -> StreamingResponse:
     """Tab-separated export — avoids comma issues in provider/member names."""
     rows = payload.get("rows", [])
     return StreamingResponse(
@@ -353,7 +399,10 @@ def export_members_tsv(payload: dict[str, Any]) -> StreamingResponse:
 
 
 @app.post("/api/export/reconciliation-csv")
-def export_reconciliation_csv(payload: dict[str, Any]) -> StreamingResponse:
+def export_reconciliation_csv(
+    payload: dict[str, Any],
+    _identity: AuthIdentity = Depends(require_role("viewer")),
+) -> StreamingResponse:
     rows = payload.get("rows", [])
     return StreamingResponse(
         io.BytesIO(csv_bytes(rows)),
@@ -363,7 +412,10 @@ def export_reconciliation_csv(payload: dict[str, Any]) -> StreamingResponse:
 
 
 @app.post("/api/export/corrected-edi")
-def export_corrected_edi(payload: dict[str, Any]) -> StreamingResponse:
+def export_corrected_edi(
+    payload: dict[str, Any],
+    _identity: AuthIdentity = Depends(require_role("viewer")),
+) -> StreamingResponse:
     segments = payload.get("segments", [])
     try:
         text = to_segment_text([_segment_from_dict(s) for s in segments])
@@ -378,7 +430,10 @@ def export_corrected_edi(payload: dict[str, Any]) -> StreamingResponse:
 
 
 @app.post("/api/834/family-grouping")
-def family_grouping(payload: dict[str, Any]) -> dict[str, Any]:
+def family_grouping(
+    payload: dict[str, Any],
+    _identity: AuthIdentity = Depends(require_role("viewer")),
+) -> dict[str, Any]:
     rows = payload.get("rows", [])
     return {"groups": build_family_grouping(rows)}
 
