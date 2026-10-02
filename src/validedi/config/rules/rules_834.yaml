@@ -92,6 +92,33 @@ rules:
     scope: 'transaction'
     severity: 'error'
     message: 'Duplicate member ID {value} found'
+
+  - id: 'MEMBER_DUPLICATE'
+    type: 'builtin'
+    handler: 'duplicate_member_check'
+    transaction_types: ['834']
+    scope: 'transaction'
+    severity: 'error'
+    message: 'Duplicate subscriber/member identifier found in file.'
+    suggestion: 'Remove duplicate member ID'
+
+  - id: 'INS_MAINT_INVALID'
+    type: 'code_set'
+    target: 'INS03'
+    transaction_types: ['834']
+    allowed_values: ['001', '021', '024', '025', '030', '032', '033', '035']
+    severity: 'error'
+    message: 'INS03 maintenance type code is not valid.'
+    suggestion: 'Use valid INS03 maintenance type code'
+
+  - id: 'INS_REL_INVALID'
+    type: 'code_set'
+    target: 'INS02'
+    transaction_types: ['834']
+    allowed_values: ['18', '01', '19', '20', '21', '53']
+    severity: 'warning'
+    message: 'INS02 relationship code looks invalid.'
+    suggestion: 'Use valid INS02 individual relationship code'
   
   - id: 'COVERAGE_DATE_CONSISTENCY'
     type: 'builtin'

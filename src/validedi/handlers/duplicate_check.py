@@ -31,13 +31,13 @@ def duplicate_member_check(transaction_loops: list[Loop]) -> list[ValidationErro
                     if member_id in seen_ids:
                         # Duplicate found
                         errors.append(ValidationError(
-                            code='DUPLICATE_MEMBER_CHECK',
+                            code='MEMBER_DUPLICATE',
                             severity='error',
                             segment='REF',
                             element='REF02',
                             loop='2000',
                             position=ref_segment.position,
-                            message=f'Duplicate member ID {member_id} found (first occurrence at position {seen_ids[member_id]})'
+                            message='Duplicate subscriber/member identifier found in file.'
                         ))
                     else:
                         seen_ids[member_id] = ref_segment.position

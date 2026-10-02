@@ -221,6 +221,45 @@ rules:
   severity: error
   message: Institutional service line charges do not sum to claim total
   suggestion: Sum all SV2 line charges and ensure they equal CLM02
+- id: CLM_SUM_MISMATCH
+  type: builtin
+  handler: charge_total_consistency
+  transaction_types:
+  - 837p
+  - 837i
+  loop: '2300'
+  severity: error
+  message: CLM total charge does not match sum of service line charges.
+  suggestion: Adjust CLM02 or fix SV1/SV2 line amounts
+- id: BILLING_NPI_REQUIRED
+  type: builtin
+  handler: validate_billing_npi
+  transaction_types:
+  - 837p
+  - 837i
+  scope: transaction
+  severity: error
+  message: Billing Provider (NM1*85) requires qualifier 'XX' in NM108 and a valid 10-digit NPI in NM109.
+  suggestion: Provide qualifier XX in NM108 and valid 10-digit NPI in NM109
+- id: DOB_AFTER_CLAIM
+  type: builtin
+  handler: dob_vs_claim_date
+  transaction_types:
+  - 837p
+  - 837i
+  scope: transaction
+  severity: error
+  message: Patient DOB occurs after claim service date.
+  suggestion: Correct patient DOB in DMG02 or claim service date in DTP
+- id: REQ_SEG_BHT
+  type: required_segment
+  target: BHT
+  transaction_types:
+  - 837p
+  - 837i
+  severity: error
+  message: Required segment BHT is missing.
+  suggestion: Add BHT segment following ST
 - id: CLM05_TYPE_CODES
   type: composite_code_set
   target: CLM05

@@ -3,7 +3,7 @@ Builtin validation handlers registry.
 """
 
 from typing import Callable
-from validedi.handlers.npi import luhn_check
+from validedi.handlers.npi import luhn_check, validate_npi_segments, validate_billing_npi
 from validedi.handlers.cross_segment import (
     charge_total_consistency,
     charge_total_consistency_i,
@@ -27,11 +27,16 @@ from validedi.handlers.claim_checks import (
     drg_code_check,
     luhn_check_rendering,
     diagnosis_decimal_check,
+    dtp_date_format_check,
+    amount_format_check,
+    qualifiers_check,
 )
 
 # Registry mapping handler names to callables
 BUILTIN_HANDLERS: dict[str, Callable] = {
     'luhn_check': luhn_check,
+    'validate_npi_segments': validate_npi_segments,
+    'validate_billing_npi': validate_billing_npi,
     'luhn_check_rendering': luhn_check_rendering,
     'charge_total_consistency': charge_total_consistency,
     'charge_total_consistency_i': charge_total_consistency_i,
@@ -50,6 +55,9 @@ BUILTIN_HANDLERS: dict[str, Callable] = {
     'admission_type_check': admission_type_check,
     'drg_code_check': drg_code_check,
     'diagnosis_decimal_check': diagnosis_decimal_check,
+    'dtp_date_format_check': dtp_date_format_check,
+    'amount_format_check': amount_format_check,
+    'qualifiers_check': qualifiers_check,
 }
 
 __all__ = ['BUILTIN_HANDLERS']

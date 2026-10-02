@@ -11,9 +11,9 @@ from validedi.engine.models import Loop, ValidationError
 # Examples: 250, 250.00, 8842, E884.2, V70.0
 ICD9_PATTERN = re.compile(r'^[0-9]{3,5}(\.[0-9]{1,2})?$|^[EV][0-9]{3,4}(\.[0-9]{1,2})?$')
 
-# ICD-10 pattern: Letter + 2 alphanumeric + optional decimal + 1-4 alphanumeric
-# Examples: I10, Z87.00, M54.30, S06.0X0A
-ICD10_PATTERN = re.compile(r'^([A-Z]{3}:)?[A-TV-Z][0-9][0-9A-Z](\.[0-9A-Z]{1,4})?$')
+# ICD-10 pattern: Letter + 2 alphanumeric + optional decimal or direct alphanumeric extension
+# Examples: I10, Z87.00, M54.30, S06.0X0A, Z00000, J189
+ICD10_PATTERN = re.compile(r'^([A-Z]{3}:)?[A-TV-Z][0-9][0-9A-Z](\.?[0-9A-Z]{1,4})?$')
 
 # ICD-10 transition date (October 1, 2015)
 ICD10_TRANSITION_DATE = datetime(2015, 10, 1)

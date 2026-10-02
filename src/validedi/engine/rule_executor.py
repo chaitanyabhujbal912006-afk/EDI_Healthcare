@@ -12,6 +12,19 @@ from validedi.engine.config_loader import TransactionConfig, RuleConfig
 from validedi.handlers import BUILTIN_HANDLERS
 
 
+def _parse_target_ref(target: str | None) -> tuple[str, int]:
+    """Parse target like 'N403', 'NM109', 'CLM02', 'SE01' into ('N4', 3), etc."""
+    if not target:
+        return '', 1
+    m = re.match(r'^([A-Z0-9]+?)(\d{2})$', target)
+    if m:
+        return m.group(1), int(m.group(2))
+    m = re.match(r'^([A-Z0-9]+?)(\d+)$', target)
+    if m:
+        return m.group(1), int(m.group(2))
+    return target, 1
+
+
 class RuleExecutor:
     """Executes all validation rules against a parsed EDI document."""
 
@@ -75,6 +88,7 @@ class RuleExecutor:
             'delimiter_collision': self._rule_delimiter_collision,
             'duplicate_gs':        self._rule_duplicate_gs,
             'wrong_st_code':       self._rule_wrong_st_code,
+            'ge_count_match':      self._rule_ge_count_match,
         }
         handler = dispatch.get(rule.type)
         if handler is None:
@@ -172,11 +186,7 @@ class RuleExecutor:
     ) -> list[ValidationError]:
         """Check that a specific element (e.g. CLM01) is not blank."""
         errors: list[ValidationError] = []
-        seg_id = rule.target[:3] if rule.target else ''
-        try:
-            elem_idx = int(rule.target[3:]) if len(rule.target) > 3 else 1
-        except ValueError:
-            elem_idx = 1
+        seg_id, elem_idx = _parse_target_ref(rule.target)
 
         segs = self._find_segments(seg_id, loops)
         for seg in segs:
@@ -215,11 +225,7 @@ class RuleExecutor:
         self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
     ) -> list[ValidationError]:
         errors: list[ValidationError] = []
-        seg_id = rule.target[:3] if rule.target else ''
-        try:
-            elem_idx = int(rule.target[3:]) if len(rule.target) > 3 else 1
-        except ValueError:
-            elem_idx = 1
+        seg_id, elem_idx = _parse_target_ref(rule.target)
 
         # Resolve allowed values
         allowed: set[str] = set()
@@ -272,11 +278,7 @@ class RuleExecutor:
         self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
     ) -> list[ValidationError]:
         errors: list[ValidationError] = []
-        seg_id = rule.target[:3] if rule.target else ''
-        try:
-            elem_idx = int(rule.target[3:]) if len(rule.target) > 3 else 1
-        except ValueError:
-            elem_idx = 1
+        seg_id, elem_idx = _parse_target_ref(rule.target)
 
         allowed: set[str] = set()
         if rule.allowed_values:
@@ -291,8 +293,11 @@ class RuleExecutor:
         segs = self._find_segments(seg_id, loops)
         for seg in segs:
             elem = seg.get(elem_idx)
-            if elem.components:
-                val = elem.components[component_idx - 1] if component_idx <= len(elem.components) else ''
+            if elem.components and len(elem.components) >= component_idx:
+                val = elem.components[component_idx - 1]
+            elif ":" in elem.raw:
+                parts = elem.raw.split(":")
+                val = parts[component_idx - 1] if len(parts) >= component_idx else ""
             else:
                 val = elem.raw
             val = val.strip()
@@ -311,11 +316,7 @@ class RuleExecutor:
         if not rule.pattern:
             return []
 
-        seg_id = rule.target[:3] if rule.target else ''
-        try:
-            elem_idx = int(rule.target[3:]) if len(rule.target) > 3 else 1
-        except ValueError:
-            elem_idx = 1
+        seg_id, elem_idx = _parse_target_ref(rule.target)
 
         pattern = re.compile(rule.pattern)
 
@@ -359,11 +360,7 @@ class RuleExecutor:
         self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
     ) -> list[ValidationError]:
         errors: list[ValidationError] = []
-        seg_id = rule.target[:3] if rule.target else ''
-        try:
-            elem_idx = int(rule.target[3:]) if len(rule.target) > 3 else 1
-        except ValueError:
-            elem_idx = 1
+        seg_id, elem_idx = _parse_target_ref(rule.target)
 
         segs = self._find_segments(seg_id, loops)
         for seg in segs:
@@ -384,11 +381,7 @@ class RuleExecutor:
         self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
     ) -> list[ValidationError]:
         errors: list[ValidationError] = []
-        seg_id = rule.target[:3] if rule.target else ''
-        try:
-            elem_idx = int(rule.target[3:]) if len(rule.target) > 3 else 1
-        except ValueError:
-            elem_idx = 1
+        seg_id, elem_idx = _parse_target_ref(rule.target)
 
         segs = self._find_segments(seg_id, loops)
         for seg in segs:
@@ -486,13 +479,8 @@ class RuleExecutor:
         src_ref = rule.source or ''
         tgt_ref = rule.target or ''
 
-        src_seg = src_ref[:3]
-        tgt_seg = tgt_ref[:3]
-        try:
-            src_idx = int(src_ref[3:]) if len(src_ref) > 3 else 1
-            tgt_idx = int(tgt_ref[3:]) if len(tgt_ref) > 3 else 1
-        except ValueError:
-            src_idx, tgt_idx = 1, 1
+        src_seg, src_idx = _parse_target_ref(src_ref)
+        tgt_seg, tgt_idx = _parse_target_ref(tgt_ref)
 
         src_val = get_raw_element(src_seg, src_idx)
         tgt_val = get_raw_element(tgt_seg, tgt_idx)
@@ -738,6 +726,34 @@ class RuleExecutor:
         if not handler_fn:
             return []
 
+        if rule.target:
+            seg_id, elem_idx = _parse_target_ref(rule.target)
+
+            target_loops = self._loops_with_id(rule.loop, loops) if rule.loop else loops
+            errors: list[ValidationError] = []
+            for tloop in target_loops:
+                for seg in tloop.segments:
+                    if seg.segment_id == seg_id:
+                        val = seg.get_value(elem_idx).strip()
+                        if val:
+                            try:
+                                res = handler_fn(val)
+                                if res is False:
+                                    errors.append(ValidationError(
+                                        code=rule.id,
+                                        severity=rule.severity,
+                                        segment=seg_id,
+                                        element=rule.target,
+                                        loop=tloop.loop_id,
+                                        position=seg.position,
+                                        message=self._fmt(rule, value=val),
+                                    ))
+                                elif isinstance(res, list):
+                                    errors.extend(res)
+                            except Exception:
+                                pass
+            return errors
+
         # Scope determines what we pass to the handler
         if rule.scope == 'transaction':
             return handler_fn(loops)
@@ -749,6 +765,35 @@ class RuleExecutor:
             return errors
         else:
             return handler_fn(loops)
+
+    def _rule_ge_count_match(
+        self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
+    ) -> list[ValidationError]:
+        """Validate GE01 matches actual transaction set count."""
+        raw = parsed.raw
+        from validedi.engine.detector import detect
+        try:
+            delims = detect(raw)
+        except Exception:
+            return []
+        segs = raw.split(delims.segment_sep)
+        st_count = sum(1 for s in segs if s.strip().startswith('ST' + delims.element_sep) or s.strip() == 'ST')
+        ge_seg = next((s.strip() for s in segs if s.strip().startswith('GE' + delims.element_sep)), None)
+        if ge_seg:
+            parts = ge_seg.split(delims.element_sep)
+            if len(parts) > 1 and parts[1].strip().isdigit():
+                declared = int(parts[1].strip())
+                if declared != st_count:
+                    return [ValidationError(
+                        code=rule.id,
+                        severity=rule.severity,
+                        segment='GE',
+                        element='GE01',
+                        loop='ENVELOPE',
+                        position=0,
+                        message=f'GE01 transaction-set count {declared} does not match actual ST/SE pair count {st_count}.',
+                    )]
+        return []
 
     def _rule_isa_fixed_width(
         self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI

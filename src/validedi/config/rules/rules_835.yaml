@@ -89,6 +89,15 @@ rules:
     code_set_id: 'cas_group_codes'
     severity: 'error'
     message: 'CAS01 group code {value} is not valid (must be PR, CO, OA, PI, or CR)'
+
+  - id: 'CAS_GROUP_INVALID'
+    type: 'code_set'
+    target: 'CAS01'
+    transaction_types: ['835']
+    allowed_values: ['PR', 'CO', 'OA', 'PI']
+    severity: 'error'
+    message: 'CAS01 must be one of PR, CO, OA, PI.'
+    suggestion: 'Use valid CAS group code: PR, CO, OA, PI'
   
   - id: 'CLP_PAID_VS_BILLED'
     type: 'expression'
@@ -97,6 +106,15 @@ rules:
     loop: '2100'
     severity: 'warning'
     message: 'Paid amount exceeds billed amount'
+
+  - id: 'CLP_RECON_FAIL'
+    type: 'expression'
+    expression: 'CLP04 <= CLP03'
+    transaction_types: ['835']
+    loop: '2100'
+    severity: 'warning'
+    message: 'Total paid amount exceeds billed amount; verify CLP reconciliation.'
+    suggestion: 'Verify billed CLP03 and paid CLP04 amounts'
 
   # ── CAS Adjustment Balance Check ──────────────────────────────────────────
   - id: '835-010'

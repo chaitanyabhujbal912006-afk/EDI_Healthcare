@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Literal
+from typing import Literal
 
 from app.models import (
     EnvelopeMeta,
@@ -14,11 +14,15 @@ from app.models import (
 )
 from validedi.engine.detector import DelimiterSet, detect
 from validedi.engine.models import (
-    Element as ValidediElement,
-    Loop as ValidediLoop,
     ParsedEDI as ValidediParsedEDI,
+)
+from validedi.engine.models import (
     Segment as ValidediSegment,
+)
+from validedi.engine.models import (
     ValidationError as ValidediValidationError,
+)
+from validedi.engine.models import (
     ValidationResult as ValidediValidationResult,
 )
 from validedi.engine.parser import parse as validedi_parse
@@ -89,7 +93,7 @@ def validedi_parsed_to_model(
     if delimiters is None:
         try:
             delimiters = detect(parsed.raw)
-        except Exception:
+        except (EDIParseError, ValueError):
             delimiters = DelimiterSet(
                 element_sep="*",
                 segment_sep="~",
@@ -139,6 +143,16 @@ def _extract_element_position(element_str: str | None) -> int | None:
     return int(m.group(1)) if m else None
 
 
+LEGACY_CODE_MAP = {
+    "CNT-001": "SE_COUNT_MISMATCH",
+    "CHARGE_TOTAL_CHECK": "CLM_SUM_MISMATCH",
+    "CHARGE_TOTAL_CHECK_I": "CLM_SUM_MISMATCH",
+    "CLP_PAID_VS_BILLED": "CLP_RECON_FAIL",
+    "DUPLICATE_MEMBER_CHECK": "MEMBER_DUPLICATE",
+    "834-007": "MEMBER_DUPLICATE",
+}
+
+
 def validedi_error_to_issue(error: ValidediValidationError) -> ValidationIssue:
     """Convert a single validedi ValidationError to a backend ValidationIssue."""
     sev: Literal["error", "warning"] = "error" if error.severity == "error" else "warning"
@@ -153,8 +167,10 @@ def validedi_error_to_issue(error: ValidediValidationError) -> ValidationIssue:
     if not seg_id:
         seg_id = "UNKNOWN"
 
+    mapped_code = LEGACY_CODE_MAP.get(error.code, error.code)
+
     return ValidationIssue(
-        code=error.code,
+        code=mapped_code,
         severity=sev,
         message=error.message,
         loop_location=error.loop or "ROOT",
@@ -180,11 +196,11 @@ def parse_edi_content(content: str) -> ParseResult:
         delimiters = detect(content)
         parsed = validedi_parse(content)
         return validedi_parsed_to_model(parsed, delimiters)
-    except UnsupportedTransactionError as exc:
+    except UnsupportedTransactionError:
         # Detected delimiters and segments, but transaction type is unsupported
         try:
             delims = detect(content)
-        except Exception:
+        except (EDIParseError, ValueError):
             delims = DelimiterSet(element_sep="*", segment_sep="~", sub_sep=":", transaction_type="unknown")
         tokenized = tokenize(content, delims)
         model_segments = [validedi_segment_to_model(s) for s in tokenized]
@@ -240,7 +256,7 @@ def validate_edi_content(
 
     if isinstance(source, str):
         try:
-            delims = detect(source)
+            detect(source)
         except UnsupportedTransactionError:
             return ValidationResult(
                 valid=False,

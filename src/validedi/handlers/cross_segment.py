@@ -2,7 +2,9 @@
 Cross-segment validation handlers.
 """
 
+import re
 from datetime import datetime
+from typing import Any
 from validedi.engine.models import Loop, ValidationError
 
 
@@ -171,32 +173,74 @@ def date_range_check(start_date: str, end_date: str, context: str = '') -> list[
     return errors
 
 
-def dob_vs_claim_date(dob: str, claim_date: str) -> list[ValidationError]:
+def dob_vs_claim_date(source: Any, claim_date: str | None = None) -> list[ValidationError]:
     """
     Verify that date of birth is before claim date.
-    
-    Args:
-        dob: Date of birth in CCYYMMDD format
-        claim_date: Claim date in CCYYMMDD format
-        
-    Returns:
-        List of validation errors (empty if valid)
+    Can be invoked either as a builtin handler receiving loops or with (dob, claim_date) strings.
     """
+    if isinstance(source, list) or hasattr(source, 'segments'):
+        loops = source if isinstance(source, list) else [source]
+        dob_val: str | None = None
+        claim_date_val: str | None = None
+        dtp_pos = 0
+
+        def search(lp: Loop) -> None:
+            nonlocal dob_val, claim_date_val, dtp_pos
+            for seg in lp.segments:
+                if seg.segment_id == 'DMG' and len(seg.elements) > 1 and not dob_val:
+                    raw_val = seg.get_value(2).strip()
+                    if re.fullmatch(r'\d{8}', raw_val):
+                        dob_val = raw_val
+                if seg.segment_id == 'DTP' and len(seg.elements) > 2 and not claim_date_val:
+                    qual = seg.get_value(1).strip()
+                    if qual in {'434', '472'}:
+                        date_str = seg.get_value(3).strip()
+                        if '-' in date_str:
+                            date_str = date_str.split('-')[0]
+                        if re.fullmatch(r'\d{8}', date_str):
+                            claim_date_val = date_str
+                            dtp_pos = seg.position
+            for ch in lp.children:
+                search(ch)
+
+        for l in loops:
+            search(l)
+
+        if dob_val and claim_date_val:
+            try:
+                b_dt = datetime.strptime(dob_val, '%Y%m%d')
+                c_dt = datetime.strptime(claim_date_val, '%Y%m%d')
+                if b_dt > c_dt:
+                    return [
+                        ValidationError(
+                            code='DOB_AFTER_CLAIM',
+                            severity='error',
+                            segment='DTP',
+                            element='DTP03',
+                            loop='PATIENT',
+                            position=dtp_pos,
+                            message='Patient DOB occurs after claim service date.',
+                        )
+                    ]
+            except Exception:
+                pass
+        return []
+
     errors = []
-    
+    dob = str(source)
+    claim_dt_str = claim_date or ''
     try:
         birth_date = datetime.strptime(dob, '%Y%m%d')
-        claim_dt = datetime.strptime(claim_date, '%Y%m%d')
-        
-        if birth_date >= claim_dt:
+        claim_dt = datetime.strptime(claim_dt_str, '%Y%m%d')
+        if birth_date > claim_dt:
             errors.append(ValidationError(
-                code='DOB_VS_CLAIM_DATE',
+                code='DOB_AFTER_CLAIM',
                 severity='error',
-                segment='DMG',
-                element='DMG02',
-                loop=None,
+                segment='DTP',
+                element='DTP03',
+                loop='PATIENT',
                 position=0,
-                message=f'Date of birth {dob} must be before claim date {claim_date}'
+                message='Patient DOB occurs after claim service date.',
             ))
     except ValueError as e:
         errors.append(ValidationError(
@@ -208,7 +252,6 @@ def dob_vs_claim_date(dob: str, claim_date: str) -> list[ValidationError]:
             position=0,
             message=f'Invalid date format: {str(e)}'
         ))
-    
     return errors
 
 

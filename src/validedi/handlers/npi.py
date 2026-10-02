@@ -23,7 +23,7 @@ def luhn_check(value: str) -> bool:
         raise ValueError(f'NPI must be exactly 10 digits, got {len(value) if value else 0}')
     
     if not value.isdigit():
-        raise ValueError(f'NPI must contain only digits')
+        raise ValueError('NPI must contain only digits')
     
     # Prepend CMS prefix
     full_number = '80840' + value
@@ -46,3 +46,78 @@ def luhn_check(value: str) -> bool:
     
     # Check digit should make total divisible by 10
     return total % 10 == 0
+
+
+def validate_npi_segments(loops: list) -> list:
+    """Validate all NM1 segments with NM108=='XX' using Luhn algorithm."""
+    from validedi.engine.models import ValidationError
+
+    errors: list[ValidationError] = []
+
+    def check_lp(lp):
+        for seg in lp.segments:
+            if seg.segment_id == "NM1" and len(seg.elements) >= 9:
+                nm108 = seg.get_value(8).strip()
+                nm109 = seg.get_value(9).strip()
+                if nm108 == "XX" and nm109:
+                    valid = False
+                    if len(nm109) == 10 and nm109.isdigit():
+                        try:
+                            valid = luhn_check(nm109)
+                        except ValueError:
+                            valid = False
+                    if not valid:
+                        errors.append(
+                            ValidationError(
+                                code="NPI_INVALID",
+                                severity="error",
+                                segment="NM1",
+                                element="NM109",
+                                loop=lp.loop_id,
+                                position=seg.position,
+                                message="NM109 NPI is invalid. Expected 10-digit NPI with valid check digit.",
+                            )
+                        )
+        for ch in lp.children:
+            check_lp(ch)
+
+    for l in loops:
+        check_lp(l)
+    return errors
+
+
+def validate_billing_npi(loops: list) -> list:
+    """Ensure billing provider NM1*85 has qualifier XX and a valid 10-digit NPI in NM109."""
+    from validedi.engine.models import ValidationError
+
+    errors: list[ValidationError] = []
+
+    def check_lp(lp):
+        for seg in lp.segments:
+            if seg.segment_id == "NM1" and len(seg.elements) >= 1 and seg.get_value(1).strip() == "85":
+                has_npi = (
+                    len(seg.elements) >= 9
+                    and seg.get_value(8).strip() == "XX"
+                    and bool(seg.get_value(9).strip())
+                )
+                if not has_npi:
+                    errors.append(
+                        ValidationError(
+                            code="BILLING_NPI_REQUIRED",
+                            severity="error",
+                            segment="NM1",
+                            element="NM109",
+                            loop="2010AA",
+                            position=seg.position,
+                            message=(
+                                "Billing Provider (NM1*85) requires qualifier 'XX' in NM108 "
+                                "and a valid 10-digit NPI in NM109."
+                            ),
+                        )
+                    )
+        for ch in lp.children:
+            check_lp(ch)
+
+    for l in loops:
+        check_lp(l)
+    return errors

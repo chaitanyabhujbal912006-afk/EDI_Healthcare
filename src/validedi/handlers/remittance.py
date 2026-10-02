@@ -110,17 +110,22 @@ def cas_balance_check(loops: list[Loop]) -> list[ValidationError]:
                 check_loop(child)
                 continue
 
-            # Sum all CAS adjustment amounts in this CLP loop
+            # Sum all CAS adjustment amounts in this CLP loop (claim-level and service-level)
             cas_total = 0.0
-            for seg in child.segments:
-                if seg.segment_id == 'CAS':
-                    # CAS: group_code, reason1, amt1, qty1, reason2, amt2, qty2, ...
-                    # Amounts are at positions 3, 6, 9, 12, 15, 18
-                    for amt_idx in range(3, 19, 3):
-                        try:
-                            cas_total += float(seg.get_value(amt_idx))
-                        except (ValueError, TypeError):
-                            pass
+            def sum_cas_in_segs(segments):
+                total = 0.0
+                for seg in segments:
+                    if seg.segment_id == 'CAS':
+                        for amt_idx in range(3, 19, 3):
+                            try:
+                                total += float(seg.get_value(amt_idx))
+                            except (ValueError, TypeError):
+                                pass
+                return total
+
+            cas_total += sum_cas_in_segs(child.segments)
+            for grandchild in child.children:
+                cas_total += sum_cas_in_segs(grandchild.segments)
 
             expected_charged = paid + cas_total
             if abs(expected_charged - charged) > 0.01:

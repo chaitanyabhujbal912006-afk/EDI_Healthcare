@@ -268,3 +268,133 @@ def diagnosis_decimal_check(loops: list[Loop]) -> list[ValidationError]:
     for loop in loops:
         check_loop(loop)
     return errors
+
+
+def dtp_date_format_check(loops: list[Loop]) -> list[ValidationError]:
+    """Check DTP segments where DTP02 is D8 have CCYYMMDD 8-digit format."""
+    import re
+    errors: list[ValidationError] = []
+
+    def check_loop(loop: Loop) -> None:
+        for seg in loop.segments:
+            if seg.segment_id == "DTP" and len(seg.elements) > 2:
+                dtp02 = seg.get_value(2).strip()
+                val = seg.get_value(3).strip()
+                if dtp02 == "D8" and not re.fullmatch(r"\d{8}", val):
+                    errors.append(ValidationError(
+                        code="DATE_FORMAT",
+                        severity="error",
+                        segment="DTP",
+                        element="DTP03",
+                        loop=loop.loop_id,
+                        position=seg.position,
+                        message="DTP date must be CCYYMMDD when DTP02 = D8.",
+                    ))
+        for child in loop.children:
+            check_loop(child)
+
+    for loop in loops:
+        check_loop(loop)
+    return errors
+
+
+def amount_format_check(loops: list[Loop]) -> list[ValidationError]:
+    """Check monetary amounts in CLM, SV1, SV2, CLP are numeric with up to 2 decimals."""
+    import re
+    errors: list[ValidationError] = []
+
+    def check_loop(loop: Loop) -> None:
+        for seg in loop.segments:
+            if seg.segment_id in {"CLM", "SV1", "CLP"} and len(seg.elements) > 1:
+                amt = seg.get_value(2).strip()
+                elem_name = f"{seg.segment_id}02"
+            elif seg.segment_id == "SV2" and len(seg.elements) > 2:
+                amt = seg.get_value(3).strip()
+                elem_name = "SV203"
+
+            if amt and not re.fullmatch(r"\d+(\.\d{1,2})?", amt):
+                errors.append(ValidationError(
+                    code="AMOUNT_FORMAT",
+                    severity="error",
+                    segment=seg.segment_id,
+                    element=elem_name,
+                    loop=loop.loop_id,
+                    position=seg.position,
+                    message="Amount must be numeric with up to 2 decimal places.",
+                ))
+        for child in loop.children:
+            check_loop(child)
+
+    for loop in loops:
+        check_loop(loop)
+    return errors
+
+
+def qualifiers_check(loops: list[Loop]) -> list[ValidationError]:
+    """Check uncommon or invalid qualifiers for NM108, CLM05, SV101."""
+    import re
+    errors: list[ValidationError] = []
+
+    def check_loop(loop: Loop) -> None:
+        for seg in loop.segments:
+            if seg.segment_id == "NM1" and len(seg.elements) > 7:
+                nm108 = seg.get_value(8).strip()
+                if nm108 and nm108 not in {"XX", "FI", "46", "24", "34", "MI", "PI"}:
+                    errors.append(ValidationError(
+                        code="QUAL_NM108",
+                        severity="warning",
+                        segment="NM1",
+                        element="NM108",
+                        loop=loop.loop_id,
+                        position=seg.position,
+                        message="NM108 qualifier is uncommon for HIPAA 5010 and may be invalid.",
+                    ))
+
+            if seg.segment_id == "CLM" and len(seg.elements) > 4:
+                clm05 = seg.get_value(5).strip()
+                if clm05 and ":" in clm05:
+                    parts = clm05.split(":")
+                    facility = parts[0].strip() if len(parts) > 0 else ""
+                    frequency = parts[2].strip() if len(parts) > 2 else ""
+                    if facility and not re.fullmatch(r"\d{2}", facility):
+                        errors.append(ValidationError(
+                            code="QUAL_CLM05_FAC",
+                            severity="warning",
+                            segment="CLM",
+                            element="CLM05",
+                            loop=loop.loop_id,
+                            position=seg.position,
+                            message="CLM05-1 facility type should be 2 digits.",
+                        ))
+                    if frequency and frequency not in {"1", "7", "8"}:
+                        errors.append(ValidationError(
+                            code="QUAL_CLM05_FREQ",
+                            severity="warning",
+                            segment="CLM",
+                            element="CLM05",
+                            loop=loop.loop_id,
+                            position=seg.position,
+                            message="CLM05-3 claim frequency code looks invalid.",
+                        ))
+
+            if seg.segment_id == "SV1" and seg.elements:
+                proc = seg.get_value(1).strip()
+                if proc and ":" in proc:
+                    _, code = proc.split(":", maxsplit=1)
+                    if code and not re.fullmatch(r"[A-Z0-9]{4,5}", code):
+                        errors.append(ValidationError(
+                            code="QUAL_SVC01",
+                            severity="warning",
+                            segment="SV1",
+                            element="SV101",
+                            loop=loop.loop_id,
+                            position=seg.position,
+                            message="SVC01 procedure code should look like valid CPT/HCPCS.",
+                        ))
+
+        for child in loop.children:
+            check_loop(child)
+
+    for loop in loops:
+        check_loop(loop)
+    return errors
