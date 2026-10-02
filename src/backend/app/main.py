@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import io
-import json
 import platform
 import sys
 import zipfile
@@ -16,22 +15,26 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.adapters import parse_edi_content, to_segment_text, validate_edi_content
 from app.models import (
     BatchResult,
     ChatRequest,
     ChatResponse,
     DeltaRequest,
     EligibilityRequest,
-    ParseRequest,
     ParsedFileReport,
+    ParseRequest,
     ReconcileRequest,
     UploadResponse,
 )
-from app.parser.x12_parser import parse_x12, to_segment_text
 from app.services.chat import ask_huggingface
 from app.services.exports import csv_bytes, error_report_pdf_bytes, json_bytes, tsv_bytes
-from app.services.summaries import build_834_summary, build_835_summary, build_837i_summary, build_family_grouping
-from app.validation.rules import validate
+from app.services.summaries import (
+    build_834_summary,
+    build_835_summary,
+    build_837i_summary,
+    build_family_grouping,
+)
 
 app = FastAPI(title="EdiPro Healthcare EDI Parser API", version="1.0.0")
 
@@ -134,8 +137,8 @@ def get_system_stats() -> dict[str, Any]:
 
 @app.post("/api/parse")
 def parse_raw(request: ParseRequest) -> dict[str, Any]:
-    parsed = parse_x12(request.content)
-    validation = validate(parsed)
+    parsed = parse_edi_content(request.content)
+    validation = validate_edi_content(parsed)
     return {
         "parse_result": parsed.model_dump(),
         "validation_result": validation.model_dump(),
@@ -149,7 +152,7 @@ def summarize_837i(request: ParseRequest) -> dict[str, Any]:
     Each entry in the response includes claim_id, total_billed, facility_type,
     statement_dates, and a list of SV2 revenue line items.
     """
-    parsed = parse_x12(request.content)
+    parsed = parse_edi_content(request.content)
     if parsed.transaction_type not in {"837I", "UNKNOWN"}:
         raise HTTPException(
             status_code=422,
@@ -175,8 +178,8 @@ async def upload_file(file: UploadFile = File(...)) -> UploadResponse:
         raise HTTPException(status_code=413, detail="File size exceeds maximum limit of 50 MB.")
 
     content = file_bytes.decode("utf-8", errors="ignore")
-    parsed = parse_x12(content)
-    validation = validate(parsed)
+    parsed = parse_edi_content(content)
+    validation = validate_edi_content(parsed)
 
     safe_filename = Path(file.filename or "uploaded.edi").name
 
@@ -214,8 +217,8 @@ async def batch_upload(file: UploadFile = File(...)) -> BatchResult:
             if not safe_name or not safe_name.lower().endswith((".edi", ".txt", ".dat", ".x12")):
                 continue
             data = zf.read(name).decode("utf-8", errors="ignore")
-            parsed = parse_x12(data)
-            validation = validate(parsed)
+            parsed = parse_edi_content(data)
+            validation = validate_edi_content(parsed)
             reports.append(
                 ParsedFileReport(filename=safe_name, parse_result=parsed, validation_result=validation)
             )
@@ -234,8 +237,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
 @app.post("/api/reconcile/835-837")
 def reconcile_835_837(request: ReconcileRequest) -> dict[str, Any]:
-    p837 = parse_x12(request.edi_837)
-    p835 = parse_x12(request.edi_835)
+    p837 = parse_edi_content(request.edi_837)
+    p835 = parse_edi_content(request.edi_835)
 
     claims_837: dict[str, float] = {}
     for seg in p837.segments:
@@ -268,8 +271,8 @@ def reconcile_835_837(request: ReconcileRequest) -> dict[str, Any]:
 
 @app.post("/api/delta/834")
 def delta_834(request: DeltaRequest) -> dict[str, Any]:
-    old_summary = build_834_summary(parse_x12(request.old_834).segments)
-    new_summary = build_834_summary(parse_x12(request.new_834).segments)
+    old_summary = build_834_summary(parse_edi_content(request.old_834).segments)
+    new_summary = build_834_summary(parse_edi_content(request.new_834).segments)
 
     old_map = {m.get("member_id", ""): m for m in old_summary if m.get("member_id")}
     new_map = {m.get("member_id", ""): m for m in new_summary if m.get("member_id")}
@@ -287,10 +290,10 @@ def delta_834(request: DeltaRequest) -> dict[str, Any]:
 
 @app.post("/api/eligibility/834-837")
 def eligibility_check(request: EligibilityRequest) -> dict[str, Any]:
-    members = build_834_summary(parse_x12(request.edi_834).segments)
+    members = build_834_summary(parse_edi_content(request.edi_834).segments)
     member_ids = {m.get("member_id") for m in members if m.get("member_id")}
 
-    parsed_837 = parse_x12(request.edi_837)
+    parsed_837 = parse_edi_content(request.edi_837)
     claims: list[dict[str, str]] = []
     current_claim = ""
 
@@ -359,7 +362,7 @@ def export_corrected_edi(payload: dict[str, Any]) -> StreamingResponse:
     segments = payload.get("segments", [])
     try:
         text = to_segment_text([_segment_from_dict(s) for s in segments])
-    except Exception as exc:
+    except (KeyError, TypeError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=f"Invalid segment payload: {exc}")
 
     return StreamingResponse(

@@ -305,6 +305,8 @@ def amount_format_check(loops: list[Loop]) -> list[ValidationError]:
 
     def check_loop(loop: Loop) -> None:
         for seg in loop.segments:
+            amt: str | None = None
+            elem_name: str | None = None
             if seg.segment_id in {"CLM", "SV1", "CLP"} and len(seg.elements) > 1:
                 amt = seg.get_value(2).strip()
                 elem_name = f"{seg.segment_id}02"
