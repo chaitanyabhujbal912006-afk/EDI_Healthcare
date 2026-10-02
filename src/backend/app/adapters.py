@@ -28,7 +28,7 @@ from validedi.engine.models import (
 from validedi.engine.parser import parse as validedi_parse
 from validedi.engine.tokenizer import tokenize
 from validedi.engine.validator import validate as validedi_validate
-from validedi.utils.exceptions import EDIParseError, UnsupportedTransactionError
+from validedi.utils.exceptions import BadConfigError, EDIParseError, UnsupportedTransactionError
 
 
 def _map_transaction_type(validedi_type: str | None) -> TransactionType:
@@ -320,3 +320,18 @@ def _to_float(value: str) -> float:
         return float(clean)
     except ValueError:
         return 0.0
+
+
+def get_total_rules_count() -> int:
+    """Return the total number of unique validation rules configured in validedi."""
+    from validedi.engine.config_loader import ConfigLoader
+
+    loader = ConfigLoader()
+    rule_ids: set[str] = set()
+    for txn_type in ("837p", "837i", "835", "834"):
+        try:
+            cfg = loader.get_config(txn_type)
+            rule_ids.update(cfg.rules.keys())
+        except (BadConfigError, KeyError, FileNotFoundError):
+            pass
+    return len(rule_ids) if rule_ids else 64

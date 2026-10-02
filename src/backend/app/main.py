@@ -15,7 +15,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.adapters import parse_edi_content, to_segment_text, validate_edi_content
+from app.adapters import (
+    get_total_rules_count,
+    parse_edi_content,
+    to_segment_text,
+    validate_edi_content,
+)
 from app.models import (
     BatchResult,
     ChatRequest,
@@ -83,7 +88,7 @@ def health_detailed() -> dict[str, Any]:
         "python_version": platform.python_version(),
         "platform": platform.system(),
         "supported_transactions": ["837P", "837I", "835", "834"],
-        "total_built_in_rules": 64,
+        "total_built_in_rules": get_total_rules_count(),
         "engine_version": "1.0.0",
         "llm_providers": ["Groq/Llama-3.3", "HuggingFace", "Rule-based Fallback"],
     }
@@ -129,7 +134,7 @@ def get_system_stats() -> dict[str, Any]:
             "HIPAA 5010 Segment Demarcation",
             "Cross-Segment & Date Consistency",
         ],
-        "total_built_in_rules": 64,
+        "total_built_in_rules": get_total_rules_count(),
         "max_upload_mb": MAX_UPLOAD_SIZE // (1024 * 1024),
         "engine_version": "1.0.0",
     }

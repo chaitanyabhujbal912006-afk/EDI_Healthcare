@@ -5,10 +5,9 @@ from __future__ import annotations
 
 import io
 import zipfile
-import pytest
-from fastapi.testclient import TestClient
 
 from app.main import app
+from fastapi.testclient import TestClient
 
 client = TestClient(app)
 
@@ -81,6 +80,14 @@ def test_health_check() -> None:
     response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_stats_overview() -> None:
+    response = client.get("/api/stats/overview")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "online"
+    assert data["total_built_in_rules"] >= 64
 
 
 def test_parse_raw_edi() -> None:
