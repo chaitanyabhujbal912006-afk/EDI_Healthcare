@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import io
 import json
@@ -95,6 +96,46 @@ async def add_security_headers(request: Request, call_next: Any) -> Response:
         "font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     )
     return response
+
+
+_upload_semaphore: asyncio.Semaphore | None = None
+
+
+def get_upload_semaphore() -> asyncio.Semaphore:
+    global _upload_semaphore
+    if _upload_semaphore is None:
+        max_concurrent = int(os.getenv("MAX_CONCURRENT_UPLOADS", "10"))
+        _upload_semaphore = asyncio.Semaphore(max_concurrent)
+    return _upload_semaphore
+
+
+def set_upload_semaphore(limit: int) -> asyncio.Semaphore:
+    global _upload_semaphore
+    _upload_semaphore = asyncio.Semaphore(limit)
+    return _upload_semaphore
+
+
+@app.middleware("http")
+async def request_timeout_middleware(request: Request, call_next: Any) -> Response:
+    timeout_sec = float(os.getenv("REQUEST_TIMEOUT_SECONDS", "60"))
+    try:
+        return await asyncio.wait_for(call_next(request), timeout=timeout_sec)
+    except asyncio.TimeoutError:
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse(
+            status_code=504,
+            content={"detail": f"Request processing timed out after {timeout_sec}s."},
+        )
+
+
+@app.middleware("http")
+async def heavy_request_concurrency_middleware(request: Request, call_next: Any) -> Response:
+    if request.url.path in ("/api/upload", "/api/batch"):
+        sem = get_upload_semaphore()
+        async with sem:
+            return await call_next(request)
+    return await call_next(request)
 
 
 @app.middleware("http")
