@@ -9,6 +9,6 @@ pyyaml>=6.0
 jsonschema>=4.17.0
 PyJWT[crypto]>=2.8.0
 cryptography>=3.4.0
-prometheus-client>=0.20.0
+prometheus-client>=0.26.0
 redis>=5.0.0
 -e ../..
