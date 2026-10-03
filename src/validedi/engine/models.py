@@ -5,6 +5,7 @@ Pydantic models for ValidEDI data structures.
 from __future__ import annotations
 
 from typing import Any, Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -52,7 +53,7 @@ class Loop(BaseModel):
     
     loop_id: str
     segments: list[Segment] = Field(default_factory=list)
-    children: list['Loop'] = Field(default_factory=list)
+    children: list[Loop] = Field(default_factory=list)
     
     model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
     
@@ -67,7 +68,7 @@ class Loop(BaseModel):
         """Find all segments with given ID in direct segments."""
         return [seg for seg in self.segments if seg.segment_id == seg_id]
     
-    def find_loop(self, loop_id: str) -> list['Loop']:
+    def find_loop(self, loop_id: str) -> list[Loop]:
         """Recursively find all child loops with given ID."""
         result = []
         for child in self.children:
@@ -107,8 +108,10 @@ class ParsedEDI(BaseModel):
     envelope: EnvelopeMeta
     loops: list[Loop] = Field(default_factory=list)
     raw: str
+    segments: list[Segment] = Field(default_factory=list)
 
     model_config = ConfigDict(populate_by_name=True)
+
 
     @property
     def segment_count(self) -> int:

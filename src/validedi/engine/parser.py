@@ -3,11 +3,12 @@ Main parse function - entry point for EDI parsing.
 """
 
 from pathlib import Path
-from validedi.engine.models import ParsedEDI, EnvelopeMeta, Loop
-from validedi.engine.detector import detect
-from validedi.engine.tokenizer import tokenize
+
 from validedi.engine.config_loader import get_config
+from validedi.engine.detector import detect
 from validedi.engine.loop_builder import build_loops as build_loop_hierarchy
+from validedi.engine.models import EnvelopeMeta, ParsedEDI
+from validedi.engine.tokenizer import tokenize
 from validedi.utils.exceptions import EDIParseError
 
 
@@ -75,8 +76,10 @@ def parse(source: str | Path) -> ParsedEDI:
     return ParsedEDI(
         envelope=envelope,
         loops=loops,
-        raw=raw
+        raw=raw,
+        segments=segments,
     )
+
 
 
 def _read_source(source: str | Path) -> str:
@@ -124,7 +127,7 @@ def _is_file_path(s: str) -> bool:
     try:
         if Path(s).exists():
             return True
-    except Exception:
+    except OSError:
         pass
 
     # If it contains EDI segment terminators or ISA header, it's raw EDI text
@@ -135,10 +138,7 @@ def _is_file_path(s: str) -> bool:
     if lower_s.endswith(('.edi', '.x12', '.dat', '.txt')):
         return True
 
-    if '/' in s or '\\' in s:
-        return True
-
-    return False
+    return bool('/' in s or '\\' in s)
 
 
 def _extract_envelope(segments: list, transaction_type: str) -> EnvelopeMeta:

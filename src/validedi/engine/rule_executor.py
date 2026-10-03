@@ -4,12 +4,13 @@ against a parsed EDI transaction.
 """
 
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
-from validedi.engine.models import Loop, Segment, ParsedEDI, ValidationError
-from validedi.engine.config_loader import TransactionConfig, RuleConfig
+from validedi.engine.config_loader import RuleConfig, TransactionConfig
+from validedi.engine.models import Loop, ParsedEDI, Segment, ValidationError
 from validedi.handlers import BUILTIN_HANDLERS
+from validedi.utils.exceptions import EDIParseError
 
 
 def _parse_target_ref(target: str | None) -> tuple[str, int]:
@@ -46,7 +47,7 @@ class RuleExecutor:
                 continue
             try:
                 errors.extend(self._execute_rule(rule, loops, parsed))
-            except Exception as exc:  # never let a single rule crash the whole run
+            except Exception as exc:  # noqa: BLE001  # never let a single rule crash the whole run
                 errors.append(ValidationError(
                     code=rule.id,
                     severity='warning',
@@ -89,6 +90,10 @@ class RuleExecutor:
             'duplicate_gs':        self._rule_duplicate_gs,
             'wrong_st_code':       self._rule_wrong_st_code,
             'ge_count_match':      self._rule_ge_count_match,
+            'iea_count_match':     self._rule_iea_count_match,
+            'envelope_date':       self._rule_envelope_date,
+            'envelope_time':       self._rule_envelope_time,
+            'dtp_range':           self._rule_dtp_range,
         }
         handler = dispatch.get(rule.type)
         if handler is None:
@@ -430,7 +435,7 @@ class RuleExecutor:
                 ))
                 continue
             try:
-                datetime.strptime(date_str, '%Y%m%d')
+                datetime.strptime(date_str, '%Y%m%d').replace(tzinfo=timezone.utc)
             except ValueError:
                 errors.append(ValidationError(
                     code=rule.id, severity=rule.severity,
@@ -439,132 +444,185 @@ class RuleExecutor:
                 ))
         return errors
 
+    def _parse_interchange_structure(self, parsed: ParsedEDI) -> list[dict[str, Any]]:
+        """
+        Group segments hierarchically into interchanges (ISA..IEA),
+        functional groups (GS..GE), and transaction sets (ST..SE).
+        """
+        segments = getattr(parsed, 'segments', [])
+        if not segments and parsed.raw:
+            from validedi.engine.detector import detect
+            from validedi.engine.tokenizer import tokenize
+            try:
+                delims = detect(parsed.raw)
+                segments = tokenize(parsed.raw, delims)
+            except (EDIParseError, ValueError, TypeError, AttributeError):
+                segments = []
+
+        interchanges: list[dict[str, Any]] = []
+        current_isa: dict[str, Any] | None = None
+        current_gs: dict[str, Any] | None = None
+        current_st: dict[str, Any] | None = None
+
+        for seg in segments:
+            sid = seg.segment_id
+            if sid == 'ISA':
+                current_isa = {
+                    'isa_seg': seg,
+                    'iea_seg': None,
+                    'groups': [],
+                }
+                interchanges.append(current_isa)
+                current_gs = None
+                current_st = None
+            elif sid == 'GS':
+                if current_isa is None:
+                    current_isa = {
+                        'isa_seg': None,
+                        'iea_seg': None,
+                        'groups': [],
+                    }
+                    interchanges.append(current_isa)
+                current_gs = {
+                    'gs_seg': seg,
+                    'ge_seg': None,
+                    'transaction_sets': [],
+                }
+                current_isa['groups'].append(current_gs)
+                current_st = None
+            elif sid == 'ST':
+                if current_gs is None:
+                    if current_isa is None:
+                        current_isa = {
+                            'isa_seg': None,
+                            'iea_seg': None,
+                            'groups': [],
+                        }
+                        interchanges.append(current_isa)
+                    current_gs = {
+                        'gs_seg': None,
+                        'ge_seg': None,
+                        'transaction_sets': [],
+                    }
+                    current_isa['groups'].append(current_gs)
+                current_st = {
+                    'st_seg': seg,
+                    'se_seg': None,
+                    'data_segments': [],
+                }
+                current_gs['transaction_sets'].append(current_st)
+            elif sid == 'SE':
+                if current_st is not None:
+                    current_st['se_seg'] = seg
+                    current_st = None
+            elif sid == 'GE':
+                if current_gs is not None:
+                    current_gs['ge_seg'] = seg
+                    current_gs = None
+            elif sid == 'IEA':
+                if current_isa is not None:
+                    current_isa['iea_seg'] = seg
+                    current_isa = None
+            else:
+                if current_st is not None:
+                    current_st['data_segments'].append(seg)
+
+        return interchanges
+
     def _rule_control_number_match(
         self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
     ) -> list[ValidationError]:
-        """Compare envelope control numbers using parsed envelope metadata."""
-        env = parsed.envelope
-
-        # Map references to envelope metadata values
-        env_values = {
-            'ISA13': env.isa_control_number,
-            'IEA02': env.isa_control_number,  # same field — mismatch means raw IEA02 differs
-            'GS06':  env.gs_control_number,
-            'GE02':  env.gs_control_number,
-            'ST02':  env.st_control_number,
-            'SE02':  env.st_control_number,
-        }
-
-        # For envelope-level checks, extract raw values from the EDI
-        raw = parsed.raw
-        if not raw:
-            return []
-
-        def get_raw_element(seg_id: str, elem_idx: int) -> str:
-            """Extract element from raw EDI by segment ID."""
-            isa_start = raw.find('ISA')
-            if isa_start == -1:
-                return ''
-            element_sep = raw[isa_start + 3] if len(raw) > isa_start + 3 else '*'
-            seg_term = raw[isa_start + 105] if len(raw) > isa_start + 105 else '~'
-            segments = raw.split(seg_term)
-            for seg in segments:
-                seg = seg.strip()
-                if seg.startswith(seg_id + element_sep):
-                    parts = seg.split(element_sep)
-                    if len(parts) > elem_idx:
-                        return parts[elem_idx].strip()
-            return ''
+        """Compare envelope control numbers per interchange, group, and transaction set."""
+        errors: list[ValidationError] = []
+        interchanges = self._parse_interchange_structure(parsed)
 
         src_ref = rule.source or ''
         tgt_ref = rule.target or ''
 
-        src_seg, src_idx = _parse_target_ref(src_ref)
-        tgt_seg, tgt_idx = _parse_target_ref(tgt_ref)
+        if (src_ref == 'ISA13' and tgt_ref == 'IEA02') or (src_ref == 'IEA02' and tgt_ref == 'ISA13'):
+            for ic in interchanges:
+                isa_seg = ic['isa_seg']
+                iea_seg = ic['iea_seg']
+                if isa_seg and iea_seg:
+                    src_val = isa_seg.get_value(13).strip()
+                    tgt_val = iea_seg.get_value(2).strip()
+                    if src_val and tgt_val and src_val != tgt_val:
+                        errors.append(ValidationError(
+                            code=rule.id, severity=rule.severity,
+                            segment='IEA', element='IEA02', loop=rule.loop,
+                            position=iea_seg.position,
+                            message=self._fmt(rule, source_value=src_val, target_value=tgt_val),
+                        ))
+            return errors
 
-        src_val = get_raw_element(src_seg, src_idx)
-        tgt_val = get_raw_element(tgt_seg, tgt_idx)
+        if (src_ref == 'GS06' and tgt_ref == 'GE02') or (src_ref == 'GE02' and tgt_ref == 'GS06'):
+            for ic in interchanges:
+                for grp in ic['groups']:
+                    gs_seg = grp['gs_seg']
+                    ge_seg = grp['ge_seg']
+                    if gs_seg and ge_seg:
+                        src_val = gs_seg.get_value(6).strip()
+                        tgt_val = ge_seg.get_value(2).strip()
+                        if src_val and tgt_val and src_val != tgt_val:
+                            errors.append(ValidationError(
+                                code=rule.id, severity=rule.severity,
+                                segment='GE', element='GE02', loop=rule.loop,
+                                position=ge_seg.position,
+                                message=self._fmt(rule, source_value=src_val, target_value=tgt_val),
+                            ))
+            return errors
 
-        if not src_val or not tgt_val:
-            # Fall back to loop-based search
-            src_segs = self._find_segments(src_seg, loops)
-            tgt_segs = self._find_segments(tgt_seg, loops)
-            if not src_segs or not tgt_segs:
-                return []
-            src_val = src_segs[0].get_value(src_idx).strip()
-            tgt_val = tgt_segs[0].get_value(tgt_idx).strip()
+        if (src_ref == 'ST02' and tgt_ref == 'SE02') or (src_ref == 'SE02' and tgt_ref == 'ST02'):
+            for ic in interchanges:
+                for grp in ic['groups']:
+                    for tx in grp['transaction_sets']:
+                        st_seg = tx['st_seg']
+                        se_seg = tx['se_seg']
+                        if st_seg and se_seg:
+                            src_val = st_seg.get_value(2).strip()
+                            tgt_val = se_seg.get_value(2).strip()
+                            if src_val and tgt_val and src_val != tgt_val:
+                                errors.append(ValidationError(
+                                    code=rule.id, severity=rule.severity,
+                                    segment='SE', element='SE02', loop=rule.loop,
+                                    position=se_seg.position,
+                                    message=self._fmt(rule, source_value=src_val, target_value=tgt_val),
+                                ))
+            return errors
 
-        if src_val and tgt_val and src_val != tgt_val:
-            return [ValidationError(
-                code=rule.id, severity=rule.severity,
-                segment=tgt_seg, element=tgt_ref, loop=rule.loop,
-                position=0,
-                message=self._fmt(rule, source_value=src_val, target_value=tgt_val),
-            )]
-        return []
+        return errors
 
     def _rule_segment_count(
         self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
     ) -> list[ValidationError]:
-        """Validate SE01 matches actual segment count."""
-        se_segs = self._find_segments('SE', loops)
-        st_segs = self._find_segments('ST', loops)
-        parsed_segs = getattr(parsed, 'segments', [])
-        if not se_segs and parsed_segs:
-            se_segs = [s for s in parsed_segs if s.segment_id == 'SE']
-        if not st_segs and parsed_segs:
-            st_segs = [s for s in parsed_segs if s.segment_id == 'ST']
+        """Validate SE01 matches actual segment count per transaction set."""
+        errors: list[ValidationError] = []
+        interchanges = self._parse_interchange_structure(parsed)
 
-        reported = None
-        se_pos = 0
-
-        if se_segs:
-            reported_str = se_segs[0].get_value(1).strip()
-            try:
-                reported = int(reported_str)
-                se_pos = se_segs[0].position
-            except ValueError:
-                pass
-
-        if reported is None and parsed and parsed.raw:
-            raw = parsed.raw
-            isa_start = raw.find('ISA')
-            sep = raw[isa_start + 3] if isa_start != -1 and len(raw) > isa_start + 3 else '*'
-            term = raw[isa_start + 105] if isa_start != -1 and len(raw) > isa_start + 105 else '~'
-            segs = [s.strip() for s in raw.split(term) if s.strip()]
-            for i, s in enumerate(segs):
-                if s.startswith('SE' + sep):
-                    parts = s.split(sep)
-                    if len(parts) > 1 and parts[1].isdigit():
-                        reported = int(parts[1])
-                        se_pos = i + 1
-                        break
-            if reported is not None:
-                st_idx = next((i for i, s in enumerate(segs) if s.startswith('ST' + sep)), -1)
-                se_idx = next((i for i, s in enumerate(segs) if s.startswith('SE' + sep)), -1)
-                if st_idx != -1 and se_idx != -1:
-                    actual = se_idx - st_idx + 1
+        for ic in interchanges:
+            for grp in ic['groups']:
+                for tx in grp['transaction_sets']:
+                    se_seg = tx['se_seg']
+                    st_seg = tx['st_seg']
+                    if not se_seg:
+                        continue
+                    reported_str = se_seg.get_value(1).strip()
+                    try:
+                        reported = int(reported_str)
+                    except ValueError:
+                        continue
+                    actual = len(tx['data_segments']) + (1 if st_seg else 0) + 1
                     if reported != actual:
-                        return [ValidationError(
-                            code=rule.id, severity=rule.severity,
-                            segment='SE', element='SE01', loop=rule.loop,
-                            position=se_pos,
+                        errors.append(ValidationError(
+                            code=rule.id,
+                            severity=rule.severity,
+                            segment='SE',
+                            element='SE01',
+                            loop=rule.loop,
+                            position=se_seg.position,
                             message=self._fmt(rule, reported=reported, actual=actual),
-                        )]
-
-        if reported is not None and st_segs and se_segs:
-            all_segs = self._all_segments(loops) or parsed_segs
-            st_pos = st_segs[0].position
-            actual = sum(1 for s in all_segs if st_pos <= s.position <= se_pos)
-            if reported != actual:
-                return [ValidationError(
-                    code=rule.id, severity=rule.severity,
-                    segment='SE', element='SE01', loop=rule.loop,
-                    position=se_pos,
-                    message=self._fmt(rule, reported=reported, actual=actual),
-                )]
-
-        return []
+                        ))
+        return errors
 
     def _rule_paired_segments(
         self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
@@ -750,50 +808,213 @@ class RuleExecutor:
                                     ))
                                 elif isinstance(res, list):
                                     errors.extend(res)
-                            except Exception:
+                            except (ValueError, TypeError, AttributeError):
                                 pass
             return errors
 
         # Scope determines what we pass to the handler
         if rule.scope == 'transaction':
-            return handler_fn(loops)
+            res = handler_fn(loops)
         elif rule.loop:
             target_loops = self._loops_with_id(rule.loop, loops)
-            errors: list[ValidationError] = []
+            res = []
             for tloop in target_loops:
-                errors.extend(handler_fn(tloop))
-            return errors
+                res.extend(handler_fn(tloop))
         else:
-            return handler_fn(loops)
+            res = handler_fn(loops)
+
+        if isinstance(res, list):
+            for err in res:
+                if isinstance(err, ValidationError) and rule.id and err.code in ('CROSS_SEGMENT', 'BUILTIN', 'ERROR', 'DATE_RANGE_INVALID', ''):
+                    err.code = rule.id
+            return res
+        return []
 
     def _rule_ge_count_match(
         self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
     ) -> list[ValidationError]:
-        """Validate GE01 matches actual transaction set count."""
-        raw = parsed.raw
-        from validedi.engine.detector import detect
-        try:
-            delims = detect(raw)
-        except Exception:
-            return []
-        segs = raw.split(delims.segment_sep)
-        st_count = sum(1 for s in segs if s.strip().startswith('ST' + delims.element_sep) or s.strip() == 'ST')
-        ge_seg = next((s.strip() for s in segs if s.strip().startswith('GE' + delims.element_sep)), None)
-        if ge_seg:
-            parts = ge_seg.split(delims.element_sep)
-            if len(parts) > 1 and parts[1].strip().isdigit():
-                declared = int(parts[1].strip())
-                if declared != st_count:
-                    return [ValidationError(
+        """Validate GE01 matches actual transaction set count per GS group."""
+        errors: list[ValidationError] = []
+        interchanges = self._parse_interchange_structure(parsed)
+
+        for ic in interchanges:
+            for grp in ic['groups']:
+                ge_seg = grp['ge_seg']
+                if not ge_seg:
+                    continue
+                reported_str = ge_seg.get_value(1).strip()
+                try:
+                    reported = int(reported_str)
+                except ValueError:
+                    continue
+                actual = len(grp['transaction_sets'])
+                if reported != actual:
+                    errors.append(ValidationError(
                         code=rule.id,
                         severity=rule.severity,
                         segment='GE',
                         element='GE01',
                         loop='ENVELOPE',
-                        position=0,
-                        message=f'GE01 transaction-set count {declared} does not match actual ST/SE pair count {st_count}.',
-                    )]
-        return []
+                        position=ge_seg.position,
+                        message=f'GE01 transaction-set count {reported} does not match actual ST/SE pair count {actual}.',
+                    ))
+        return errors
+
+    def _rule_iea_count_match(
+        self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
+    ) -> list[ValidationError]:
+        """Validate IEA01 matches actual functional group count per ISA interchange."""
+        errors: list[ValidationError] = []
+        interchanges = self._parse_interchange_structure(parsed)
+
+        for ic in interchanges:
+            iea_seg = ic['iea_seg']
+            if not iea_seg:
+                continue
+            reported_str = iea_seg.get_value(1).strip()
+            try:
+                reported = int(reported_str)
+            except ValueError:
+                continue
+            actual = len(ic['groups'])
+            if reported != actual:
+                errors.append(ValidationError(
+                    code=rule.id,
+                    severity=rule.severity,
+                    segment='IEA',
+                    element='IEA01',
+                    loop='ENVELOPE',
+                    position=iea_seg.position,
+                    message=self._fmt(rule, reported=reported, actual=actual),
+                ))
+        return errors
+
+    def _rule_envelope_date(
+        self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
+    ) -> list[ValidationError]:
+        """Validate date formatting in envelope segments (ISA09 YYMMDD, GS04 CCYYMMDD)."""
+        errors: list[ValidationError] = []
+        target = rule.target or ''
+        seg_id, elem_idx = _parse_target_ref(target)
+        interchanges = self._parse_interchange_structure(parsed)
+
+        for ic in interchanges:
+            target_segs = []
+            if seg_id == 'ISA' and ic['isa_seg']:
+                target_segs.append(ic['isa_seg'])
+            elif seg_id == 'GS':
+                for grp in ic['groups']:
+                    if grp['gs_seg']:
+                        target_segs.append(grp['gs_seg'])
+
+            for seg in target_segs:
+                val = seg.get_value(elem_idx).strip()
+                valid = False
+                if seg_id == 'ISA' and len(val) == 6:
+                    try:
+                        datetime.strptime(val, '%y%m%d').replace(tzinfo=timezone.utc)
+                        valid = True
+                    except ValueError:
+                        valid = False
+                elif seg_id == 'GS' and len(val) == 8:
+                    try:
+                        datetime.strptime(val, '%Y%m%d').replace(tzinfo=timezone.utc)
+                        valid = True
+                    except ValueError:
+                        valid = False
+
+                if not valid:
+                    errors.append(ValidationError(
+                        code=rule.id,
+                        severity=rule.severity,
+                        segment=seg_id,
+                        element=target,
+                        loop='ENVELOPE',
+                        position=seg.position,
+                        message=self._fmt(rule, value=val),
+                    ))
+        return errors
+
+    def _rule_envelope_time(
+        self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
+    ) -> list[ValidationError]:
+        """Validate time formatting in envelope segments (ISA10 HHMM, GS05 HHMM)."""
+        errors: list[ValidationError] = []
+        target = rule.target or ''
+        seg_id, elem_idx = _parse_target_ref(target)
+        interchanges = self._parse_interchange_structure(parsed)
+
+        for ic in interchanges:
+            target_segs = []
+            if seg_id == 'ISA' and ic['isa_seg']:
+                target_segs.append(ic['isa_seg'])
+            elif seg_id == 'GS':
+                for grp in ic['groups']:
+                    if grp['gs_seg']:
+                        target_segs.append(grp['gs_seg'])
+
+            for seg in target_segs:
+                val = seg.get_value(elem_idx).strip()
+                valid = False
+                if len(val) in (4, 6, 8):
+                    try:
+                        datetime.strptime(val[:4], '%H%M').replace(tzinfo=timezone.utc)
+                        valid = True
+                    except ValueError:
+                        valid = False
+
+                if not valid:
+                    errors.append(ValidationError(
+                        code=rule.id,
+                        severity=rule.severity,
+                        segment=seg_id,
+                        element=target,
+                        loop='ENVELOPE',
+                        position=seg.position,
+                        message=self._fmt(rule, value=val),
+                    ))
+        return errors
+
+    def _rule_dtp_range(
+        self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
+    ) -> list[ValidationError]:
+        """Validate DTP date range when DTP02 is RD8 or format is YYYYMMDD-YYYYMMDD (end >= start)."""
+        errors: list[ValidationError] = []
+        all_segs = getattr(parsed, 'segments', []) or self._all_segments(loops)
+        dtp_segs = [s for s in all_segs if s.segment_id == 'DTP']
+
+        for seg in dtp_segs:
+            fmt_qual = seg.get_value(2).strip()
+            val = seg.get_value(3).strip()
+            if fmt_qual == 'RD8' or '-' in val:
+                parts = val.split('-')
+                if len(parts) == 2:
+                    start_str = parts[0].strip()
+                    end_str = parts[1].strip()
+                    try:
+                        start_dt = datetime.strptime(start_str, '%Y%m%d').replace(tzinfo=timezone.utc)
+                        end_dt = datetime.strptime(end_str, '%Y%m%d').replace(tzinfo=timezone.utc)
+                        if end_dt < start_dt:
+                            errors.append(ValidationError(
+                                code=rule.id,
+                                severity=rule.severity,
+                                segment='DTP',
+                                element='DTP03',
+                                loop=None,
+                                position=seg.position,
+                                message=self._fmt(rule, value=val),
+                            ))
+                    except ValueError:
+                        errors.append(ValidationError(
+                            code=rule.id,
+                            severity=rule.severity,
+                            segment='DTP',
+                            element='DTP03',
+                            loop=None,
+                            position=seg.position,
+                            message=self._fmt(rule, value=val),
+                        ))
+        return errors
 
     def _rule_isa_fixed_width(
         self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
@@ -819,28 +1040,30 @@ class RuleExecutor:
     def _rule_delimiter_collision(
         self, rule: RuleConfig, loops: list[Loop], parsed: ParsedEDI
     ) -> list[ValidationError]:
-        """Check for delimiter characters appearing inside data element values."""
+        """Check for delimiter characters appearing inside data element values using detected DelimiterSet."""
         errors: list[ValidationError] = []
         raw = parsed.raw
-        if len(raw) < 106:
+        if not raw:
             return []
 
-        # Extract delimiters from ISA
-        isa_start = raw.find('ISA')
-        if isa_start == -1:
+        from validedi.engine.detector import detect
+        try:
+            delims = detect(raw)
+        except (EDIParseError, ValueError, TypeError, AttributeError):
             return []
-        element_sep = raw[isa_start + 3] if len(raw) > isa_start + 3 else '*'
-        comp_sep = raw[isa_start + 104] if len(raw) > isa_start + 104 else ':'
-        seg_term = raw[isa_start + 105] if len(raw) > isa_start + 105 else '~'
 
-        all_segs = self._all_segments(loops)
+        element_sep = delims.element_sep
+        comp_sep = delims.sub_sep
+        seg_term = delims.segment_sep
+
+        all_segs = getattr(parsed, 'segments', []) or self._all_segments(loops)
         for seg in all_segs:
             if seg.segment_id in ('ISA', 'IEA'):
                 continue
             for i, elem in enumerate(seg.elements):
                 val = elem.raw
                 # Check if element_sep appears in value (excluding composite separator)
-                if element_sep in val and element_sep != comp_sep:
+                if (element_sep in val and element_sep != comp_sep) or (seg_term in val):
                     errors.append(ValidationError(
                         code=rule.id, severity=rule.severity,
                         segment=seg.segment_id,
@@ -850,7 +1073,7 @@ class RuleExecutor:
                             rule,
                             segment=seg.segment_id,
                             element=i + 1,
-                            delimiter=element_sep,
+                            delimiter=element_sep if element_sep in val else seg_term,
                             value=val,
                         ),
                     ))

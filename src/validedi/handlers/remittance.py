@@ -7,63 +7,71 @@ from validedi.engine.models import Loop, ValidationError
 
 def bpr_clp_total_match(loops: list[Loop]) -> list[ValidationError]:
     """
-    Verify BPR02 (total payment) equals sum of all CLP04 (claim paid amounts).
-    Difference is allowed only if PLB provider-level adjustments account for it.
+    Verify BPR02 (total payment) equals sum of all CLP04 (claim paid amounts) minus
+    PLB provider-level adjustments: BPR02 == sum(CLP04) - sum(PLB adjustments).
     """
     errors = []
 
-    bpr_total = None
-    clp_total = 0.0
-    bpr_pos = 0
-    plb_total = 0.0
+    all_segs = []
+    def _collect(lp: Loop):
+        all_segs.extend(lp.segments)
+        for ch in lp.children:
+            _collect(ch)
 
-    for loop in loops:
-        # BPR is typically in the top-level loop
-        bpr = loop.find_segment('BPR')
-        if bpr:
+    if isinstance(loops, list):
+        for lp in loops:
+            _collect(lp)
+    elif hasattr(loops, 'segments'):
+        _collect(loops)
+
+    bpr_seg = next((s for s in all_segs if s.segment_id == 'BPR'), None)
+    if not bpr_seg:
+        return errors  # Missing BPR caught by required_segment rule
+
+    try:
+        bpr_total = float(bpr_seg.get_value(2))
+    except (ValueError, TypeError):
+        return errors
+
+    # Sum CLP04 across all CLP segments
+    clp_total = 0.0
+    for seg in all_segs:
+        if seg.segment_id == 'CLP':
             try:
-                bpr_total = float(bpr.get_value(2))
-                bpr_pos = bpr.position
+                clp_total += float(seg.get_value(4))
             except (ValueError, TypeError):
                 pass
 
-        # Sum PLB adjustments (provider-level)
-        for seg in loop.find_all('PLB'):
-            # PLB has pairs of reason/amount starting at element 3
-            for i in range(3, 13, 2):
-                try:
-                    plb_total += float(seg.get_value(i + 1))
-                except (ValueError, TypeError):
-                    pass
+    # Sum PLB provider-level adjustments
+    # PLB has pairs of reason/amount at elements (3,4), (5,6), (7,8), (9,10), (11,12), (13,14)
+    plb_total = 0.0
+    for seg in all_segs:
+        if seg.segment_id == 'PLB':
+            for elem_idx in range(4, 15, 2):
+                val = seg.get_value(elem_idx).strip()
+                if val:
+                    try:
+                        plb_total += float(val)
+                    except (ValueError, TypeError):
+                        pass
 
-        # Sum CLP04 across all 2100 claim loops
-        for child in loop.children:
-            clp = child.find_segment('CLP')
-            if clp:
-                try:
-                    clp_total += float(clp.get_value(4))
-                except (ValueError, TypeError):
-                    pass
-
-    if bpr_total is None:
-        return errors  # Missing BPR caught by required_segment rule
-
-    net_expected = bpr_total - plb_total
-    if abs(net_expected - clp_total) > 0.01:
+    expected_bpr = clp_total - plb_total
+    if abs(bpr_total - expected_bpr) > 0.01:
         errors.append(ValidationError(
             code='835-007',
             severity='warning',
             segment='BPR',
             element='BPR02',
             loop='HEADER',
-            position=bpr_pos,
+            position=bpr_seg.position,
             message=(
                 f'BPR02 total payment (${bpr_total:.2f}) does not match '
-                f'sum of CLP04 amounts (${clp_total:.2f}). '
-                f'Difference: ${abs(bpr_total - clp_total):.2f}'
+                f'expected amount (${expected_bpr:.2f}) based on sum of CLP04 (${clp_total:.2f}) '
+                f'minus PLB adjustments (${plb_total:.2f}).'
             )
         ))
     return errors
+
 
 
 def duplicate_bht_check(loops: list[Loop]) -> list[ValidationError]:

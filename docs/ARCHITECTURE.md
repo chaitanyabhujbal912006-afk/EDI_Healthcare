@@ -506,6 +506,26 @@ HANDLER_REGISTRY = {
 }
 ```
 
+### Clearinghouse & Conformance Rules
+
+The following rules address production clearinghouse requirements and multi-interchange EDI files:
+
+| Rule Code | Severity | Spec Reference | Description |
+|-----------|----------|----------------|-------------|
+| `ENV-DELIM-COLLISION` | `error` | ASC X12.5 §3.2.1 | Data element value contains element separator or segment terminator, evaluated dynamically using the `DelimiterSet` from `detector.py`. |
+| `GE_COUNT_MISMATCH` | `warning` | ASC X12.5 §3.4.2 (GE01) | GE01 transaction-set count does not match actual ST/SE pair count within its specific functional group (independent multi-GS group counting). |
+| `IEA_COUNT_MISMATCH` | `error` | ASC X12.5 §3.3.2 (IEA01) | IEA01 functional group count does not match actual GS/GE group count within its specific interchange (independent multi-ISA counting). |
+| `835-007` | `warning` | WPC 005010X221A1 §3.2.1 & Loop 2000 | BPR02 total payment amount must equal sum of CLP04 (claim paid amounts) minus PLB (provider-level adjustments): `BPR02 == sum(CLP04) - sum(PLB adjustments)`. |
+| `HL_HIERARCHY_INVALID` | `error` | WPC 005010X222A1 §2.4.3 | HL02 parent ID must reference an existing prior HL01 in the document, and HL03 level codes must follow the required hierarchical sequence (20 Information Source → 22 Subscriber → 23 Dependent). |
+| `CLM_SUM_MISMATCH` | `error` | WPC 005010X222A1 §3.4 Loop 2300 CLM02 | CLM02 total claim charge amount must equal sum of line charges (SV102 for 837P, SV203 for 837I). Claims with zero service lines are flagged as an error condition. |
+| `FORMAT_ISA09_DATE` | `error` | ASC X12.5 §3.3.1 (ISA09) | ISA09 interchange date must be a valid 6-digit calendar date in `YYMMDD` format. |
+| `FORMAT_ISA10_TIME` | `error` | ASC X12.5 §3.3.1 (ISA10) | ISA10 interchange time must be a valid 4-digit time in `HHMM` format (0000–2359). |
+| `FORMAT_GS04_DATE` | `error` | ASC X12.5 §3.4.1 (GS04) | GS04 functional group date must be a valid 8-digit calendar date in `CCYYMMDD` format. |
+| `DTP_RANGE_INVALID` | `error` | ASC X12.5 Element 1250/1251 (RD8) | DTP date range when qualifier is `RD8` (`CCYYMMDD-CCYYMMDD`) must have start date earlier than or equal to end date. |
+| `COVERAGE_DATE_CONSISTENCY` | `error` | WPC 005010X220A1 Loop 2300 (HD/DTP) | Benefit coverage period start date must be before or equal to termination/end date across DTP 348 and DTP 349 segments. |
+| `MEMBER_DUPLICATE` | `error` | WPC 005010X220A1 Loop 2000 (REF\*0F / NM1) | Member identifier must be unique across all 2000 member loops within an 834 enrollment transaction set. |
+| `SE_COUNT_MISMATCH` | `error` | ASC X12.5 §3.5.2 (SE01) | SE01 segment count must equal total segment count from ST through SE inclusive for that specific transaction set. |
+
 ---
 
 ## LLM Integration

@@ -126,6 +126,17 @@ rules:
   severity: warning
   message: 'HL segment #{index} has HL01 value {value}; expected {expected}'
   suggestion: HL01 must be a sequential counter starting at 1
+- id: HL_HIERARCHY_INVALID
+  type: builtin
+  handler: validate_hl_hierarchy
+  transaction_types:
+  - 837p
+  - 837i
+  scope: transaction
+  severity: error
+  message: HL hierarchical parent/child structure or level sequence is invalid
+  suggestion: HL02 must reference an existing prior HL01; levels must follow 20 (Billing Provider) -> 22 (Subscriber) -> 23 (Dependent)
+
 - id: 837-009
   type: date_format
   target: DTP03

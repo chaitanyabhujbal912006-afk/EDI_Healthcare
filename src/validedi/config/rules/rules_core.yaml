@@ -172,6 +172,41 @@ rules:
     message: 'GE01 transaction-set count does not match actual ST/SE pair count'
     suggestion: 'Ensure GE01 equals the count of ST/SE transaction set pairs in the group'
 
+  - id: 'IEA_COUNT_MISMATCH'
+    type: 'iea_count_match'
+    severity: 'error'
+    message: 'IEA01 functional group count {reported} does not match actual GS group count {actual}.'
+    suggestion: 'Ensure IEA01 equals the count of GS/GE functional groups in the interchange'
+
+  - id: 'FORMAT_ISA09_DATE'
+    type: 'envelope_date'
+    target: 'ISA09'
+    severity: 'error'
+    message: 'ISA09 interchange date {value} is not a valid YYMMDD calendar date'
+    suggestion: 'Provide a 6-digit YYMMDD date (e.g. 230101 for Jan 1, 2023)'
+
+  - id: 'FORMAT_ISA10_TIME'
+    type: 'envelope_time'
+    target: 'ISA10'
+    severity: 'error'
+    message: 'ISA10 interchange time {value} is not a valid HHMM time'
+    suggestion: 'Provide a 4-digit HHMM time between 0000 and 2359'
+
+  - id: 'FORMAT_GS04_DATE'
+    type: 'envelope_date'
+    target: 'GS04'
+    severity: 'error'
+    message: 'GS04 functional group date {value} is not a valid CCYYMMDD calendar date'
+    suggestion: 'Provide an 8-digit CCYYMMDD date (e.g. 20230101 for Jan 1, 2023)'
+
+  - id: 'DTP_RANGE_INVALID'
+    type: 'dtp_range'
+    target: 'DTP03'
+    severity: 'error'
+    message: 'DTP date range {value} is invalid: start date must be before or equal to end date'
+    suggestion: 'For RD8 date ranges (CCYYMMDD-CCYYMMDD), end date must be on or after start date'
+
+
   - id: 'NPI_INVALID'
     type: 'builtin'
     handler: 'validate_npi_segments'
