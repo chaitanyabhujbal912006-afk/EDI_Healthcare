@@ -23,6 +23,7 @@ from app.adapters import (
     to_segment_text,
     validate_edi_content,
 )
+from app.config import AuthSettings
 from app.models import (
     BatchResult,
     ChatRequest,
@@ -34,7 +35,6 @@ from app.models import (
     ReconcileRequest,
     UploadResponse,
 )
-from app.config import AuthSettings
 from app.security import AuthIdentity, require_role
 from app.services.chat import ask_huggingface
 from app.services.exports import csv_bytes, error_report_pdf_bytes, json_bytes, tsv_bytes
@@ -57,13 +57,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from app.logging_config import PHIRedactionFilter, request_id_ctx, setup_logging
+
+setup_logging()
+
 audit_logger = logging.getLogger("edipro.audit")
 if not audit_logger.handlers:
     _handler = logging.StreamHandler(sys.stdout)
     _handler.setFormatter(logging.Formatter("%(message)s"))
+    _handler.addFilter(PHIRedactionFilter())
     audit_logger.addHandler(_handler)
     audit_logger.setLevel(logging.INFO)
     audit_logger.propagate = False
+else:
+    for h in audit_logger.handlers:
+        h.addFilter(PHIRedactionFilter())
 
 
 @app.middleware("http")
@@ -88,11 +96,12 @@ async def audit_log_middleware(request: Request, call_next: Any) -> Response:
 
     start_time = time.perf_counter()
     request_id = request.headers.get("x-request-id") or uuid.uuid4().hex
+    token = request_id_ctx.set(request_id)
     bytes_in = int(request.headers.get("content-length") or 0)
 
     try:
         response = await call_next(request)
-    except Exception as exc:
+    except Exception:
         duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
         record = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -109,8 +118,11 @@ async def audit_log_middleware(request: Request, call_next: Any) -> Response:
             "outcome": "denied",
         }
         audit_logger.info(json.dumps(record))
-        raise exc
+        raise
+    finally:
+        request_id_ctx.reset(token)
 
+    response.headers["X-Request-ID"] = request_id
     duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
     identity: AuthIdentity | None = getattr(request.state, "auth_identity", None)
@@ -126,7 +138,7 @@ async def audit_log_middleware(request: Request, call_next: Any) -> Response:
             try:
                 unverified = jwt.decode(auth_hdr[7:].strip(), options={"verify_signature": False})
                 subject = str(unverified.get("sub", "anonymous"))
-            except Exception:
+            except Exception:  # noqa: BLE001
                 subject = "anonymous"
         else:
             subject = "anonymous"
