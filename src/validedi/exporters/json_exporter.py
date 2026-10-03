@@ -71,7 +71,8 @@ def export_json(parsed_edi, validation_result=None, include_raw=False) -> dict[s
     
     # Optionally include raw EDI
     if include_raw:
-        output['raw_edi'] = parsed_edi.raw_content
+        output['raw_edi'] = getattr(parsed_edi, 'raw', getattr(parsed_edi, 'raw_content', ''))
+
     
     return output
 

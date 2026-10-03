@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Unit & Integration Tests (Coverage >= 85%)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r src/backend/requirements.txt
+          pip install hypothesis pytest-cov
+
+      - name: Run tests with coverage gate (>= 85%)
+        run: |
+          pytest --cov=validedi --cov=app --cov-report=term --cov-fail-under=85 --ignore=tests/e2e
+
+  e2e:
+    name: End-to-End Browser Tests (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: src/stitch/package-lock.json
+
+      - name: Build frontend
+        working-directory: src/stitch
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r src/backend/requirements.txt
+          pip install pytest pytest-playwright playwright
+          playwright install --with-deps chromium
+
+      - name: Run Playwright E2E tests
+        run: |
+          pytest tests/e2e -q

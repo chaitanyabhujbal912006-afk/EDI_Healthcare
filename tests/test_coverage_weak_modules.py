@@ -793,3 +793,272 @@ def test_exports_service():
     ]
     pdf_multi = error_report_pdf_bytes(many_issues)
     assert len(pdf_multi) > len(pdf)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# 10. extract_835.py & extract_834.py & app.adapters Tests
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+def test_extract_835_full_hierarchy():
+    from validedi.extractors.extract_835 import extract_payments_835
+
+    bpr_seg = seg("BPR", [make_elem("I"), make_elem("1500.00"), make_elem("C"), make_elem("ACH"), make_elem("CCP"), make_elem("01"), make_elem("ACT123"), make_elem("DA"), make_elem("ACT456"), make_elem("999999999"), make_elem(""), make_elem("01"), make_elem("888888888"), make_elem("DA"), make_elem("777777777"), make_elem("20230501")])
+    payer_loop = Loop(loop_id="1000A", segments=[
+        seg("NM1", [make_elem("PR"), make_elem("2"), make_elem("BIG PAYER"), make_elem(""), make_elem(""), make_elem(""), make_elem(""), make_elem("XX"), make_elem("1234567893")]),
+        seg("N3", [make_elem("100 PAYER BLVD")]),
+        seg("N4", [make_elem("NEW YORK"), make_elem("NY"), make_elem("10001")]),
+        seg("PER", [make_elem("CX"), make_elem("SUPPORT"), make_elem("TE"), make_elem("8005551212")]),
+        seg("REF", [make_elem("EI"), make_elem("123456789")]),
+    ])
+    payee_loop = Loop(loop_id="1000B", segments=[
+        seg("NM1", [make_elem("PE"), make_elem("2"), make_elem("COMMUNITY CLINIC"), make_elem(""), make_elem(""), make_elem(""), make_elem(""), make_elem("XX"), make_elem("9876543210")]),
+    ])
+
+    clp_seg = seg("CLP", [make_elem("CLM-001"), make_elem("1"), make_elem("500.00"), make_elem("450.00"), make_elem("50.00"), make_elem("12"), make_elem("ICN123456")])
+    nm1_qc = seg("NM1", [make_elem("QC"), make_elem("1"), make_elem("SMITH"), make_elem("JOHN")])
+    cas_seg = seg("CAS", [make_elem("CO"), make_elem("45"), make_elem("50.00")])
+    svc_elem = Element(raw="HC:99213", components=["HC", "99213"])
+    svc_seg = seg("SVC", [svc_elem, make_elem("500.00"), make_elem("450.00"), make_elem(""), make_elem("1")])
+    svc_loop = Loop(loop_id="2110", segments=[svc_seg, cas_seg])
+    claim_loop = Loop(loop_id="2100", segments=[clp_seg, nm1_qc], children=[svc_loop])
+    prov_loop = Loop(loop_id="2000", segments=[], children=[claim_loop])
+
+    parsed_835 = ParsedEDI(
+        envelope=make_meta(transaction_type="835"),
+        segments=[],
+        loops=[Loop(loop_id="ROOT", segments=[bpr_seg]), payer_loop, payee_loop, prov_loop],
+        raw="RAW_835",
+    )
+
+    data = extract_payments_835(parsed_835)
+    assert data["transaction_type"] == "835"
+    assert data["payment_summary"]["total_amount"] == 1500.00
+    assert data["payment_summary"]["payment_method"] == "ACH"
+    assert data["payer"]["name"] == "BIG PAYER"
+    assert data["payer"]["contact"]["phone"] == "8005551212"
+    assert data["payee"]["name"] == "COMMUNITY CLINIC"
+    assert len(data["claims"]) == 1
+    assert data["claims"][0]["patient_account"] == "CLM-001"
+    assert data["claims"][0]["total_charged"] == 500.00
+    assert data["claims"][0]["total_paid"] == 450.00
+    assert len(data["claims"][0]["services"]) == 1
+    assert data["claims"][0]["services"][0]["procedure_code"] == "99213"
+    assert len(data["claims"][0]["services"][0]["adjustments"]) == 1
+
+
+def test_extract_834_full_hierarchy():
+    from validedi.extractors.extract_834 import extract_enrollments_834
+
+    bgn_seg = seg("BGN", [make_elem("00"), make_elem("12345"), make_elem("20230101"), make_elem("1200"), make_elem(""), make_elem(""), make_elem(""), make_elem("2")])
+    sponsor_loop = Loop(loop_id="1000A", segments=[
+        seg("N1", [make_elem("P5"), make_elem("ACME CORP"), make_elem("FI"), make_elem("123456789")]),
+    ])
+    insurer_loop = Loop(loop_id="1000B", segments=[
+        seg("N1", [make_elem("IN"), make_elem("HEALTH INSURER"), make_elem("XV"), make_elem("987654321")]),
+    ])
+
+    ins_seg = seg("INS", [make_elem("Y"), make_elem("18"), make_elem("030"), make_elem("XN"), make_elem("A")])
+    ref_seg = seg("REF", [make_elem("0F"), make_elem("MEMB999")])
+    nm1_seg = seg("NM1", [make_elem("IL"), make_elem("1"), make_elem("DOE"), make_elem("JANE")])
+    dmg_seg = seg("DMG", [make_elem("D8"), make_elem("19850101"), make_elem("F")])
+    hd_seg = seg("HD", [make_elem("030"), make_elem(""), make_elem("HLT")])
+    dtp_seg = seg("DTP", [make_elem("348"), make_elem("D8"), make_elem("20230101")])
+    cov_loop = Loop(loop_id="2300", segments=[hd_seg, dtp_seg])
+    member_loop = Loop(loop_id="2000", segments=[ins_seg, ref_seg, nm1_seg, dmg_seg], children=[cov_loop])
+
+    parsed_834 = ParsedEDI(
+        envelope=make_meta(transaction_type="834"),
+        segments=[],
+        loops=[Loop(loop_id="ROOT", segments=[bgn_seg]), sponsor_loop, insurer_loop, member_loop],
+        raw="RAW_834",
+    )
+
+    data = extract_enrollments_834(parsed_834)
+    assert data["transaction_type"] == "834"
+    assert data["sponsor"]["name"] == "ACME CORP"
+    assert data["insurer"]["name"] == "HEALTH INSURER"
+    assert len(data["members"]) == 1
+    assert data["members"][0]["subscriber_number"] == "MEMB999"
+    assert data["members"][0]["demographics"]["last_name"] == "DOE"
+    assert data["members"][0]["coverage"]["insurance_line_code"] == "HLT"
+
+
+def test_adapters_edge_cases():
+    from app.adapters import validedi_error_to_issue, extract_claim_amounts_for_837, to_segment_text
+    from app.models import Segment as AppSegment
+
+    # Test error mapping with warning
+    warn_err = ValidationError(
+        code="CNT-001",
+        severity="warning",
+        segment="SE",
+        element="SE01",
+        loop="2300",
+        position=5,
+        message="Count error",
+    )
+    issue = validedi_error_to_issue(warn_err)
+    assert issue.code == "SE_COUNT_MISMATCH"
+    assert issue.severity == "warning"
+    assert issue.element_position == 1
+
+    # Test unknown code fallback
+    unk_err = ValidationError(
+        code="XYZ-UNKNOWN",
+        severity="error",
+        segment="CLM",
+        position=1,
+        message="Unknown issue",
+    )
+    unk_issue = validedi_error_to_issue(unk_err)
+    assert unk_issue.code == "XYZ-UNKNOWN"
+
+    # Test extract_claim_amounts_for_837
+    segs = [
+        AppSegment(id="CLM", elements=["CLM1", "500.00"], line_number=1),
+        AppSegment(id="SV1", elements=["HC:99213", "250.00"], line_number=2),
+        AppSegment(id="SV2", elements=["0250", "250.00"], line_number=3),
+    ]
+    clm_tot, svc_tot = extract_claim_amounts_for_837(segs)
+    assert clm_tot == 500.0
+    assert svc_tot == 500.0
+
+    # Malformed / empty elements
+    segs2 = [
+        AppSegment(id="CLM", elements=[], line_number=1),
+        AppSegment(id="CLM", elements=["CLM2", "not_a_number"], line_number=2),
+        AppSegment(id="SV1", elements=["HC:99213"], line_number=3),
+        AppSegment(id="SV1", elements=["HC:99213", "bad_num"], line_number=4),
+        AppSegment(id="SV2", elements=[], line_number=5),
+        AppSegment(id="SV2", elements=["0250", "invalid"], line_number=6),
+    ]
+    clm_tot2, svc_tot2 = extract_claim_amounts_for_837(segs2)
+    assert clm_tot2 == 0.0
+    assert svc_tot2 == 0.0
+
+
+def test_llm_explainer_offline_and_mock():
+    from validedi.llm.explainer import LLMExplainer, ExplainResult, explain
+
+    res_mock = ParsedEDI(
+        envelope=make_meta(transaction_type="837P"),
+        segments=[seg("CLM", [make_elem("1"), make_elem("100.00")])],
+        loops=[],
+        raw="CLM*1*100.00~",
+    )
+    val_mock = ValidationResult(valid=True, errors=[], warnings=[], transaction_type="837P", parsed=res_mock)
+
+    # Offline / Rule-based
+    explainer = LLMExplainer()
+    res = explainer.explain(res_mock, val_mock)
+    assert isinstance(res, ExplainResult)
+    assert res.source == "rule_based"
+    assert "837P" in str(res)
+
+    # Q&A without LLM
+    ans = explainer.ask_followup("What is this?", res_mock, val_mock)
+    assert "No LLM provided" in ans
+
+    # With Mock LLM
+    mock_llm = lambda prompt: f"Analysis of prompt with len {len(prompt)}"
+    explainer_with_llm = LLMExplainer(llm=mock_llm)
+    res_llm = explainer_with_llm.explain(res_mock, val_mock)
+    assert res_llm.source == "llm"
+    assert "Analysis of prompt" in res_llm.report
+
+    # Ask followup with Mock LLM
+    ans_llm = explainer_with_llm.ask_followup("Is this valid?", res_mock, val_mock)
+    assert "Analysis of prompt" in ans_llm
+
+    # Error handling in LLM fallback
+    failing_llm = lambda prompt: (_ for _ in ()).throw(RuntimeError("API down"))
+    explainer_fail = LLMExplainer(llm=failing_llm)
+    res_fail = explainer_fail.explain(res_mock, val_mock)
+    assert res_fail.source == "rule_based"
+    assert "API down" in res_fail.metadata["error"]
+
+    ans_fail = explainer_fail.ask_followup("test", res_mock, val_mock)
+    assert "Error calling LLM" in ans_fail
+
+    # Convenience function
+    conv_res = explain(res_mock, val_mock, force_rule_based=True)
+    assert conv_res.source == "rule_based"
+
+
+def test_llm_delete_custom_config(tmp_path):
+    import yaml
+    from validedi.llm.delete import delete_custom_config
+    from validedi.llm._exceptions import RuleNotFoundError
+
+    config_dir = tmp_path / "config"
+    rules_dir = config_dir / "rules"
+    rules_dir.mkdir(parents=True)
+
+    dummy_rules_file = rules_dir / "custom.yaml"
+    dummy_rules_file.write_text(
+        yaml.dump({
+            "version": "1.0",
+            "rules": [
+                {"id": "CUSTOM-001", "name": "Custom 1", "description": "desc 1"},
+                {"id": "CUSTOM-002", "name": "Custom 2", "description": "desc 2"},
+            ]
+        }),
+        encoding="utf-8"
+    )
+
+    # Dry run
+    res_dry = delete_custom_config("CUSTOM-001", config_dir=config_dir, dry_run=True)
+    assert res_dry.success is True
+    assert res_dry.rule_id == "CUSTOM-001"
+    # Verify file was not changed
+    content = yaml.safe_load(dummy_rules_file.read_text(encoding="utf-8"))
+    assert len(content["rules"]) == 2
+
+    # Actual delete
+    res_del = delete_custom_config("CUSTOM-001", config_dir=config_dir, create_backups=True)
+    assert res_del.success is True
+    content_after = yaml.safe_load(dummy_rules_file.read_text(encoding="utf-8"))
+    assert len(content_after["rules"]) == 1
+    assert content_after["rules"][0]["id"] == "CUSTOM-002"
+
+    # Rule not found
+    try:
+        delete_custom_config("NON_EXISTENT", config_dir=config_dir)
+        assert False, "Should have raised RuleNotFoundError"
+    except RuleNotFoundError:
+        pass
+
+
+def test_json_exporter_full(tmp_path):
+    from validedi.exporters.json_exporter import export_json, export_json_to_file
+
+    parsed = ParsedEDI(
+        envelope=make_meta(transaction_type="837p"),
+        segments=[seg("CLM", [make_elem("CLM01"), make_elem("100.00")])],
+        loops=[],
+        raw="CLM*CLM01*100.00~",
+    )
+    val = ValidationResult(
+        valid=True,
+        errors=[ValidationError(code="TEST", severity="error", segment="CLM", position=1, message="err")],
+        warnings=[],
+        transaction_type="837p",
+        parsed=parsed,
+    )
+
+    data = export_json(parsed, validation_result=val, include_raw=True)
+    assert data["transaction_type"] == "837p"
+    assert data["envelope"]["sender_id"] == "SND"
+    assert data["validation"]["is_valid"] is False
+    assert len(data["validation"]["errors"]) == 1
+    assert data["raw_edi"] == "CLM*CLM01*100.00~"
+
+    # Test file export
+    out_file = tmp_path / "export.json"
+    export_json_to_file(parsed, str(out_file), validation_result=val, include_raw=True)
+    assert out_file.exists()
+    assert "CLM01" in out_file.read_text(encoding="utf-8")
+
+
+
