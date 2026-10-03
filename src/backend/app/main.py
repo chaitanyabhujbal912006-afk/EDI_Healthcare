@@ -58,6 +58,14 @@ app.add_middleware(
 )
 
 from app.logging_config import PHIRedactionFilter, request_id_ctx, setup_logging
+from app.metrics import (
+    REQUEST_COUNT,
+    REQUEST_LATENCY,
+    UPLOAD_BYTES,
+    VALIDATION_OUTCOMES,
+    get_route_template,
+    metrics_endpoint,
+)
 
 setup_logging()
 
@@ -86,6 +94,21 @@ async def add_security_headers(request: Request, call_next: Any) -> Response:
         "font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     )
     return response
+
+
+@app.middleware("http")
+async def prometheus_metrics_middleware(request: Request, call_next: Any) -> Response:
+    start_time = time.perf_counter()
+    status_code = "500"
+    try:
+        response = await call_next(request)
+        status_code = str(response.status_code)
+        return response
+    finally:
+        duration_sec = time.perf_counter() - start_time
+        route_tmpl = get_route_template(request)
+        REQUEST_COUNT.labels(route=route_tmpl, method=request.method, status=status_code).inc()
+        REQUEST_LATENCY.labels(route=route_tmpl, method=request.method, status=status_code).observe(duration_sec)
 
 
 @app.middleware("http")
@@ -183,6 +206,11 @@ def frontend_home() -> RedirectResponse:
         return RedirectResponse(url="/stitch/index.html", status_code=307)
     return RedirectResponse(url="/api/health", status_code=307)
 
+
+
+@app.get("/metrics")
+def get_metrics(request: Request) -> Response:
+    return metrics_endpoint(request)
 
 
 @app.get("/api/health")
@@ -311,6 +339,9 @@ def parse_raw(
     http_request.state.transaction_type = parsed.transaction_type
     http_request.state.file_count = 1
     validation = validate_edi_content(parsed)
+    tx_type = parsed.transaction_type or "UNKNOWN"
+    outcome = "valid" if validation.valid else "invalid"
+    VALIDATION_OUTCOMES.labels(transaction_type=tx_type, outcome=outcome).inc()
     return {
         "parse_result": parsed.model_dump(),
         "validation_result": validation.model_dump(),
@@ -359,11 +390,15 @@ async def upload_file(
     if len(file_bytes) > MAX_UPLOAD_SIZE:
         raise HTTPException(status_code=413, detail="File size exceeds maximum limit of 50 MB.")
 
+    UPLOAD_BYTES.inc(len(file_bytes))
     content = file_bytes.decode("utf-8", errors="ignore")
     parsed = parse_edi_content(content)
     http_request.state.transaction_type = parsed.transaction_type
     http_request.state.file_count = 1
     validation = validate_edi_content(parsed)
+    tx_type = parsed.transaction_type or "UNKNOWN"
+    outcome = "valid" if validation.valid else "invalid"
+    VALIDATION_OUTCOMES.labels(transaction_type=tx_type, outcome=outcome).inc()
 
     safe_filename = Path(file.filename or "uploaded.edi").name
 
@@ -396,6 +431,7 @@ async def batch_upload(
     if len(content) > MAX_BATCH_SIZE:
         raise HTTPException(status_code=413, detail="Batch ZIP file size exceeds maximum limit of 100 MB.")
 
+    UPLOAD_BYTES.inc(len(content))
     zip_buffer = io.BytesIO(content)
     reports: list[ParsedFileReport] = []
 
@@ -407,6 +443,9 @@ async def batch_upload(
             data = zf.read(name).decode("utf-8", errors="ignore")
             parsed = parse_edi_content(data)
             validation = validate_edi_content(parsed)
+            r_tx_type = parsed.transaction_type or "UNKNOWN"
+            r_outcome = "valid" if validation.valid else "invalid"
+            VALIDATION_OUTCOMES.labels(transaction_type=r_tx_type, outcome=r_outcome).inc()
             reports.append(
                 ParsedFileReport(filename=safe_name, parse_result=parsed, validation_result=validation)
             )
