@@ -1,0 +1,37 @@
+version: 2
+updates:
+  # Maintain Python pip dependencies (Core ValidEDI & Dev)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-pip)"
+
+  # Maintain Python pip dependencies (FastAPI Backend)
+  - package-ecosystem: "pip"
+    directory: "/src/backend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-backend)"
+
+  # Maintain npm dependencies (Stitch Frontend)
+  - package-ecosystem: "npm"
+    directory: "/src/stitch"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-npm)"
+
+  # Maintain Docker base images & dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps-docker)"
