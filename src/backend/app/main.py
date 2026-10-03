@@ -2,6 +2,7 @@ import hashlib
 import io
 import json
 import logging
+import os
 import platform
 import sys
 import time
@@ -35,7 +36,7 @@ from app.models import (
     ReconcileRequest,
     UploadResponse,
 )
-from app.security import AuthIdentity, require_role
+from app.security import AuthIdentity, RateLimiter, require_role
 from app.services.chat import ask_huggingface
 from app.services.exports import csv_bytes, error_report_pdf_bytes, json_bytes, tsv_bytes
 from app.services.summaries import (
@@ -109,6 +110,28 @@ async def prometheus_metrics_middleware(request: Request, call_next: Any) -> Res
         route_tmpl = get_route_template(request)
         REQUEST_COUNT.labels(route=route_tmpl, method=request.method, status=status_code).inc()
         REQUEST_LATENCY.labels(route=route_tmpl, method=request.method, status=status_code).observe(duration_sec)
+
+
+rate_limiter = RateLimiter(
+    max_requests=int(os.getenv("RATE_LIMIT_MAX_REQUESTS", "200")),
+    window_seconds=int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "60")),
+)
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next: Any) -> Response:
+    if request.url.path.startswith("/api/") and request.url.path not in ("/api/health", "/api/ready"):
+        try:
+            rate_limiter.check(request)
+        except HTTPException as exc:
+            from fastapi.responses import JSONResponse
+
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"detail": exc.detail},
+                headers=dict(exc.headers or {}),
+            )
+    return await call_next(request)
 
 
 @app.middleware("http")

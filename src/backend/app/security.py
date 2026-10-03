@@ -10,8 +10,14 @@ Supports:
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import logging
+import os
 import secrets
+import threading
+import time
+import uuid
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -19,7 +25,13 @@ from typing import Any
 import jwt
 from fastapi import Header, HTTPException, Request, status
 
+try:
+    import redis
+except ImportError:
+    redis = None  # type: ignore
+
 from app.config import AuthSettings
+from app.metrics import RATE_LIMIT_REJECTIONS
 
 logger = logging.getLogger("edipro.security")
 
@@ -275,3 +287,238 @@ def require_role(min_role: str) -> Callable:
         return identity
 
     return role_dependency
+
+
+def authenticate_request(
+    request: Request, settings: AuthSettings | None = None
+) -> AuthIdentity | None:
+    """Resolve and verify identity from request state, Authorization header, or X-API-Key."""
+    identity: AuthIdentity | None = getattr(request.state, "auth_identity", None)
+    if identity:
+        return identity
+
+    if settings is None:
+        settings = AuthSettings.from_env()
+
+    auth_hdr = request.headers.get("authorization", "")
+    if auth_hdr.lower().startswith("bearer "):
+        token = auth_hdr[7:].strip()
+        try:
+            identity = verify_bearer_token(token, settings)
+            request.state.auth_identity = identity
+            return identity
+        except Exception:  # noqa: BLE001
+            return None
+
+    api_key = request.headers.get("x-api-key", "")
+    if api_key:
+        identity = verify_api_key(api_key.strip(), settings)
+        if identity:
+            request.state.auth_identity = identity
+            return identity
+
+    return None
+
+
+def is_trusted_proxy(ip_str: str, trusted_proxies_env: str | None = None) -> bool:
+    """Check if given IP matches any address or CIDR network in TRUSTED_PROXIES."""
+    raw = (
+        trusted_proxies_env
+        if trusted_proxies_env is not None
+        else os.getenv("TRUSTED_PROXIES", "")
+    )
+    if not raw.strip() or not ip_str.strip():
+        return False
+    try:
+        ip = ipaddress.ip_address(ip_str.strip())
+    except ValueError:
+        return False
+
+    for item in raw.split(","):
+        cidr = item.strip()
+        if not cidr:
+            continue
+        try:
+            net = ipaddress.ip_network(cidr, strict=False)
+            if ip in net:
+                return True
+        except ValueError:
+            continue
+    return False
+
+
+def get_client_ip(request: Request, trusted_proxies_env: str | None = None) -> str:
+    """
+    Resolve client IP:
+    If direct connection IP is in TRUSTED_PROXIES, use first IP in X-Forwarded-For;
+    otherwise use direct client host (preventing X-Forwarded-For spoofing).
+    """
+    direct_ip = request.client.host if request.client else "127.0.0.1"
+    if is_trusted_proxy(direct_ip, trusted_proxies_env):
+        xff = request.headers.get("x-forwarded-for")
+        if xff:
+            first_ip = xff.split(",")[0].strip()
+            if first_ip:
+                return first_ip
+    return direct_ip
+
+
+class BaseRateLimiter(ABC):
+    """Abstract sliding window rate limiter backend."""
+
+    @abstractmethod
+    def is_allowed(
+        self, key: str, max_requests: int, window_seconds: int
+    ) -> tuple[bool, int]:
+        """Return (allowed: bool, retry_after: int)."""
+
+    @abstractmethod
+    def reset(self) -> None:
+        """Reset rate limiter state."""
+
+
+class InMemoryRateLimiter(BaseRateLimiter):
+    """Thread-safe in-memory sliding window rate limiter."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._history: dict[str, list[float]] = {}
+
+    def is_allowed(
+        self, key: str, max_requests: int, window_seconds: int
+    ) -> tuple[bool, int]:
+        now = time.time()
+        window_start = now - window_seconds
+        with self._lock:
+            timestamps = self._history.get(key, [])
+            valid_timestamps = [t for t in timestamps if t > window_start]
+            if len(valid_timestamps) >= max_requests:
+                oldest = valid_timestamps[0]
+                retry_after = max(1, int(window_seconds - (now - oldest)) + 1)
+                self._history[key] = valid_timestamps
+                return False, retry_after
+
+            valid_timestamps.append(now)
+            self._history[key] = valid_timestamps
+            return True, 0
+
+    def reset(self) -> None:
+        with self._lock:
+            self._history.clear()
+
+
+class RedisRateLimiter(BaseRateLimiter):
+    """Redis-backed sliding window rate limiter using sorted sets."""
+
+    def __init__(self, redis_client: Any) -> None:
+        self.client = redis_client
+
+    def is_allowed(
+        self, key: str, max_requests: int, window_seconds: int
+    ) -> tuple[bool, int]:
+        redis_key = f"ratelimit:{key}"
+        now = time.time()
+        clear_before = now - window_seconds
+
+        pipe = self.client.pipeline()
+        pipe.zremrangebyscore(redis_key, 0, clear_before)
+        pipe.zcard(redis_key)
+        pipe.zrange(redis_key, 0, 0, withscores=True)
+        results = pipe.execute()
+
+        current_count = results[1]
+        if current_count < max_requests:
+            p2 = self.client.pipeline()
+            member = f"{now}:{uuid.uuid4().hex[:6]}"
+            p2.zadd(redis_key, {member: now})
+            p2.expire(redis_key, int(window_seconds) + 1)
+            p2.execute()
+            return True, 0
+        else:
+            oldest_score = results[2][0][1] if results[2] else now
+            retry_after = max(1, int(window_seconds - (now - oldest_score)) + 1)
+            return False, retry_after
+
+    def reset(self) -> None:
+        try:
+            keys = self.client.keys("ratelimit:*")
+            if keys:
+                self.client.delete(*keys)
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("Redis rate limit reset error: %s", exc)
+
+
+class RateLimiter:
+    """
+    Sliding window rate limiter supporting both in-memory and Redis backends.
+    - Keyed by subject if authenticated else client IP
+    - Honors X-Forwarded-For only from trusted proxies (TRUSTED_PROXIES)
+    - Defaults to in-memory; uses Redis when REDIS_URL or redis_client is provided
+    - Increments RATE_LIMIT_REJECTIONS and raises HTTP 429 on limit breach
+    """
+
+    def __init__(
+        self,
+        max_requests: int = 100,
+        window_seconds: int = 60,
+        redis_url: str | None = None,
+        redis_client: Any | None = None,
+        trusted_proxies: str | None = None,
+    ) -> None:
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self.trusted_proxies = trusted_proxies
+
+        if redis_client is not None:
+            self.backend: BaseRateLimiter = RedisRateLimiter(redis_client)
+        else:
+            effective_redis_url = redis_url or os.getenv("REDIS_URL")
+            if effective_redis_url and redis is not None:
+                try:
+                    r_client = redis.from_url(effective_redis_url, decode_responses=True)
+                    r_client.ping()
+                    self.backend = RedisRateLimiter(r_client)
+                    logger.info("Configured Redis-backed rate limiter at %s", effective_redis_url)
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning(
+                        "Failed to connect to Redis at %s (%s); falling back to in-memory rate limiter",
+                        effective_redis_url,
+                        exc,
+                    )
+                    self.backend = InMemoryRateLimiter()
+            else:
+                self.backend = InMemoryRateLimiter()
+
+    def get_rate_limit_key(self, request: Request) -> str:
+        # Keyed by subject if authenticated
+        identity = authenticate_request(request)
+        if identity and identity.subject and identity.subject != "anonymous":
+            return f"sub:{identity.subject}"
+
+        # Otherwise keyed by client IP
+        client_ip = get_client_ip(request, self.trusted_proxies)
+        return f"ip:{client_ip}"
+
+    def check(
+        self,
+        request: Request,
+        max_requests: int | None = None,
+        window_seconds: int | None = None,
+    ) -> None:
+        limit = max_requests if max_requests is not None else self.max_requests
+        window = window_seconds if window_seconds is not None else self.window_seconds
+
+        key = self.get_rate_limit_key(request)
+        allowed, retry_after = self.backend.is_allowed(key, limit, window)
+
+        if not allowed:
+            RATE_LIMIT_REJECTIONS.inc()
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too Many Requests. Rate limit exceeded.",
+                headers={"Retry-After": str(retry_after)},
+            )
+
+    async def __call__(self, request: Request) -> None:
+        self.check(request)
+
