@@ -10,8 +10,16 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import app.main as app_main
+import pytest
 from app.main import app
 from fastapi.testclient import TestClient
+
+
+@pytest.fixture(autouse=True)
+def reset_shutdown_flag():
+    app_main._is_shutting_down = False
+    yield
+    app_main._is_shutting_down = False
 
 
 def test_liveness_endpoint():
