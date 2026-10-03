@@ -9,12 +9,13 @@ import sys
 import time
 import uuid
 import zipfile
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import jwt
-from fastapi import Depends, FastAPI, File, HTTPException, Request, Response, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Request, Response, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -48,8 +49,22 @@ from app.services.summaries import (
 )
 
 _SERVER_START_TIME: datetime = datetime.now(timezone.utc)
+_is_shutting_down = False
 
-app = FastAPI(title="EdiPro Healthcare EDI Parser API", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    global _is_shutting_down
+    _is_shutting_down = False
+    yield
+    _is_shutting_down = True
+
+
+app = FastAPI(
+    title="EdiPro Healthcare EDI Parser API",
+    version="1.0.0",
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -280,6 +295,38 @@ def get_metrics(request: Request) -> Response:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/ready")
+def readiness_check() -> dict[str, Any]:
+    if _is_shutting_down:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"status": "shutting_down", "ready": False},
+        )
+
+    try:
+        from validedi.engine.config_loader import ConfigLoader
+
+        loader = ConfigLoader()
+        loaded = []
+        for txn in ("837p", "837i", "835", "834"):
+            cfg = loader.get_config(txn)
+            if not cfg or not hasattr(cfg, "rules"):
+                raise ValueError(f"Config for {txn} missing or invalid")
+            loaded.append(txn)
+
+        return {
+            "status": "ready",
+            "ready": True,
+            "validation_config": "loaded",
+            "transactions": loaded,
+        }
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"status": "not_ready", "ready": False, "error": str(exc)},
+        ) from exc
 
 
 @app.get("/api/auth/config")
