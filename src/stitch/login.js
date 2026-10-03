@@ -170,6 +170,7 @@ async function initLogin() {
     const el = document.getElementById('login-global-error');
     if (el) {
       el.textContent = msg;
+      el.classList.remove('is-hidden');
       el.style.display = 'block';
     }
   }
@@ -199,7 +200,10 @@ async function initLogin() {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const globalErr = document.getElementById('login-global-error');
-      if (globalErr) globalErr.style.display = 'none';
+      if (globalErr) {
+        globalErr.classList.add('is-hidden');
+        globalErr.style.display = 'none';
+      }
 
       const pwVal = document.getElementById('password').value.trim();
       const pwWrap = document.getElementById('pw-wrap');
@@ -230,12 +234,9 @@ async function initLogin() {
           return;
         }
 
-        showError('Authentication failed. Invalid API key (HTTP ' + res.status + ').');
+        showError('Invalid API key or insufficient permissions.');
       } catch (err) {
-        sessionStorage.setItem('edipro_api_key', pwVal);
-        sessionStorage.setItem('edipro_auth_enabled', 'false');
-        window.location.href = 'dashboard_sleek/code.html';
-        return;
+        showError('Unable to connect to authentication server: ' + err.message);
       } finally {
         signinBtn.classList.remove('loading');
         signinBtn.textContent = 'Sign In with API Key';

@@ -243,33 +243,19 @@ async function initDashboard() {
 
         showToast('File Processed', `${file.name} validated successfully.`, 'success');
       } catch (err) {
-        // Fallback for demo parsing if backend upload had client-side error
-        const fn = file.name.toUpperCase();
-        let detectedType = '837P';
-        let claimId = 'CLAIM001';
-        let billed = 500.00;
-        let paid = 450.00;
-        let adjustments = 50.00;
-
-        if (fn.includes('835') || file.type_override === '835') {
-          detectedType = '835';
-        } else if (fn.includes('834') || file.type_override === '834') {
-          detectedType = '834';
-        }
-
+        showToast('Upload Failed', `Could not upload ${file.name}: ${err.message || 'Server connection error'}`, 'error');
         ediStore.saveSubmission({
           filename: file.name,
-          type: detectedType,
-          errorCount: 0,
-          valid: true,
-          claimId,
-          billed,
-          paid,
-          adjustments,
-          amount: detectedType === '835' ? paid : billed,
+          type: 'ERROR',
+          errorCount: 1,
+          valid: false,
+          claimId: '—',
+          billed: 0,
+          paid: 0,
+          adjustments: 0,
+          amount: 0,
           timeLabel: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
-        showToast('Processed', `${file.name} registered.`, 'info');
       }
     }
 
