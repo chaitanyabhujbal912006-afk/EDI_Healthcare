@@ -47,7 +47,11 @@ from validedi.extractors import (
 # Import exporters
 from validedi.exporters import export_json, export_json_to_file, export_errors_csv, export_claims_csv
 
-__version__ = "0.4.0"
+try:
+    from importlib.metadata import version as _meta_version, PackageNotFoundError as _PackageNotFoundError
+    __version__ = _meta_version("validedi")
+except (_PackageNotFoundError, ImportError, Exception):
+    __version__ = "0.4.0"
 
 __all__ = [
     # Core functions

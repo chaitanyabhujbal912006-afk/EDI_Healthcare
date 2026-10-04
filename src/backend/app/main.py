@@ -52,6 +52,36 @@ _SERVER_START_TIME: datetime = datetime.now(timezone.utc)
 _is_shutting_down = False
 
 
+def get_library_version() -> str:
+    """Read the library version via importlib.metadata with fallback."""
+    try:
+        import importlib.metadata
+        return importlib.metadata.version("validedi")
+    except Exception:
+        try:
+            import validedi
+            return getattr(validedi, "__version__", "0.4.0")
+        except Exception:
+            return "0.4.0"
+
+
+def get_api_version() -> str:
+    """Read the API version from env var API_VERSION or a VERSION file."""
+    env_ver = os.getenv("API_VERSION")
+    if env_ver:
+        return env_ver.strip()
+    candidates = [
+        Path(__file__).resolve().parent.parent.parent.parent / "VERSION",
+        Path(__file__).resolve().parent.parent.parent / "VERSION",
+        Path(__file__).resolve().parent / "VERSION",
+        Path("VERSION").resolve(),
+    ]
+    for p in candidates:
+        if p.is_file():
+            return p.read_text(encoding="utf-8").strip()
+    return "1.0.0"
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     global _is_shutting_down
@@ -62,7 +92,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="EdiPro Healthcare EDI Parser API",
-    version="1.0.0",
+    version=get_api_version(),
     lifespan=lifespan,
 )
 
@@ -380,7 +410,7 @@ def health_detailed(_identity: AuthIdentity = Depends(require_role("admin"))) ->
             "max_upload_mb": MAX_UPLOAD_SIZE // (1024 * 1024),
             "max_batch_mb": MAX_BATCH_SIZE // (1024 * 1024),
         },
-        "engine_version": "1.0.0",
+        "engine_version": get_api_version(),
         "llm_providers": ["Groq/Llama-3.3", "HuggingFace", "Rule-based Fallback"],
     }
 
@@ -389,9 +419,9 @@ def health_detailed(_identity: AuthIdentity = Depends(require_role("admin"))) ->
 def version(_identity: AuthIdentity = Depends(require_role("viewer"))) -> dict[str, Any]:
     return {
         "application": "EdiPro Healthcare EDI Gateway",
-        "api_version": "1.0.0",
+        "api_version": get_api_version(),
         "library": "validedi",
-        "library_version": "0.4.0",
+        "library_version": get_library_version(),
         "python_version": sys.version,
         "python_short": platform.python_version(),
         "platform": platform.system(),
