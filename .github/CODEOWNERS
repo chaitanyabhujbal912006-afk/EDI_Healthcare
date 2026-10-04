@@ -1,0 +1,20 @@
+# Global repository ownership
+* @chaitanyabhujbal912006-afk
+
+# Core EDI parser and validator engine
+/src/validedi/ @chaitanyabhujbal912006-afk
+
+# Backend API service and security layers
+/src/backend/ @chaitanyabhujbal912006-afk
+
+# Frontend dashboard and UI assets
+/src/stitch/ @chaitanyabhujbal912006-afk
+
+# GitHub Actions, security scanning, and deployment workflows
+/.github/ @chaitanyabhujbal912006-afk
+
+# Configuration and transaction rulesets
+/src/validedi/config/ @chaitanyabhujbal912006-afk
+
+# Performance benchmarks and testing suites
+/tests/ @chaitanyabhujbal912006-afk
