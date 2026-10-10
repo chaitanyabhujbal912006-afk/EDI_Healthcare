@@ -1,7 +1,7 @@
 # Multi-stage Docker build for EdiPro Production Deployment
 
 # --- Stage 1: Build Frontend Assets ---
-FROM node:20-alpine AS frontend-builder
+FROM node:25-alpine AS frontend-builder
 WORKDIR /app
 COPY src/stitch/package*.json ./
 RUN npm ci
