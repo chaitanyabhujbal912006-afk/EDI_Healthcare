@@ -1,4 +1,4 @@
-﻿fastapi==0.115.6
+fastapi==0.115.6
 uvicorn[standard]==0.34.0
 python-multipart==0.0.20
 pydantic==2.10.5
@@ -16,5 +16,5 @@ pytest-cov>=4.0.0
 mypy>=1.0.0
 black>=23.0.0
 ruff>=0.1.0
-fakeredis>=2.20.0
+fakeredis>=2.39.0
 hypothesis>=6.0.0
