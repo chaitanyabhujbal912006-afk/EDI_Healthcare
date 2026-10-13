@@ -41,7 +41,7 @@ pyjwt[crypto]==2.15.1
 pytest==9.1.1
 pytest-cov==7.1.0
 python-dotenv==1.2.4
-python-multipart==0.0.20
+python-multipart==0.0.32
 pytokens==0.4.1
 pyyaml==6.0.3
 redis==8.1.0
