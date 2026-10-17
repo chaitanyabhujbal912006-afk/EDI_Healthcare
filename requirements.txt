@@ -7,7 +7,7 @@ attrs==26.1.0
 black==26.10.0
 certifi==2026.7.22
 cffi==2.1.1
-chardet==7.6.0
+charset-normalizer==3.5.2
 click==8.5.0
 coverage[toml]==7.16.2
 cryptography==50.0.2
@@ -46,7 +46,7 @@ pytokens==0.4.1
 pyyaml==6.0.3
 redis==8.1.0
 referencing==0.37.0
-reportlab==4.2.5
+reportlab==5.0.1
 rpds-py==0.30.0
 ruff==0.17.0
 sortedcontainers==2.4.0
