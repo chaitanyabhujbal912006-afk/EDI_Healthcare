@@ -48,7 +48,7 @@ redis==8.1.0
 referencing==0.37.0
 reportlab==4.2.5
 rpds-py==0.30.0
-ruff==0.17.0
+ruff==0.17.1
 sortedcontainers==2.4.0
 starlette==0.41.3
 tomli==2.5.0
